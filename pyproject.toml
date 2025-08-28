@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=75.3.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "TOIREx"
+version = "0"
+description = "Package to reduce photometric and spectroscopic data from Optical to NIR instruments."
+readme = "README.md"
+requires-python = ">=3.0"
+license = {text = "MIT"}
+authors = [
+    { name = "Varghese Reji", email = "varghesereji0007@gmail.com" }
+]
+dependencies = [
+    "requests>=2.28.0",
+    "numpy>=1.21"
+]
+keywords = ["example", "package"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/varghesereji/TOIREx"
+"Repository" = "https://github.com/varghesereji/TOIREx"
