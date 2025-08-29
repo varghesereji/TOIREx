@@ -14,7 +14,9 @@ authors = [
 ]
 dependencies = [
     "requests>=2.28.0",
-    "numpy>=1.21"
+    "numpy>=1.21",
+    "pyfiglet",
+    "colorama"
 ]
 keywords = ["example", "package"]
 classifiers = [
