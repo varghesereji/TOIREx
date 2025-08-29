@@ -26,3 +26,10 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/varghesereji/TOIREx"
 "Repository" = "https://github.com/varghesereji/TOIREx"
+
+[project.scripts]
+toirex = "toirex.extract_data:main"
+
+[tool.setuptools.package-data]
+"toirex" = ["data/*", "config/*"]
+
