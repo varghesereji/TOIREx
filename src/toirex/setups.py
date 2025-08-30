@@ -48,6 +48,21 @@ def read_config(configfile):
     return config
 
 
+def create_config(configfilename, entries):
+    '''
+    This function is to write a new config file.
+    Inputs
+    ------
+    configfilename: Name of the config file with path.
+    entries: Keywords and values as a dictionary.
+    '''
+    config = configparser.ConfigParser()
+    for section, options in entries.items():
+        config[section] = options
+    with open(configfilename, "w") as configs:
+        config.write(configs)
+
+
 def read_args():
     '''
     Read the argument while execution.
