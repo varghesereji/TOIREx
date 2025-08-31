@@ -6,6 +6,9 @@ from .setups import read_args
 from .setups import print_banner
 from .setups import create_dir
 from .setups import read_dirs
+from .setups import add_dict_keywords
+
+from .obscatalog import create_catalog
 
 
 def get_directories(config, required='list'):
@@ -13,7 +16,7 @@ def get_directories(config, required='list'):
         datadirs = config['inits']['DATA']
     else:
         datadirs = config['inits']['DATA'].strip().split(",")
-    opdir = config['inits']['OP_DIR']
+    opdir = config['outputs']['OP_DIR']
     return opdir, datadirs
 
 
@@ -29,14 +32,7 @@ def create_fileslog(config):
     print("Running Task 0")
     for datadir in all_datadirs:
         print("Running for the directory {}".format(datadir))
-        dictname = Path(datadir)
-        fits_files = list(dictname.glob("*.fits"))
-        # print(fits_files)
-
-
-tasks_dict = {
-    0: create_fileslog
-    }
+        create_catalog(datadir, config)
 
 
 def main():
@@ -44,6 +40,7 @@ def main():
     args = parser.parse_args()
     configfilename = args.config
     config = read_config(configfilename)
+    config = add_dict_keywords(config)
     instrument = config['inits']['INSTRUMENT']
 
     print_banner()
@@ -82,7 +79,7 @@ def main():
     if len(nights) == 0:
         # Since no entries in main config and data config,
         # taking manual entry.
-        
+
         dirs_avl = read_dirs()  # Listing the available directories
         dirs_avl.remove(opdir)  # Removing the output directory.
         print("Available nights are:", ", ".join(dirs_avl))
@@ -123,6 +120,11 @@ def main():
     # Calling tasks.
     task = input("Enter the task you want to run:")
     tasks_dict[int(task)](config)
+
+
+tasks_dict = {
+    0: create_fileslog
+    }
 
 if __name__ == "__main__":
     main()

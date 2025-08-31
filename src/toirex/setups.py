@@ -80,12 +80,23 @@ def print_banner():
     init(autoreset=True)  # Automatically reset colors after print
 
     text = "TOIRex"
-   
-    ascii_art = pyfiglet.figlet_format(text, font='slant')  # Try different fonts!
-   
+
+    ascii_art = pyfiglet.figlet_format(text, font='slant')
+
     print('====== Welcome to ==========')
     print(Fore.CYAN + ascii_art + Style.RESET_ALL)
     print('\t Data reduction pipeline')
+
+
+def add_dict_keywords(config):
+    instrument = config['inits']['INSTRUMENT']
+    todo = config['inits']['TODO']
+    if (instrument == 'TANSPEC') & (todo == 'S'):
+        dictkw = 'SpecTANSPEC'
+    config['inits']['DICTKW'] = dictkw
+    return config
+
+
 
 
 # End
