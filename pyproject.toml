@@ -30,7 +30,7 @@ classifiers = [
 "Repository" = "https://github.com/varghesereji/TOIREx"
 
 [project.scripts]
-toirex = "toirex.extract_data:main"
+toirex = "toirex.toirex_main:main"
 
 [tool.setuptools.package-data]
 "toirex" = ["data/*", "config/*"]
