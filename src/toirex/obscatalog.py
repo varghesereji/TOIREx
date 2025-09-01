@@ -55,6 +55,7 @@ def create_catalog(dirname, config):
     # Sorting the filenames based on FNUM
     fnamesortfunc = functions_dict[dictkw]['filename_sort_func']
     sorted_files = sorted(fitsfiles, key=fnamesortfunc)
+
     for filename in sorted_files:
         # To avoid selecting wrong frames,
         # making a decision weather a file to select or not.
@@ -62,7 +63,6 @@ def create_catalog(dirname, config):
             'frame_select_function']
         if not frame_decision_function(filename):
             continue
-        print(filename)
         entries_list = extract_catalog_entries(filename, dictkw)
         print(entries_list)
         with open(file_path, 'a') as catalog:

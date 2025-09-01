@@ -93,6 +93,8 @@ def add_dict_keywords(config):
     todo = config['inits']['TODO']
     if (instrument == 'TANSPEC') & (todo == 'S'):
         dictkw = 'SpecTANSPEC'
+    elif instrument == 'TIRSPEC':
+        dictkw = 'TIRSPEC'
     config['inits']['DICTKW'] = dictkw
     return config
 
