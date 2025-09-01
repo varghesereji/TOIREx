@@ -35,6 +35,19 @@ def create_fileslog(config):
         create_catalog(datadir, config)
 
 
+def select_files(config):
+    '''
+    Task 1.
+    Selection of files for reduction.
+    Input
+    -------
+    Main config.
+    '''
+    opdir, all_datadirs = get_directories(config)
+    print("Running Task 1")
+    print("This function will be added soon")
+
+
 def main():
     parser = read_args()
     args = parser.parse_args()
@@ -117,13 +130,33 @@ def main():
     for subdir in dirs:
         create_dir(opdir+"/"+subdir)
 
-    # Calling tasks.
-    task = input("Enter the task you want to run:")
-    tasks_dict[int(task)](config)
+    tasks_list = tasks_dict.keys()
+    print('-'*50)
+    print('\n The following are the tasks')
 
+    for tasks in tasks_list:
+        print('\nTask {}: {}'.format(tasks, tasks_dict[int(tasks)]['menu']))
+    print('-'*50)
+    # Calling tasks.
+    print('\n')
+    print("Enter the serial numbers", end="")
+    print("(Space separated if more than one task in succession).")
+    task = input("Enter the tasks you want to run:")
+    task_list = task.strip().split(' ')
+    for onetask in task_list:
+        print('\n')
+        tasks_dict[int(onetask)]['function'](config)
+        print('\nTask {} over'.format(onetask))
+        print('*'*50)
 
 tasks_dict = {
-    0: create_fileslog
+    0: {'function': create_fileslog,
+        'menu': "Generate the catalog of fits files in each directory"
+        },
+    1: {'function': select_files,
+        'menu': "Select files"
+        }
+
     }
 
 if __name__ == "__main__":
