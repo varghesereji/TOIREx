@@ -64,8 +64,10 @@ def create_catalog(dirname, config):
         if not frame_decision_function(filename):
             continue
         entries_list = extract_catalog_entries(filename, dictkw)
-        print(entries_list)
+        flagged_list = functions_dict[dictkw][
+            'catalog_flag'](entries_list)
+        # print(entries_list)
         with open(file_path, 'a') as catalog:
-            catalog.write(' '.join(entries_list) + '\n')
+            catalog.write(' '.join(flagged_list) + '\n')
 
 # End
