@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import re
 from pathlib import Path
 import numpy as np
@@ -57,7 +59,6 @@ def catalog_flag_tanspec(flog_list):
     cont1_pos = headers_list == 'CONT1L'
     cont2_pos = headers_list == 'CONT2L'
     calmir_pos = headers_list == 'CALMIR'
-    print(flog_list, )
     flog_list_red = np.array(flog_list[1:])
     argon_flag = flog_list_red[argon_pos]
     neon_flag = flog_list_red[neon_pos]
@@ -145,13 +146,14 @@ functions_dict = {
         'StandardiseHeader': standardiseheader_spectanspec,
         'frame_select_function': frameselect_decision_spectanspec,
         'catalog_headers': [
-            'FNUM', 'A_UTC', 'DATE_OBS', 'CONTGAIN',
+            'FNUM', 'A_UTC', 'DATE_OBS',
             'ITIMEREQ', 'FILTER', 'GRATING', 'SLIT',
             'CALMIR', 'OBJECT',
             'ARGONL', 'NEONL', 'CONT1L', 'CONT2L',
             'A_TRGTRA', 'A_TRGTDE'
                             ],
-        'catalog_flag': catalog_flag_tanspec
+        'catalog_flag': catalog_flag_tanspec,
+        'grouping_keys': ['GRATING', 'SLIT', 'A_TRGTRA', 'A_TRGTDE']
     },
     'TIRSPEC': {
         'filename_sort_func': sort_filename_key_function_TIRSPEC,

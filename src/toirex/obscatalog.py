@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
+
 from pathlib import Path
+from collections import defaultdict
 
 from .instrument import functions_dict
-from .utils import read_fits_header
 
 
 def extract_catalog_entries(fname, dictkw):
@@ -70,4 +72,21 @@ def create_catalog(dirname, config):
         with open(file_path, 'a') as catalog:
             catalog.write(' '.join(flagged_list) + '\n')
 
+
+def read_catalog(dirname, config):
+    catalog_name = config['outputs']['CATALOGUE_NAME']
+    catalog_path = Path(config['outputs']['OP_DIR']) / dirname
+    file_path = catalog_path / catalog_name
+    dictkw = config['inits']['DICTKW']
+    header_keys = functions_dict[dictkw]['catalog_headers']
+    header_keys.append("FLAG")
+    header_keys.insert(0, "FNAME")
+    catalogue_dict = defaultdict(list)
+    with open(file_path, 'r') as catalogs:
+        for entries in catalogs:
+            entry_list = entries.strip().split(' ')
+            for n, element in enumerate(entry_list):
+                # print(n, header_keys)
+                catalogue_dict[header_keys[n]].append(element)
+    return catalogue_dict
 # End

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 from pathlib import Path
 
@@ -9,7 +10,9 @@ from .setups import read_dirs
 from .setups import add_dict_keywords
 
 from .obscatalog import create_catalog
-
+from .obscatalog import read_catalog
+from .grouping_frames import ordered_keys
+from .grouping_frames import grouping_items
 
 def get_directories(config, required='list'):
     if required == 'string':
@@ -45,7 +48,13 @@ def select_files(config):
     '''
     opdir, all_datadirs = get_directories(config)
     print("Running Task 1")
-    print("This function will be added soon")
+    for datadir in all_datadirs:
+        print("Running for the directory {}".format(datadir))
+        catalogue_dict = read_catalog(datadir, config)
+        ordered_dict = ordered_keys(catalogue_dict, config)
+        groups_dict = grouping_items(ordered_dict, catalogue_dict)
+        print(groups_dict)
+    # print("This function will be added soon")
 
 
 def main():
