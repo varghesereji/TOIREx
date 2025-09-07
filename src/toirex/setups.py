@@ -70,7 +70,8 @@ def read_args():
     Read the argument while execution.
     This function will take the config file.
     '''
-    parser = argparse.ArgumentParser(description="Run data extraction pipeline")
+    parser = argparse.ArgumentParser(
+        description="Run data extraction pipeline")
     parser.add_argument('config', type=str, help="Config file name")
     return parser
 
@@ -99,8 +100,6 @@ def add_dict_keywords(config):
         dictkw = 'TIRSPEC'
     config['inits']['DICTKW'] = dictkw
     return config
-
-
 
 
 # End

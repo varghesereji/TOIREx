@@ -4,6 +4,7 @@ from pathlib import Path
 from collections import defaultdict
 
 from .instrument import functions_dict
+from .instrument import instrument_class
 
 
 def extract_catalog_entries(fname, dictkw):
@@ -13,11 +14,12 @@ def extract_catalog_entries(fname, dictkw):
     This list will be used to enter into the catalog.
     '''
     # Standardising header with the function appropriate to the instrument.
-    std_header_func = functions_dict[dictkw]['StandardiseHeader']
-    std_header = std_header_func(fname)
+    # std_header_func = functions_dict[dictkw]['StandardiseHeader']
+    instrument = instrument_class[dictkw]
+    std_header = instrument.standardise_header(fname)
 
     # Using the keywords required for specific instrument.
-    required_kws = functions_dict[dictkw]['catalog_headers']
+    required_kws = instrument.catalog_headers
     entries = [Path(fname).name]
     for kws in required_kws:
         entries.append(str(std_header[kws]))
@@ -53,9 +55,10 @@ def create_catalog(dirname, config):
     fitsfiles = dirname.glob("*.fits")
 
     dictkw = config['inits']['DICTKW']  # Calling the dictionary keyword.
-
+    instrument = instrument_class[dictkw]
     # Sorting the filenames based on FNUM
-    fnamesortfunc = functions_dict[dictkw]['filename_sort_func']
+    # fnamesortfunc = functions_dict[dictkw]['filename_sort_func']
+    fnamesortfunc = instrument.sort_filename_key
     sorted_files = sorted(fitsfiles, key=fnamesortfunc)
 
     for filename in sorted_files:

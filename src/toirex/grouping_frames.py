@@ -2,7 +2,7 @@
 from collections import defaultdict
 import numpy as np
 
-from .instrument import functions_dict
+from .instrument import instrument_class
 
 
 def remove_repeated_values(candidate_list):
@@ -35,8 +35,8 @@ def ordered_keys(catalog_dict, config):
     # print(catalog_dict)
     # catalog_list = np.array(catalog_list)
     dictkw = config['inits']['DICTKW']  # Calling the directory keyword
-    grouping_keys = functions_dict[dictkw]['grouping_keys']
-    dict_keys = list(catalog_dict.keys())
+    grouping_keys = instrument_class[dictkw].grouping_keys
+    # dict_keys = list(catalog_dict.keys())
 
     fnames = np.array(catalog_dict['FNAME'])
     group_entries = []

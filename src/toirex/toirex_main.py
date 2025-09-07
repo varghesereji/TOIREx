@@ -14,6 +14,7 @@ from .obscatalog import read_catalog
 from .grouping_frames import ordered_keys
 from .grouping_frames import grouping_items
 
+
 def get_directories(config, required='list'):
     if required == 'string':
         datadirs = config['inits']['DATA']
