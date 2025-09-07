@@ -52,8 +52,14 @@ def create_catalog(dirname, config):
 
     # Importing all fits files in the directory.
     dirname = Path(dirname)
-    fitsfiles = dirname.glob("*.fits")
-
+    fitsfiles = list(dirname.glob("*.fits"))
+    # Regular expression to remove from the catalog
+    remove_regs = config['outputs']['EXCLUDE_REG'].strip().split(",")
+    for regs in remove_regs:
+        sel_names = dirname.glob(regs)
+        for fname in sel_names:
+            if fname in fitsfiles:
+                fitsfiles.remove(fname)
     dictkw = config['inits']['DICTKW']  # Calling the dictionary keyword.
     instrument = instrument_class[dictkw]
     # Sorting the filenames based on FNUM
@@ -88,8 +94,6 @@ def read_catalog(dirname, config):
         for entries in catalogs:
             entry_list = entries.strip().split(' ')
             for n, element in enumerate(entry_list):
-                print(entry_list, element, n, header_keys)
                 catalogue_dict[header_keys[n]].append(element)
-                print("==============")
     return catalogue_dict
 # End
