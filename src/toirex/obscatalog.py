@@ -3,7 +3,7 @@
 from pathlib import Path
 from collections import defaultdict
 
-from .instrument import functions_dict
+
 from .instrument import instrument_class
 
 
@@ -22,7 +22,7 @@ def extract_catalog_entries(fname, dictkw):
     required_kws = instrument.catalog_headers
     entries = [Path(fname).name]
     for kws in required_kws:
-        entries.append(str(std_header[kws]))
+        entries.append(str(std_header[kws]).replace(" ", "_"))
     return entries
 
 
@@ -64,13 +64,11 @@ def create_catalog(dirname, config):
     for filename in sorted_files:
         # To avoid selecting wrong frames,
         # making a decision weather a file to select or not.
-        frame_decision_function = functions_dict[dictkw][
-            'frame_select_function']
+        frame_decision_function = instrument.frame_select
         if not frame_decision_function(filename):
             continue
         entries_list = extract_catalog_entries(filename, dictkw)
-        flagged_list = functions_dict[dictkw][
-            'catalog_flag'](entries_list)
+        flagged_list = instrument.catalog_flag(entries_list)
         # print(entries_list)
         with open(file_path, 'a') as catalog:
             catalog.write(' '.join(flagged_list) + '\n')
@@ -81,7 +79,8 @@ def read_catalog(dirname, config):
     catalog_path = Path(config['outputs']['OP_DIR']) / dirname
     file_path = catalog_path / catalog_name
     dictkw = config['inits']['DICTKW']
-    header_keys = functions_dict[dictkw]['catalog_headers']
+    instrument = instrument_class[dictkw]
+    header_keys = instrument.catalog_headers
     header_keys.append("FLAG")
     header_keys.insert(0, "FNAME")
     catalogue_dict = defaultdict(list)
@@ -89,7 +88,8 @@ def read_catalog(dirname, config):
         for entries in catalogs:
             entry_list = entries.strip().split(' ')
             for n, element in enumerate(entry_list):
-                # print(n, header_keys)
+                print(entry_list, element, n, header_keys)
                 catalogue_dict[header_keys[n]].append(element)
+                print("==============")
     return catalogue_dict
 # End

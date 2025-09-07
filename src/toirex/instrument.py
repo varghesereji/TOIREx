@@ -84,14 +84,16 @@ class SpecTANSPEC(Instrument):
         ------
         catalog list with flag.
         '''
-        headers_list = np.array(functions_dict['SpecTANSPEC']['catalog_headers'])
+        headers_list = self.catalog_headers
 
+        headers_list = np.array(headers_list)
         argon_pos = headers_list == 'ARGONL'
         neon_pos = headers_list == 'NEONL'
         cont1_pos = headers_list == 'CONT1L'
         cont2_pos = headers_list == 'CONT2L'
         calmir_pos = headers_list == 'CALMIR'
         flog_list_red = np.array(flog_list[1:])
+
         argon_flag = flog_list_red[argon_pos]
         neon_flag = flog_list_red[neon_pos]
         cont1_flag = flog_list_red[cont1_pos]
@@ -119,8 +121,8 @@ class SpecTANSPEC(Instrument):
                                                        '0', '1']):
             object_flag = "CONT2"
 
-            flog_list.append(object_flag)
-            return flog_list
+        flog_list.append(object_flag)
+        return flog_list
 
     @property
     def catalog_headers(self):
@@ -143,6 +145,7 @@ class SpecTANSPEC(Instrument):
 '''
 TIRSPEC instrument
 '''
+
 class TIRSPEC(Instrument):
     name = 'TIRSPEC'
 
