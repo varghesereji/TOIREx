@@ -50,12 +50,14 @@ def select_files(config):
     opdir, all_datadirs = get_directories(config)
     print("Running Task 1")
     for datadir in all_datadirs:
+        # Grouping files
         print("Running for the directory {}".format(datadir))
         groups_dict = grouping_items(config, datadir)
-        for gp, items in groups_dict.items():
-            pass
-            # print(gp, items)
-            # print("="*10)
+        print("Use a comma if you have more than one group")
+        selected_groups = input("Enter the group number you want to reduce:")
+        selected_groups = selected_groups.strip().split(" ")
+        print("You selected the groups")
+        print(groups_dict[int(selected_groups[0])])
     # print("This function will be added soon")
 
 
