@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>toirex package &#8212; TOIREx  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=2bf1fcf8" />
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="TOIREx documentation" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="TOIREx documentation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">TOIREx  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">toirex package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="toirex-package">
+<h1>toirex package<a class="headerlink" href="#toirex-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-toirex.grouping_frames">
+<span id="toirex-grouping-frames-module"></span><h2>toirex.grouping_frames module<a class="headerlink" href="#module-toirex.grouping_frames" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.grouping_frames.grouping_items">
+<span class="sig-prename descclassname"><span class="pre">toirex.grouping_frames.</span></span><span class="sig-name descname"><span class="pre">grouping_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/grouping_frames.html#grouping_items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.grouping_frames.grouping_items" title="Link to this definition">¶</a></dt>
+<dd><p>Group catalogue files by order and flag, excluding flats.</p>
+<p>This function reads a catalogue for the specified directory, determines
+groups of files based on instrument-specific <cite>grouping_keys</cite>, and
+associates each file with its classification flag. The groups are written
+to a text file for inspection and returned as a nested dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – <p>Configuration dictionary containing:
+- <code class="docutils literal notranslate"><span class="pre">config['inits']['DICTKW']</span></code> : str</p>
+<blockquote>
+<div><p>Instrument keyword used to select the instrument from
+<code class="docutils literal notranslate"><span class="pre">instrument_class</span></code>.</p>
+</div></blockquote>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">config['outputs']['OP_DIR']</span></code> : str
+Output directory where the grouped text file will be saved.</p></li>
+</ul>
+</p></li>
+<li><p><strong>dirname</strong> (<em>str</em><em> or </em><em>pathlib.Path</em>) – Subdirectory under the output directory corresponding to the dataset
+being processed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>groups_dict</strong> (<em>dict</em>) – Nested dictionary where:
+- keys are group indices (0, 1, 2, …) from <cite>ordered_keys</cite>.
+- values are dictionaries mapping classification flags (e.g., SCIENCE,</p>
+<blockquote>
+<div><p>ARC, FLAT) to lists of file names belonging to that group.</p>
+</div></blockquote>
+</li>
+<li><p><em>Side Effects</em></p></li>
+<li><p><em>————</em></p></li>
+<li><ul class="simple">
+<li><p>Writes a text file <code class="docutils literal notranslate"><span class="pre">Grouped_txtfile.txt</span></code> to – <code class="docutils literal notranslate"><span class="pre">&lt;config['outputs']['OP_DIR']&gt;/&lt;dirname&gt;</span></code> with a human-readable</p></li>
+</ul>
+<p>summary of groups and associated files.</p>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Flat frames are excluded internally via instrument-specific <cite>flat_kw</cite>.</p></li>
+<li><p>The grouping relies on:
+- <code class="docutils literal notranslate"><span class="pre">read_catalog</span></code> to load the catalogue,
+- <code class="docutils literal notranslate"><span class="pre">instrument_class[dictkw].grouping_keys</span></code> to define group membership,
+- <code class="docutils literal notranslate"><span class="pre">instrument_class[dictkw].flat_grouping_keys</span></code> to associate flats,
+- <code class="docutils literal notranslate"><span class="pre">ordered_keys</span></code> to construct the groups.</p></li>
+<li><p>A placeholder exists for adding continuum flats in the future.</p></li>
+</ul>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">&quot;inits&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;DICTKW&quot;</span><span class="p">:</span> <span class="s2">&quot;TIRSPEC&quot;</span><span class="p">},</span>
+<span class="gp">... </span>    <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;OP_DIR&quot;</span><span class="p">:</span> <span class="s2">&quot;Reduced_data&quot;</span><span class="p">}</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dirname</span> <span class="o">=</span> <span class="s2">&quot;2024-09-08&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">groups</span> <span class="o">=</span> <span class="n">grouping_items</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">dirname</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">groups</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="go">[0, 1, 2]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">groups</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<span class="go">dict_keys([&#39;SCIENCE&#39;, &#39;ARC&#39;])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.grouping_frames.ordered_keys">
+<span class="sig-prename descclassname"><span class="pre">toirex.grouping_frames.</span></span><span class="sig-name descname"><span class="pre">ordered_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">catalog_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grouping_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flats_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat_flag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/grouping_frames.html#ordered_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.grouping_frames.ordered_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Group files by specified catalogue keys and append matching flats.</p>
+<p>This function groups catalogue entries according to a set of header keys
+(e.g., grism, filter, order). For each unique group, it collects the
+corresponding file names and appends any flat frames that match based on
+<cite>flats_keys</cite>. The result is a dictionary mapping group indices to arrays
+of file names (science + flats).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>catalog_dict</strong> (<em>dict</em>) – Dictionary containing the catalogue. Must include:
+- <code class="docutils literal notranslate"><span class="pre">'FNAME'</span></code> : list or array of file names.
+- Additional keys specified in <cite>grouping_keys</cite> and <cite>flats_keys</cite>.</p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – Configuration dictionary (currently unused in this function, but passed
+for consistency with other pipeline functions).</p></li>
+<li><p><strong>grouping_keys</strong> (<em>list</em><em> of </em><em>str</em>) – <dl class="simple">
+<dt>Catalogue dictionary keys used to define the main grouping of science</dt><dd><p>files (e.g., [“OBJECT”, “FILTER”, “GRISM”]).</p>
+</dd>
+<dt>flats_keys<span class="classifier">list of str</span></dt><dd><p>Catalogue dictionary keys used to group flat frames.</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>flat_flag</strong> (<em>list</em><em> of </em><em>str</em>) – List of flags identifying flat frames in the catalogue.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p><strong>grouped_files</strong> – Dictionary where:
+- keys are integer group indices (0, 1, 2, …),
+- values are arrays of file names corresponding to that group,</p>
+<blockquote>
+<div><p>including any matching flat frames.</p>
+</div></blockquote>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Groups are formed by unique combinations of values in <cite>grouping_keys</cite>.</p></li>
+<li><p>Flat frames are grouped separately using <cite>select_flats</cite> and then merged
+into the corresponding science groups if their key values match.</p></li>
+<li><p>Duplicate groups are removed using <cite>remove_repeated_values</cite>.</p></li>
+<li><p>The function preserves the order of first occurrences.</p></li>
+</ul>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">catalog_dict</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">&quot;FNAME&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;sci1.fits&quot;</span><span class="p">,</span> <span class="s2">&quot;sci2.fits&quot;</span><span class="p">,</span> <span class="s2">&quot;flat1.fits&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s2">&quot;FLAG&quot;</span><span class="p">:</span>  <span class="p">[</span><span class="s2">&quot;SCIENCE&quot;</span><span class="p">,</span> <span class="s2">&quot;SCIENCE&quot;</span><span class="p">,</span> <span class="s2">&quot;FLAT&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s2">&quot;OBJECT&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;StarA&quot;</span><span class="p">,</span> <span class="s2">&quot;StarA&quot;</span><span class="p">,</span> <span class="s2">&quot;Lamp&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s2">&quot;FILTER&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s2">&quot;GRISM&quot;</span><span class="p">:</span>  <span class="p">[</span><span class="s2">&quot;G1&quot;</span><span class="p">,</span> <span class="s2">&quot;G1&quot;</span><span class="p">,</span> <span class="s2">&quot;G1&quot;</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grouping_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;OBJECT&quot;</span><span class="p">,</span> <span class="s2">&quot;FILTER&quot;</span><span class="p">,</span> <span class="s2">&quot;GRISM&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flats_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;FILTER&quot;</span><span class="p">,</span> <span class="s2">&quot;GRISM&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flat_flag</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;FLAT&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grouped</span> <span class="o">=</span> <span class="n">ordered_keys</span><span class="p">(</span><span class="n">catalog_dict</span><span class="p">,</span> <span class="p">{},</span> <span class="n">grouping_keys</span><span class="p">,</span> <span class="n">flats_keys</span><span class="p">,</span>
+<span class="go">    flat_flag)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">grouped</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="go">[0]   # one science group</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grouped</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">array([&#39;sci1.fits&#39;, &#39;sci2.fits&#39;, &#39;flat1.fits&#39;], dtype=&#39;&lt;U10&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.grouping_frames.remove_repeated_values">
+<span class="sig-prename descclassname"><span class="pre">toirex.grouping_frames.</span></span><span class="sig-name descname"><span class="pre">remove_repeated_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">candidate_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/grouping_frames.html#remove_repeated_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.grouping_frames.remove_repeated_values" title="Link to this definition">¶</a></dt>
+<dd><p>Remove duplicate elements from a list, with special handling for
+NumPy arrays.</p>
+<p>This function iterates through the input list and removes repeated
+elements. Unlike the built-in <cite>set</cite>, it preserves the original order
+and works with elements that are NumPy arrays by comparing their
+contents (via <cite>tolist()</cite>) rather than object identity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>candidate_list</strong> (<em>list</em>) – Input list potentially containing repeated elements. Elements can be
+of arbitrary type, including NumPy arrays.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul>
+<li><dl class="simple">
+<dt><strong>filtered_list</strong> (<em>list</em>) –    A new list with repeated elements removed, preserving the first</dt><dd><p>occurrence of each unique element.</p>
+</dd>
+</dl>
+<p>Notes</p>
+</li>
+<li><p><em>—–</em></p></li>
+<li><p><em>- For NumPy arrays, equality is determined by comparing the result of</em> – <cite>.tolist()</cite>, so arrays with the same contents but different memory
+locations are considered duplicates.</p></li>
+<li><ul class="simple">
+<li><p>The function preserves the order of elements, unlike <cite>set()</cite>.</p></li>
+</ul>
+</li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arr1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arr2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">candidate_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">arr1</span><span class="p">,</span> <span class="n">arr2</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">remove_repeated_values</span><span class="p">(</span><span class="n">candidate_list</span><span class="p">)</span>
+<span class="go">[array([1, 2, 3]), [4, 5], &#39;a&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.grouping_frames.select_flats">
+<span class="sig-prename descclassname"><span class="pre">toirex.grouping_frames.</span></span><span class="sig-name descname"><span class="pre">select_flats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">catalog_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flats_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat_flag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/grouping_frames.html#select_flats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.grouping_frames.select_flats" title="Link to this definition">¶</a></dt>
+<dd><p>Select and group flat frames from a catalogue.</p>
+<p>This function extracts flat frames from the input catalogue based on
+classification flags and groups them according to a set of catalogue
+keys (e.g., grism, filter, order). Duplicate groups are removed using
+<cite>remove_repeated_values</cite>. The grouped flats are returned as a dictionary
+mapping a concatenated string of key values to the corresponding flat
+file names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>catalog_dict</strong> (<em>dict</em>) – Dictionary containing the catalogue. Must include:
+- <code class="docutils literal notranslate"><span class="pre">'FNAME'</span></code> : list or array of file names
+- <code class="docutils literal notranslate"><span class="pre">'FLAG'</span></code> : list or array of classification flags
+- Additional keys specified in <cite>flats_keys</cite>.</p></li>
+<li><p><strong>flats_keys</strong> (<em>list</em><em> of </em><em>str</em>) – List of catalogue dictionary keys used to define unique groups
+(e.g., [“GRISM”, “FILTER”]).</p></li>
+<li><p><strong>flat_flag</strong> (<em>list</em><em> of </em><em>str</em>) – List of flags that identify flat frames in the catalogue.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p><strong>grouped_flats</strong> – Dictionary where:
+- keys are strings obtained by joining the values of the group-defining</p>
+<blockquote>
+<div><p>keys with a space (e.g., “GRISM1 FILTER2”),</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>values are arrays of file names corresponding to that group of flats.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The grouping is done by extracting values from <cite>catalog_dict</cite> at</p></li>
+</ul>
+<dl class="simple">
+<dt>positions</dt><dd><p>where <cite>FLAG</cite> matches <cite>flat_flag</cite>.</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>Duplicate groups are removed using <cite>remove_repeated_values</cite>.</p></li>
+<li><p>The function assumes that the catalogue dictionary values can be indexed
+and broadcast into NumPy arrays.</p></li>
+</ul>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">catalog_dict</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">&quot;FNAME&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;flat1.fits&quot;</span><span class="p">,</span> <span class="s2">&quot;flat2.fits&quot;</span><span class="p">,</span> <span class="s2">&quot;sci1.fits&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s2">&quot;FLAG&quot;</span><span class="p">:</span>  <span class="p">[</span><span class="s2">&quot;FLAT&quot;</span><span class="p">,</span> <span class="s2">&quot;FLAT&quot;</span><span class="p">,</span> <span class="s2">&quot;SCIENCE&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s2">&quot;FILTER&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s2">&quot;GRISM&quot;</span><span class="p">:</span>  <span class="p">[</span><span class="s2">&quot;G1&quot;</span><span class="p">,</span> <span class="s2">&quot;G1&quot;</span><span class="p">,</span> <span class="s2">&quot;G1&quot;</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flats_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;FILTER&quot;</span><span class="p">,</span> <span class="s2">&quot;GRISM&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flat_flag</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;FLAT&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">select_flats</span><span class="p">(</span><span class="n">catalog_dict</span><span class="p">,</span> <span class="n">flats_keys</span><span class="p">,</span> <span class="n">flat_flag</span><span class="p">)</span>
+<span class="go">{&#39;R G1&#39;: array([&#39;flat1.fits&#39;, &#39;flat2.fits&#39;], dtype=&#39;&lt;U10&#39;)}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-toirex.instrument">
+<span id="toirex-instrument-module"></span><h2>toirex.instrument module<a class="headerlink" href="#module-toirex.instrument" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="toirex.instrument.Instrument">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">toirex.instrument.</span></span><span class="sig-name descname"><span class="pre">Instrument</span></span><a class="reference internal" href="_modules/toirex/instrument.html#Instrument"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.Instrument" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Base class for instruments</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="toirex.instrument.Instrument.catalog_flag">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">catalog_flag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flog_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/toirex/instrument.html#Instrument.catalog_flag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.Instrument.catalog_flag" title="Link to this definition">¶</a></dt>
+<dd><p>Return a flagged catalog entry</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.Instrument.catalog_headers">
+<em class="property"><span class="k"><span class="pre">abstract</span></span><span class="w"> </span><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">catalog_headers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#toirex.instrument.Instrument.catalog_headers" title="Link to this definition">¶</a></dt>
+<dd><p>List of catalog headers for this instrument.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.Instrument.flat_grouping_keys">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">flat_grouping_keys</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#toirex.instrument.Instrument.flat_grouping_keys" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.Instrument.flat_kw">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">flat_kw</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#toirex.instrument.Instrument.flat_kw" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="toirex.instrument.Instrument.frame_select">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">frame_select</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/toirex/instrument.html#Instrument.frame_select"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.Instrument.frame_select" title="Link to this definition">¶</a></dt>
+<dd><p>Decide weather to select a frame or not.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.Instrument.grouping_keys">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">grouping_keys</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#toirex.instrument.Instrument.grouping_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Keys used for grouping, optional</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.Instrument.lamp_kw">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lamp_kw</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#toirex.instrument.Instrument.lamp_kw" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="toirex.instrument.Instrument.sort_filename_key">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sort_filename_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/toirex/instrument.html#Instrument.sort_filename_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.Instrument.sort_filename_key" title="Link to this definition">¶</a></dt>
+<dd><p>Return a key for sorting instrument files</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="toirex.instrument.Instrument.standardise_header">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">standardise_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/toirex/instrument.html#Instrument.standardise_header"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.Instrument.standardise_header" title="Link to this definition">¶</a></dt>
+<dd><p>Standardise the FITS header.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="toirex.instrument.SpecTANSPEC">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">toirex.instrument.</span></span><span class="sig-name descname"><span class="pre">SpecTANSPEC</span></span><a class="reference internal" href="_modules/toirex/instrument.html#SpecTANSPEC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.SpecTANSPEC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#toirex.instrument.Instrument" title="toirex.instrument.Instrument"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="toirex.instrument.SpecTANSPEC.catalog_flag">
+<span class="sig-name descname"><span class="pre">catalog_flag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flog_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/toirex/instrument.html#SpecTANSPEC.catalog_flag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.SpecTANSPEC.catalog_flag" title="Link to this definition">¶</a></dt>
+<dd><p>This function is to flag the
+frames as object, argon, neon, cont1
+or cont2. Specific for instrument.
+Input
+——
+flog_list: catalog entries.
+:rtype: catalog list with flag.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.SpecTANSPEC.catalog_headers">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">catalog_headers</span></span><a class="headerlink" href="#toirex.instrument.SpecTANSPEC.catalog_headers" title="Link to this definition">¶</a></dt>
+<dd><p>List of catalog headers for this instrument.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.SpecTANSPEC.flat_grouping_keys">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">flat_grouping_keys</span></span><a class="headerlink" href="#toirex.instrument.SpecTANSPEC.flat_grouping_keys" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.SpecTANSPEC.flat_kw">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">flat_kw</span></span><a class="headerlink" href="#toirex.instrument.SpecTANSPEC.flat_kw" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="toirex.instrument.SpecTANSPEC.frame_select">
+<span class="sig-name descname"><span class="pre">frame_select</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/toirex/instrument.html#SpecTANSPEC.frame_select"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.SpecTANSPEC.frame_select" title="Link to this definition">¶</a></dt>
+<dd><p>This function will decide weather to select a frame or not.
+Since TANSPEC have both image and spectroscopy mode, need to
+decied weather to select certain files or not.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.SpecTANSPEC.grouping_keys">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">grouping_keys</span></span><a class="headerlink" href="#toirex.instrument.SpecTANSPEC.grouping_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Keys used for grouping, optional</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.SpecTANSPEC.lamp_kw">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lamp_kw</span></span><a class="headerlink" href="#toirex.instrument.SpecTANSPEC.lamp_kw" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="toirex.instrument.SpecTANSPEC.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'SpecTANSPEC'</span></em><a class="headerlink" href="#toirex.instrument.SpecTANSPEC.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="toirex.instrument.SpecTANSPEC.sort_filename_key">
+<span class="sig-name descname"><span class="pre">sort_filename_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/toirex/instrument.html#SpecTANSPEC.sort_filename_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.SpecTANSPEC.sort_filename_key" title="Link to this definition">¶</a></dt>
+<dd><p>Return a key for sorting instrument files</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="toirex.instrument.SpecTANSPEC.standardise_header">
+<span class="sig-name descname"><span class="pre">standardise_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/toirex/instrument.html#SpecTANSPEC.standardise_header"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.SpecTANSPEC.standardise_header" title="Link to this definition">¶</a></dt>
+<dd><p>Standardise the FITS header.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="toirex.instrument.TIRSPEC">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">toirex.instrument.</span></span><span class="sig-name descname"><span class="pre">TIRSPEC</span></span><a class="reference internal" href="_modules/toirex/instrument.html#TIRSPEC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.TIRSPEC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#toirex.instrument.Instrument" title="toirex.instrument.Instrument"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="toirex.instrument.TIRSPEC.catalog_flag">
+<span class="sig-name descname"><span class="pre">catalog_flag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flog_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/toirex/instrument.html#TIRSPEC.catalog_flag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.TIRSPEC.catalog_flag" title="Link to this definition">¶</a></dt>
+<dd><p>Return a flagged catalog entry</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.TIRSPEC.catalog_headers">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">catalog_headers</span></span><a class="headerlink" href="#toirex.instrument.TIRSPEC.catalog_headers" title="Link to this definition">¶</a></dt>
+<dd><p>List of catalog headers for this instrument.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.TIRSPEC.flat_kw">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">flat_kw</span></span><a class="headerlink" href="#toirex.instrument.TIRSPEC.flat_kw" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="toirex.instrument.TIRSPEC.frame_select">
+<span class="sig-name descname"><span class="pre">frame_select</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/toirex/instrument.html#TIRSPEC.frame_select"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.TIRSPEC.frame_select" title="Link to this definition">¶</a></dt>
+<dd><p>Decide weather to select a frame or not.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="toirex.instrument.TIRSPEC.grouping_keys">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">grouping_keys</span></span><a class="headerlink" href="#toirex.instrument.TIRSPEC.grouping_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Keys used for grouping, optional</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="toirex.instrument.TIRSPEC.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'TIRSPEC'</span></em><a class="headerlink" href="#toirex.instrument.TIRSPEC.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="toirex.instrument.TIRSPEC.sort_filename_key">
+<span class="sig-name descname"><span class="pre">sort_filename_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/toirex/instrument.html#TIRSPEC.sort_filename_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.TIRSPEC.sort_filename_key" title="Link to this definition">¶</a></dt>
+<dd><p>Return a key for sorting instrument files</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="toirex.instrument.TIRSPEC.standardise_header">
+<span class="sig-name descname"><span class="pre">standardise_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/toirex/instrument.html#TIRSPEC.standardise_header"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.instrument.TIRSPEC.standardise_header" title="Link to this definition">¶</a></dt>
+<dd><p>Standardise the FITS header.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-toirex.obscatalog">
+<span id="toirex-obscatalog-module"></span><h2>toirex.obscatalog module<a class="headerlink" href="#module-toirex.obscatalog" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.obscatalog.create_catalog">
+<span class="sig-prename descclassname"><span class="pre">toirex.obscatalog.</span></span><span class="sig-name descname"><span class="pre">create_catalog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/obscatalog.html#create_catalog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.obscatalog.create_catalog" title="Link to this definition">¶</a></dt>
+<dd><p>Function to create the catalogue of
+files available in the list.
+Inputs
+——
+dirname: Name of the directory.
+config: The main config file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.obscatalog.extract_catalog_entries">
+<span class="sig-prename descclassname"><span class="pre">toirex.obscatalog.</span></span><span class="sig-name descname"><span class="pre">extract_catalog_entries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dictkw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/obscatalog.html#extract_catalog_entries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.obscatalog.extract_catalog_entries" title="Link to this definition">¶</a></dt>
+<dd><p>This function will take the required kewords from
+the header and enter it into a list.
+This list will be used to enter into the catalog.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.obscatalog.read_catalog">
+<span class="sig-prename descclassname"><span class="pre">toirex.obscatalog.</span></span><span class="sig-name descname"><span class="pre">read_catalog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/obscatalog.html#read_catalog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.obscatalog.read_catalog" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-toirex.selecting_frames">
+<span id="toirex-selecting-frames-module"></span><h2>toirex.selecting_frames module<a class="headerlink" href="#module-toirex.selecting_frames" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.selecting_frames.feed_to_txt_file">
+<span class="sig-prename descclassname"><span class="pre">toirex.selecting_frames.</span></span><span class="sig-name descname"><span class="pre">feed_to_txt_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grouped_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/selecting_frames.html#feed_to_txt_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.selecting_frames.feed_to_txt_file" title="Link to this definition">¶</a></dt>
+<dd><p>Write grouped flat and lamp files to separate text files and open them
+in an editor.</p>
+<p>This function takes the grouped files dictionary (produced during
+grouping), identifies the flat-field and lamp calibration frames
+associated with each science object, and writes them into two text
+files:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Objects_flats_group{group}.txt</p></li>
+<li><p>Objects_lamps_group{group}.txt</p></li>
+</ul>
+</div></blockquote>
+<p>Each line in the output file contains one science object filename, followed
+by the list of associated flat or lamp calibration files. After writing,
+each file is opened in the editor specified in the config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grouped_files</strong> (<em>dict</em>) – Dictionary containing grouped science object and calibration file</p></li>
+<li><p><strong>names.</strong> – Must include at least the keys ‘OBJECT’, instrument.flat_kw, and</p></li>
+<li><p><strong>instrument.lamp_kw.</strong></p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – <dl class="simple">
+<dt>Configuration dictionary. Expected to contain:</dt><dd><ul>
+<li><p>config[‘inits’][‘DICTKW’]: key for selecting the instrument class</p></li>
+<li><p>config[‘outputs’][‘OP_DIR’]: output directory path</p></li>
+<li><p>config[‘editor’]: preferred text editor (used by open_in_editor)</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>dirname</strong> (<em>str</em><em> or </em><em>Path</em>) – Subdirectory under the output directory where the text files will be</p></li>
+<li><p><strong>written.</strong> (<em>Each file is opened in the configured text editor after being</em>)</p></li>
+<li><p><strong>group</strong> (<em>int</em>) – Group number identifier used in the output file names.</p></li>
+<li><p><strong>Outputs</strong></p></li>
+<li><p><strong>-------</strong></p></li>
+<li><p><strong>directory</strong> (<em>Creates two text files in the</em>) – &lt;OP_DIR&gt;/&lt;dirname&gt;/Objects_flats_group{group}.txt
+&lt;OP_DIR&gt;/&lt;dirname&gt;/Objects_lamps_group{group}.txt</p></li>
+<li><p><strong>written.</strong></p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>If no calibration files exist for a given object, only the object</p></li>
+</ul>
+<dl class="simple">
+<dt>filename</dt><dd><p>will be written on that line.</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>The mapping between calibration type (flat or lamp) and grouped_files</p></li>
+</ul>
+<dl class="simple">
+<dt>keys</dt><dd><p>is provided by the instrument class (instrument.flat_kw,</p>
+</dd>
+</dl>
+<p>instrument.lamp_kw).</p>
+</dd></dl>
+
+</section>
+<section id="module-toirex.setups">
+<span id="toirex-setups-module"></span><h2>toirex.setups module<a class="headerlink" href="#module-toirex.setups" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.setups.add_dict_keywords">
+<span class="sig-prename descclassname"><span class="pre">toirex.setups.</span></span><span class="sig-name descname"><span class="pre">add_dict_keywords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/setups.html#add_dict_keywords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.setups.add_dict_keywords" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.setups.create_config">
+<span class="sig-prename descclassname"><span class="pre">toirex.setups.</span></span><span class="sig-name descname"><span class="pre">create_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entries</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/setups.html#create_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.setups.create_config" title="Link to this definition">¶</a></dt>
+<dd><p>This function is to write a new config file.
+Inputs
+——
+configfilename: Name of the config file with path.
+entries: Keywords and values as a dictionary.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.setups.create_dir">
+<span class="sig-prename descclassname"><span class="pre">toirex.setups.</span></span><span class="sig-name descname"><span class="pre">create_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/setups.html#create_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.setups.create_dir" title="Link to this definition">¶</a></dt>
+<dd><p>This function will create the directory.
+Input
+—–
+dirname: Name of the directory that need to be
+created.
+If the directory already exists, it will be skipped.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.setups.print_banner">
+<span class="sig-prename descclassname"><span class="pre">toirex.setups.</span></span><span class="sig-name descname"><span class="pre">print_banner</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/setups.html#print_banner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.setups.print_banner" title="Link to this definition">¶</a></dt>
+<dd><p>This function is to print the banner of the pipeline.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.setups.read_args">
+<span class="sig-prename descclassname"><span class="pre">toirex.setups.</span></span><span class="sig-name descname"><span class="pre">read_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/setups.html#read_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.setups.read_args" title="Link to this definition">¶</a></dt>
+<dd><p>Read the argument while execution.
+This function will take the config file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.setups.read_config">
+<span class="sig-prename descclassname"><span class="pre">toirex.setups.</span></span><span class="sig-name descname"><span class="pre">read_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configfile</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/setups.html#read_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.setups.read_config" title="Link to this definition">¶</a></dt>
+<dd><p>Function to read the config file.</p>
+<section id="input">
+<h3>Input<a class="headerlink" href="#input" title="Link to this heading">¶</a></h3>
+<p>configfile: Name of the config file.</p>
+</section>
+<section id="output">
+<h3>Output<a class="headerlink" href="#output" title="Link to this heading">¶</a></h3>
+<p>config: Read config file. dict.</p>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.setups.read_dirs">
+<span class="sig-prename descclassname"><span class="pre">toirex.setups.</span></span><span class="sig-name descname"><span class="pre">read_dirs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/setups.html#read_dirs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.setups.read_dirs" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-toirex.toirex_main">
+<span id="toirex-toirex-main-module"></span><h2>toirex.toirex_main module<a class="headerlink" href="#module-toirex.toirex_main" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.toirex_main.create_fileslog">
+<span class="sig-prename descclassname"><span class="pre">toirex.toirex_main.</span></span><span class="sig-name descname"><span class="pre">create_fileslog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/toirex_main.html#create_fileslog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.toirex_main.create_fileslog" title="Link to this definition">¶</a></dt>
+<dd><p>Task 0.
+Creation of log of data files.
+Input
+——-
+Main config.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.toirex_main.get_directories">
+<span class="sig-prename descclassname"><span class="pre">toirex.toirex_main.</span></span><span class="sig-name descname"><span class="pre">get_directories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'list'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/toirex_main.html#get_directories"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.toirex_main.get_directories" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.toirex_main.main">
+<span class="sig-prename descclassname"><span class="pre">toirex.toirex_main.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/toirex_main.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.toirex_main.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.toirex_main.select_files">
+<span class="sig-prename descclassname"><span class="pre">toirex.toirex_main.</span></span><span class="sig-name descname"><span class="pre">select_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/toirex_main.html#select_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.toirex_main.select_files" title="Link to this definition">¶</a></dt>
+<dd><p>Task 1.
+Selection of files for reduction.
+Input
+——-
+Main config.</p>
+</dd></dl>
+
+</section>
+<section id="module-toirex.utils">
+<span id="toirex-utils-module"></span><h2>toirex.utils module<a class="headerlink" href="#module-toirex.utils" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.utils.open_in_editor">
+<span class="sig-prename descclassname"><span class="pre">toirex.utils.</span></span><span class="sig-name descname"><span class="pre">open_in_editor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/utils.html#open_in_editor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.utils.open_in_editor" title="Link to this definition">¶</a></dt>
+<dd><p>Open a text file in the desired text editor.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="toirex.utils.read_fits_header">
+<span class="sig-prename descclassname"><span class="pre">toirex.utils.</span></span><span class="sig-name descname"><span class="pre">read_fits_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toirex/utils.html#read_fits_header"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#toirex.utils.read_fits_header" title="Link to this definition">¶</a></dt>
+<dd><p>Function to read the header of the fits file.
+Input
+—–
+filename: Name of the fits file to read.
+ext: Extension of the fits file. Default 0</p>
+</dd></dl>
+
+</section>
+<section id="module-toirex">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-toirex" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/toirex_logo.png" alt="Logo of TOIREx"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">toirex package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-toirex.grouping_frames">toirex.grouping_frames module</a><ul>
+<li><a class="reference internal" href="#toirex.grouping_frames.grouping_items"><code class="docutils literal notranslate"><span class="pre">grouping_items()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.grouping_frames.ordered_keys"><code class="docutils literal notranslate"><span class="pre">ordered_keys()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.grouping_frames.remove_repeated_values"><code class="docutils literal notranslate"><span class="pre">remove_repeated_values()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.grouping_frames.select_flats"><code class="docutils literal notranslate"><span class="pre">select_flats()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-toirex.instrument">toirex.instrument module</a><ul>
+<li><a class="reference internal" href="#toirex.instrument.Instrument"><code class="docutils literal notranslate"><span class="pre">Instrument</span></code></a><ul>
+<li><a class="reference internal" href="#toirex.instrument.Instrument.catalog_flag"><code class="docutils literal notranslate"><span class="pre">Instrument.catalog_flag()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.Instrument.catalog_headers"><code class="docutils literal notranslate"><span class="pre">Instrument.catalog_headers</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.Instrument.flat_grouping_keys"><code class="docutils literal notranslate"><span class="pre">Instrument.flat_grouping_keys</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.Instrument.flat_kw"><code class="docutils literal notranslate"><span class="pre">Instrument.flat_kw</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.Instrument.frame_select"><code class="docutils literal notranslate"><span class="pre">Instrument.frame_select()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.Instrument.grouping_keys"><code class="docutils literal notranslate"><span class="pre">Instrument.grouping_keys</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.Instrument.lamp_kw"><code class="docutils literal notranslate"><span class="pre">Instrument.lamp_kw</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.Instrument.sort_filename_key"><code class="docutils literal notranslate"><span class="pre">Instrument.sort_filename_key()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.Instrument.standardise_header"><code class="docutils literal notranslate"><span class="pre">Instrument.standardise_header()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#toirex.instrument.SpecTANSPEC"><code class="docutils literal notranslate"><span class="pre">SpecTANSPEC</span></code></a><ul>
+<li><a class="reference internal" href="#toirex.instrument.SpecTANSPEC.catalog_flag"><code class="docutils literal notranslate"><span class="pre">SpecTANSPEC.catalog_flag()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.SpecTANSPEC.catalog_headers"><code class="docutils literal notranslate"><span class="pre">SpecTANSPEC.catalog_headers</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.SpecTANSPEC.flat_grouping_keys"><code class="docutils literal notranslate"><span class="pre">SpecTANSPEC.flat_grouping_keys</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.SpecTANSPEC.flat_kw"><code class="docutils literal notranslate"><span class="pre">SpecTANSPEC.flat_kw</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.SpecTANSPEC.frame_select"><code class="docutils literal notranslate"><span class="pre">SpecTANSPEC.frame_select()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.SpecTANSPEC.grouping_keys"><code class="docutils literal notranslate"><span class="pre">SpecTANSPEC.grouping_keys</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.SpecTANSPEC.lamp_kw"><code class="docutils literal notranslate"><span class="pre">SpecTANSPEC.lamp_kw</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.SpecTANSPEC.name"><code class="docutils literal notranslate"><span class="pre">SpecTANSPEC.name</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.SpecTANSPEC.sort_filename_key"><code class="docutils literal notranslate"><span class="pre">SpecTANSPEC.sort_filename_key()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.SpecTANSPEC.standardise_header"><code class="docutils literal notranslate"><span class="pre">SpecTANSPEC.standardise_header()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#toirex.instrument.TIRSPEC"><code class="docutils literal notranslate"><span class="pre">TIRSPEC</span></code></a><ul>
+<li><a class="reference internal" href="#toirex.instrument.TIRSPEC.catalog_flag"><code class="docutils literal notranslate"><span class="pre">TIRSPEC.catalog_flag()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.TIRSPEC.catalog_headers"><code class="docutils literal notranslate"><span class="pre">TIRSPEC.catalog_headers</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.TIRSPEC.flat_kw"><code class="docutils literal notranslate"><span class="pre">TIRSPEC.flat_kw</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.TIRSPEC.frame_select"><code class="docutils literal notranslate"><span class="pre">TIRSPEC.frame_select()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.TIRSPEC.grouping_keys"><code class="docutils literal notranslate"><span class="pre">TIRSPEC.grouping_keys</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.TIRSPEC.name"><code class="docutils literal notranslate"><span class="pre">TIRSPEC.name</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.TIRSPEC.sort_filename_key"><code class="docutils literal notranslate"><span class="pre">TIRSPEC.sort_filename_key()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.instrument.TIRSPEC.standardise_header"><code class="docutils literal notranslate"><span class="pre">TIRSPEC.standardise_header()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-toirex.obscatalog">toirex.obscatalog module</a><ul>
+<li><a class="reference internal" href="#toirex.obscatalog.create_catalog"><code class="docutils literal notranslate"><span class="pre">create_catalog()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.obscatalog.extract_catalog_entries"><code class="docutils literal notranslate"><span class="pre">extract_catalog_entries()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.obscatalog.read_catalog"><code class="docutils literal notranslate"><span class="pre">read_catalog()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-toirex.selecting_frames">toirex.selecting_frames module</a><ul>
+<li><a class="reference internal" href="#toirex.selecting_frames.feed_to_txt_file"><code class="docutils literal notranslate"><span class="pre">feed_to_txt_file()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-toirex.setups">toirex.setups module</a><ul>
+<li><a class="reference internal" href="#toirex.setups.add_dict_keywords"><code class="docutils literal notranslate"><span class="pre">add_dict_keywords()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.setups.create_config"><code class="docutils literal notranslate"><span class="pre">create_config()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.setups.create_dir"><code class="docutils literal notranslate"><span class="pre">create_dir()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.setups.print_banner"><code class="docutils literal notranslate"><span class="pre">print_banner()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.setups.read_args"><code class="docutils literal notranslate"><span class="pre">read_args()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.setups.read_config"><code class="docutils literal notranslate"><span class="pre">read_config()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.setups.read_dirs"><code class="docutils literal notranslate"><span class="pre">read_dirs()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-toirex.toirex_main">toirex.toirex_main module</a><ul>
+<li><a class="reference internal" href="#toirex.toirex_main.create_fileslog"><code class="docutils literal notranslate"><span class="pre">create_fileslog()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.toirex_main.get_directories"><code class="docutils literal notranslate"><span class="pre">get_directories()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.toirex_main.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.toirex_main.select_files"><code class="docutils literal notranslate"><span class="pre">select_files()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-toirex.utils">toirex.utils module</a><ul>
+<li><a class="reference internal" href="#toirex.utils.open_in_editor"><code class="docutils literal notranslate"><span class="pre">open_in_editor()</span></code></a></li>
+<li><a class="reference internal" href="#toirex.utils.read_fits_header"><code class="docutils literal notranslate"><span class="pre">read_fits_header()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-toirex">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter">TOIREx documentation</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/toirex.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="TOIREx documentation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">TOIREx  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">toirex package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2025, Varghese Reji.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>
