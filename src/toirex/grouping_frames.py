@@ -1,19 +1,51 @@
 #!/usr/bin/env python3
 from collections import defaultdict
 import numpy as np
+from pathlib import Path
 
+from .obscatalog import read_catalog
 from .instrument import instrument_class
+from .utils import open_in_editor
 
 
 def remove_repeated_values(candidate_list):
-    '''
-    Input
+    """
+    Remove duplicate elements from a list, with special handling for
+    NumPy arrays.
+
+    This function iterates through the input list and removes repeated
+    elements. Unlike the built-in `set`, it preserves the original order
+    and works with elements that are NumPy arrays by comparing their
+    contents (via `tolist()`) rather than object identity.
+
+    Parameters
+    ----------
+    candidate_list : list
+        Input list potentially containing repeated elements. Elements can be
+        of arbitrary type, including NumPy arrays.
+
+    Returns
+    -------
+    filtered_list : list
+        A new list with repeated elements removed, preserving the first
+        occurrence of each unique element.
+
+     Notes
+    -----
+    - For NumPy arrays, equality is determined by comparing the result of
+      `.tolist()`, so arrays with the same contents but different memory
+      locations are considered duplicates.
+    - The function preserves the order of elements, unlike `set()`.
+
+    Examples
     --------
-    candidate_list: List to remove the repeated elements
-    Return
-    --------
-    filtered_list: List which repeated elements removed from candidate_list
-    '''
+    >>> import numpy as np
+    >>> arr1 = np.array([1, 2, 3])
+    >>> arr2 = np.array([1, 2, 3])
+    >>> candidate_list = [arr1, arr2, [4, 5], [4, 5], "a", "a"]
+    >>> remove_repeated_values(candidate_list)
+    [array([1, 2, 3]), [4, 5], 'a']
+    """
 
     filtered_list = []
     for cand in candidate_list:
@@ -28,52 +60,281 @@ def remove_repeated_values(candidate_list):
     return filtered_list
 
 
-def ordered_keys(catalog_dict, config):
-    '''
-    This function is to group the files based on header.
-    '''
-    # print(catalog_dict)
-    # catalog_list = np.array(catalog_list)
-    dictkw = config['inits']['DICTKW']  # Calling the directory keyword
-    grouping_keys = instrument_class[dictkw].grouping_keys
-    # dict_keys = list(catalog_dict.keys())
+def select_flats(catalog_dict, flats_keys, flat_flag):
+    """
+    Select and group flat frames from a catalogue.
+
+    This function extracts flat frames from the input catalogue based on
+    classification flags and groups them according to a set of catalogue
+    keys (e.g., grism, filter, order). Duplicate groups are removed using
+    `remove_repeated_values`. The grouped flats are returned as a dictionary
+    mapping a concatenated string of key values to the corresponding flat
+    file names.
+
+    Parameters
+    ----------
+    catalog_dict : dict
+        Dictionary containing the catalogue. Must include:
+        - ``'FNAME'`` : list or array of file names
+        - ``'FLAG'`` : list or array of classification flags
+        - Additional keys specified in `flats_keys`.
+
+    flats_keys : list of str
+        List of catalogue dictionary keys used to define unique groups
+        (e.g., ["GRISM", "FILTER"]).
+
+    flat_flag : list of str
+        List of flags that identify flat frames in the catalogue.
+
+    Returns
+    -------
+    grouped_flats : dict
+        Dictionary where:
+        - keys are strings obtained by joining the values of the group-defining
+          keys with a space (e.g., "GRISM1 FILTER2"),
+        - values are arrays of file names corresponding to that group of flats.
+
+    Notes
+    -----
+    - The grouping is done by extracting values from `catalog_dict` at
+    positions
+      where `FLAG` matches `flat_flag`.
+    - Duplicate groups are removed using `remove_repeated_values`.
+    - The function assumes that the catalogue dictionary values can be indexed
+      and broadcast into NumPy arrays.
+
+    Examples
+    --------
+    >>> catalog_dict = {
+    ...     "FNAME": ["flat1.fits", "flat2.fits", "sci1.fits"],
+    ...     "FLAG":  ["FLAT", "FLAT", "SCIENCE"],
+    ...     "FILTER": ["R", "R", "R"],
+    ...     "GRISM":  ["G1", "G1", "G1"]
+    ... }
+    >>> flats_keys = ["FILTER", "GRISM"]
+    >>> flat_flag = ["FLAT"]
+    >>> select_flats(catalog_dict, flats_keys, flat_flag)
+    {'R G1': array(['flat1.fits', 'flat2.fits'], dtype='<U10')}
+    """
+
+    group_entries = []
+    fnames = np.array(catalog_dict['FNAME'])
+    flags = catalog_dict['FLAG']
+    flat_mask = np.array([True if i in flat_flag else False for i in flags])
+    for keys in flats_keys:
+        # print(keys)
+        catalog_keys = np.array(catalog_dict[keys])
+        group_entries.append(catalog_keys[flat_mask])
+    group_entries = np.array(group_entries).T
+    reduced_groups = remove_repeated_values(group_entries)
+    flat_fnames = fnames[flat_mask]
+    grouped_flats = {}
+    for n, r in enumerate(reduced_groups):
+        # print(r)
+        mask = group_entries == r
+        matchings = np.sum(mask, axis=1) == len(r)
+        matched_fnames = flat_fnames[matchings]
+        # print(matched_fnames)
+        dictkw = " ".join(r)
+        grouped_flats[dictkw] = matched_fnames
+    # print(grouped_flats)
+    return grouped_flats
+
+
+def ordered_keys(catalog_dict, config, grouping_keys, flats_keys, flat_flag):
+    """
+    Group files by specified catalogue keys and append matching flats.
+
+    This function groups catalogue entries according to a set of header keys
+    (e.g., grism, filter, order). For each unique group, it collects the
+    corresponding file names and appends any flat frames that match based on
+    `flats_keys`. The result is a dictionary mapping group indices to arrays
+    of file names (science + flats).
+
+    Parameters
+    ----------
+    catalog_dict : dict
+        Dictionary containing the catalogue. Must include:
+        - ``'FNAME'`` : list or array of file names.
+        - Additional keys specified in `grouping_keys` and `flats_keys`.
+
+    config : dict
+        Configuration dictionary (currently unused in this function, but passed
+        for consistency with other pipeline functions).
+
+    grouping_keys : list of str
+        Catalogue dictionary keys used to define the main grouping of science
+        files (e.g., ["OBJECT", "FILTER", "GRISM"]).
+
+       flats_keys : list of str
+        Catalogue dictionary keys used to group flat frames.
+
+    flat_flag : list of str
+        List of flags identifying flat frames in the catalogue.
+
+    Returns
+    -------
+    grouped_files : dict
+        Dictionary where:
+        - keys are integer group indices (0, 1, 2, …),
+        - values are arrays of file names corresponding to that group,
+          including any matching flat frames.
+
+    Notes
+    -----
+    - Groups are formed by unique combinations of values in `grouping_keys`.
+    - Flat frames are grouped separately using `select_flats` and then merged
+      into the corresponding science groups if their key values match.
+    - Duplicate groups are removed using `remove_repeated_values`.
+    - The function preserves the order of first occurrences.
+
+    Examples
+    --------
+    >>> catalog_dict = {
+    ...     "FNAME": ["sci1.fits", "sci2.fits", "flat1.fits"],
+    ...     "FLAG":  ["SCIENCE", "SCIENCE", "FLAT"],
+    ...     "OBJECT": ["StarA", "StarA", "Lamp"],
+    ...     "FILTER": ["R", "R", "R"],
+    ...     "GRISM":  ["G1", "G1", "G1"]
+    ... }
+    >>> grouping_keys = ["OBJECT", "FILTER", "GRISM"]
+    >>> flats_keys = ["FILTER", "GRISM"]
+    >>> flat_flag = ["FLAT"]
+    >>> grouped = ordered_keys(catalog_dict, {}, grouping_keys, flats_keys,
+        flat_flag)
+    >>> list(grouped.keys())
+    [0]   # one science group
+    >>> grouped[0]
+    array(['sci1.fits', 'sci2.fits', 'flat1.fits'], dtype='<U10')
+    """
 
     fnames = np.array(catalog_dict['FNAME'])
+
     group_entries = []
+
+    select_flats(catalog_dict, flats_keys, flat_flag)
     for keys in grouping_keys:
         group_entries.append(catalog_dict[keys])
     group_entries = np.array(group_entries).T
     reduced_groups = remove_repeated_values(group_entries)
+
+    grouped_flats = select_flats(catalog_dict, flats_keys, flat_flag)
     grouped_files = defaultdict(list)
+
     for n, r in enumerate(reduced_groups):
-        # print(n, r)
         mask = group_entries == r
-        # print(mask, np.sum(mask, axis=1))
+
         matchings = np.sum(mask, axis=1) == len(r)
-        # matched_entries = group_entries[matchings]
+
         matched_fnames = fnames[matchings]
+
+        for flat_kw, flat_fnames in grouped_flats.items():
+            flat_kwlist = flat_kw.strip().split(" ")
+            entry_mask = np.array([
+                True if i in flat_kwlist else False for i in r
+            ])
+
+            if np.sum(entry_mask) == len(flat_kwlist):
+                matched_fnames = np.concatenate((
+                    matched_fnames, np.array(flat_fnames
+                                             )))
         grouped_files[n] = matched_fnames
     return grouped_files
 
 
-def grouping_items(ordered_dict, catalogue_dict):
-    '''
-    ordered_dict: dictionary with grouped filenames.
-    dict keys will be the group number.
-    catalogue_dict: ditonary of full catalogue.
-    '''
+def grouping_items(config, dirname):
+    """
+    Group catalogue files by order and flag, excluding flats.
 
-    catalog_fnames = catalogue_dict['FNAME']
+    This function reads a catalogue for the specified directory, determines
+    groups of files based on instrument-specific `grouping_keys`, and
+    associates each file with its classification flag. The groups are written
+    to a text file for inspection and returned as a nested dictionary.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing:
+        - ``config['inits']['DICTKW']`` : str
+          Instrument keyword used to select the instrument from
+          ``instrument_class``.
+        - ``config['outputs']['OP_DIR']`` : str
+          Output directory where the grouped text file will be saved.
+
+    dirname : str or pathlib.Path
+        Subdirectory under the output directory corresponding to the dataset
+        being processed.
+
+    Returns
+    -------
+    groups_dict : dict
+        Nested dictionary where:
+        - keys are group indices (0, 1, 2, …) from `ordered_keys`.
+        - values are dictionaries mapping classification flags (e.g., SCIENCE,
+          ARC, FLAT) to lists of file names belonging to that group.
+
+    Side Effects
+    ------------
+    - Writes a text file ``Grouped_txtfile.txt`` to
+      ``<config['outputs']['OP_DIR']>/<dirname>`` with a human-readable
+      summary of groups and associated files.
+
+    Notes
+    -----
+    - Flat frames are excluded internally via instrument-specific `flat_kw`.
+    - The grouping relies on:
+      - ``read_catalog`` to load the catalogue,
+      - ``instrument_class[dictkw].grouping_keys`` to define group membership,
+      - ``instrument_class[dictkw].flat_grouping_keys`` to associate flats,
+      - ``ordered_keys`` to construct the groups.
+    - A placeholder exists for adding continuum flats in the future.
+
+    Examples
+    --------
+    >>> config = {
+    ...     "inits": {"DICTKW": "TIRSPEC"},
+    ...     "outputs": {"OP_DIR": "Reduced_data"}
+    ... }
+    >>> dirname = "2024-09-08"
+    >>> groups = grouping_items(config, dirname)
+    >>> list(groups.keys())
+    [0, 1, 2]
+    >>> groups[0].keys()
+    dict_keys(['SCIENCE', 'ARC'])
+    """
+
+    catalogue_dict = read_catalog(dirname, config)
+    catalog_fnames = np.array(catalogue_dict['FNAME'])
     flags = catalogue_dict['FLAG']
+    dictkw = config['inits']['DICTKW']
+    # instrument = instrument_class[dictkw]
+
+    flat_flag = instrument_class[dictkw].flat_kw
+
     groups_dict = {}
+    txt_fname = Path(config['outputs']['OP_DIR']) / \
+        dirname / "Grouped_txtfile.txt"
+    grouped_txt_file = open(txt_fname, 'w')
+    grouping_keys = instrument_class[dictkw].grouping_keys
+    flat_keys = instrument_class[dictkw].flat_grouping_keys
+    ordered_dict = ordered_keys(catalogue_dict, config,
+                                grouping_keys, flat_keys, flat_flag)
+
     for order, fnames in ordered_dict.items():
         subgroups_dict = defaultdict(list)
+        group_header = "*" * 10 + "Group {} ".format(order) + "*" * 10 + "\n"
+        grouped_txt_file.write(group_header)
         for crorder, fname in enumerate(catalog_fnames):
             if fname in fnames:
                 # print(crorder, fname, 'in group', order)
                 subgroups_dict[flags[crorder]].append(fname)
+        for keys, fnames in subgroups_dict.items():
+            grouped_txt_file.write("{}: {}\n".format(keys, fnames))
+        grouped_txt_file.write("\n")
         groups_dict[order] = subgroups_dict
     # A function to add continuum flats here.
+    grouped_txt_file.close()
+    open_in_editor(txt_fname, config)
     return groups_dict
 
 

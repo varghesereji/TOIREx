@@ -51,10 +51,11 @@ def select_files(config):
     print("Running Task 1")
     for datadir in all_datadirs:
         print("Running for the directory {}".format(datadir))
-        catalogue_dict = read_catalog(datadir, config)
-        ordered_dict = ordered_keys(catalogue_dict, config)
-        groups_dict = grouping_items(ordered_dict, catalogue_dict)
-        print(groups_dict)
+        groups_dict = grouping_items(config, datadir)
+        for gp, items in groups_dict.items():
+            pass
+            # print(gp, items)
+            # print("="*10)
     # print("This function will be added soon")
 
 

@@ -46,6 +46,14 @@ class Instrument(ABC):
         """Keys used for grouping, optional"""
         return []
 
+    @property
+    def flat_grouping_keys(self) -> list:
+        return []
+
+    @property
+    def flat_kw(self) -> list:
+        return []
+
 
 class SpecTANSPEC(Instrument):
     name = "SpecTANSPEC"
@@ -141,10 +149,19 @@ class SpecTANSPEC(Instrument):
             'A_TRGTDE'
         ]
 
+    @property
+    def flat_grouping_keys(self):
+        return self.grouping_keys[:-2]
+
+    @property
+    def flat_kw(self):
+        return ['CONT1', 'CONT2']
+
 
 '''
 TIRSPEC instrument
 '''
+
 
 class TIRSPEC(Instrument):
     name = 'TIRSPEC'
@@ -184,6 +201,10 @@ class TIRSPEC(Instrument):
             'UPPER', 'LOWER', 'SLIT',
             'TCSRA', 'TCSDEC'
         ]
+
+    @property
+    def flat_kw(self):
+        return ['CONT1L', 'CONT2L']
 
 
 '''
