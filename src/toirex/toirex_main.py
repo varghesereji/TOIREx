@@ -59,10 +59,10 @@ def select_files(config):
         for group in selected_groups:
             selected_group_fnames = groups_dict[int(group)]
             feed_to_txt_file(selected_group_fnames, config, datadir, group)
-            
-        # print(groups_dict[int(selected_groups[0])])
-        
-    # print("This function will be added soon")
+
+
+def manual_inspect_obj(config):
+    print("This function will be added soon.")
 
 
 def main():
@@ -171,7 +171,10 @@ tasks_dict = {
         'menu': "Generate the catalog of fits files in each directory"
         },
     1: {'function': select_files,
-        'menu': "Select files"
+        'menu': "Selection of object frames, flats, lamps etc to reduce"
+        },
+    2: {'function': manual_inspect_obj,
+        'menu': "Visually inspect and/or reject object images one by one"
         }
 
     }
