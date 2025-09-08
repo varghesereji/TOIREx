@@ -8,7 +8,6 @@ from abc import ABC, abstractmethod
 from .utils import read_fits_header
 
 
-
 class Instrument(ABC):
     """ Base class for instruments"""
 
@@ -52,6 +51,10 @@ class Instrument(ABC):
 
     @property
     def flat_kw(self) -> list:
+        return []
+
+    @property
+    def lamp_kw(self) -> list:
         return []
 
 
@@ -157,6 +160,9 @@ class SpecTANSPEC(Instrument):
     def flat_kw(self):
         return ['CONT1', 'CONT2']
 
+    @property
+    def lamp_kw(self):
+        return ['ARGON', 'NEON']
 
 '''
 TIRSPEC instrument
@@ -204,14 +210,15 @@ class TIRSPEC(Instrument):
 
     @property
     def flat_kw(self):
-        return ['CONT1L', 'CONT2L']
+        return []
 
 
 '''
 Function dictionaries
 '''
 
-instrument_class = {'SpecTANSPEC': SpecTANSPEC()
+instrument_class = {'SpecTANSPEC': SpecTANSPEC(),
+                    'TIRSPEC': TIRSPEC()
                     }
 
 # End

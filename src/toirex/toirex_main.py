@@ -10,9 +10,8 @@ from .setups import read_dirs
 from .setups import add_dict_keywords
 
 from .obscatalog import create_catalog
-from .obscatalog import read_catalog
-from .grouping_frames import ordered_keys
 from .grouping_frames import grouping_items
+from .selecting_frames import feed_to_txt_file
 
 
 def get_directories(config, required='list'):
@@ -56,8 +55,13 @@ def select_files(config):
         print("Use a comma if you have more than one group")
         selected_groups = input("Enter the group number you want to reduce:")
         selected_groups = selected_groups.strip().split(" ")
-        print("You selected the groups")
-        print(groups_dict[int(selected_groups[0])])
+        print("You selected the group(s)", " ".join(selected_groups))
+        for group in selected_groups:
+            selected_group_fnames = groups_dict[int(group)]
+            feed_to_txt_file(selected_group_fnames, config, datadir, group)
+            
+        # print(groups_dict[int(selected_groups[0])])
+        
     # print("This function will be added soon")
 
 

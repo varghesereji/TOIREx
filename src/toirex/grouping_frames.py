@@ -329,7 +329,8 @@ def grouping_items(config, dirname):
                 # print(crorder, fname, 'in group', order)
                 subgroups_dict[flags[crorder]].append(fname)
         for keys, fnames in subgroups_dict.items():
-            grouped_txt_file.write("{}: {}\n".format(keys, fnames))
+            grouped_txt_file.write("{}: {}\n".format(keys, "\n".join(fnames)))
+            grouped_txt_file.write("\n")
         grouped_txt_file.write("\n")
         groups_dict[order] = subgroups_dict
     # A function to add continuum flats here.
