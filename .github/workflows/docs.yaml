@@ -1,4 +1,4 @@
-name: Build and Deploy Docs
+name: Build and Deploy TOIREx Docs
 
 on:
   push:
@@ -11,6 +11,7 @@ jobs:
 
     steps:
       # 1. Checkout the repo
+      - name: Checkout repository
       - uses: actions/checkout@v3
 
       # 2. Set up Python
@@ -37,3 +38,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: docs/_build/html
+	  force_orphan: true
