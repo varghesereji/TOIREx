@@ -2,7 +2,7 @@
 from collections import defaultdict
 import numpy as np
 from pathlib import Path
-
+import re
 from .obscatalog import read_catalog
 from .instrument import instrument_class
 from .utils import open_in_editor
@@ -242,7 +242,8 @@ def ordered_keys(catalog_dict, config, grouping_keys, flats_keys, flat_flag):
     return grouped_files
 
 
-def grouping_items(config, dirname):
+def grouping_items(config, dirname, catalogue_dict=None,
+                   open_editor=True):
     """
     Group catalogue files by order and flag, excluding flats.
 
@@ -292,18 +293,18 @@ def grouping_items(config, dirname):
     Examples
     --------
     >>> config = {
-    ...     "inits": {"DICTKW": "TIRSPEC"},
+    ...     "inits": {"DICTKW": "SpecTANSPEC"},
     ...     "outputs": {"OP_DIR": "Reduced_data"}
     ... }
-    >>> dirname = "2024-09-08"
+    >>> dirname = "20240908"
     >>> groups = grouping_items(config, dirname)
     >>> list(groups.keys())
     [0, 1, 2]
     >>> groups[0].keys()
-    dict_keys(['SCIENCE', 'ARC'])
+    dict_keys(['OBJECT', 'ARGON', 'NEON', 'CONT1', 'CONT2'])
     """
-
-    catalogue_dict = read_catalog(dirname, config)
+    if catalogue_dict is None:
+        catalogue_dict = read_catalog(dirname, config)
     catalog_fnames = np.array(catalogue_dict['FNAME'])
     flags = catalogue_dict['FLAG']
     dictkw = config['inits']['DICTKW']
@@ -335,8 +336,112 @@ def grouping_items(config, dirname):
         groups_dict[order] = subgroups_dict
     # A function to add continuum flats here.
     grouped_txt_file.close()
-    open_in_editor(txt_fname, config)
+    if open_editor:
+        open_in_editor(txt_fname, config)
     return groups_dict
 
 
+def grouping_with_re(config, dirname):
+    """
+    Group catalogue entries using user-specified regular expressions.
+
+    This function reads a catalogue of image frames from the given directory
+    and filters them based on user-defined regular expressions. Users are first
+    prompted to input regex patterns for science frames and flat frames, and
+    optionally for lamp frames (depending on the configuration). The matched
+    frames are collected into a reduced catalogue and then grouped by
+    instrument-specific keywords (e.g., SLIT, GRATING, FILTER) via
+    `grouping_items`.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary with at least the following keys:
+
+        - ``config['inits']['TODO']`` : str
+            Indicates the processing mode. If set to ``'S'``, the user will be
+            prompted to enter regex rules for lamp frames as well.
+
+        - ``config['inits']['DICTKW']`` : str
+            Key used to identify the instrument class from `instrument_class`.
+            This is needed to obtain instrument-specific keywords (e.g.,
+            lamp keywords).
+
+    dirname : str
+        Path to the directory containing the catalogue and associated files.
+
+    Returns
+    -------
+    grouped_dict : dict
+        A dictionary of grouped catalogue entries, as produced by
+        `grouping_items`. The grouping is based on instrument-specific
+        parameters (SLIT, GRATING, FILTER, etc.) after filtering by the
+        user-provided regex rules.
+
+    Notes
+    -----
+    - The function is interactive: it prompts the user to enter regular
+      expressions for selecting science, flat, and (if applicable) lamp frames.
+    - Frames that match at least one of the provided regex rules are collected.
+    - Grouping is performed by calling the external `grouping_items` function.
+    - Regex documentation reference:
+      http://docs.python.org/2/howto/regex.html#regex-howto
+
+    Examples
+    --------
+    >>> config = {
+    ...     'inits': {
+    ...         'TODO': 'S',
+    ...         'DICTKW': 'TIRSPEC'
+    ...     }
+    ... }
+    >>> dirname = "/path/to/data"
+    >>> grouped = grouping_with_re(config, dirname)
+    Enter the regular expression for SCIECNE frames: .*M31.*
+    Enter the regular expression for FLAT frames: .*continuum.*
+    Enter the regular expression for LAMP frames: .*argon.*
+    >>> print(grouped.keys())
+    dict_keys(['FNAME', 'SLIT', 'FILTER', 'GRATING', ...])
+    """
+
+    catalogue_dict = read_catalog(dirname, config)
+    fnames = catalogue_dict['FNAME']
+    print(catalogue_dict)
+    print('*'*10)
+    print('For Regular Expression rules See:', end=" ")
+    print('http://docs.python.org/2/howto/regex.html#regex-howto')
+    print('Some examples of typical input are shown below')
+    print('.*M31.* is the regular expression to select', end=" ")
+    print('all the objects lines which has "M31" in it.')
+    print('NB: Even you enter the regular expression, the objects', end=" ")
+    print('will be grouped based on SLIT, GRATING, FILTER etc')
+    object_re = input("Enter the regular expression for SCIECNE frames:")
+    object_re = re.compile(r''+object_re)
+    flats_re = input("Enter the regular expression for FLAT frames:")
+    flats_re = re.compile(r''+flats_re)
+
+    re_list = [object_re, flats_re]
+
+    if config['inits']['TODO'] == 'S':
+        dictkw = config['inits']['DICTKW']
+        lamp_keys = instrument_class[dictkw].lamp_kw
+        for lamp in lamp_keys:
+            lamp_re = input(
+                "Enter the regular expression for {} frames:".format(lamp)
+            )
+            lamp_re = re.compile(r''+lamp_re)
+            re_list.append(lamp_re)
+    selected_objects_dict = defaultdict(list)
+    catalog_kws = catalogue_dict.keys()
+    for n, imgline in enumerate(fnames):
+        for res in re_list:
+            if res.search(imgline) is not None:
+                for dictkws in catalog_kws:
+                    selected_objects_dict[dictkws].append(
+                        catalogue_dict[dictkws][n])
+
+    grouped_dict = grouping_items(config, dirname,
+                                  catalogue_dict=selected_objects_dict,
+                                  open_editor=False)
+    return grouped_dict
 # End

@@ -10,7 +10,7 @@ from .setups import read_dirs
 from .setups import add_dict_keywords
 
 from .obscatalog import create_catalog
-from .grouping_frames import grouping_items
+from .grouping_frames import grouping_items, grouping_with_re
 from .selecting_frames import feed_to_txt_file
 
 
@@ -52,16 +52,26 @@ def select_files(config):
         # Grouping files
         print("Running for the directory {}".format(datadir))
         groups_dict = grouping_items(config, datadir)
-        print("Use a comma if you have more than one group")
+        print("Use a comma if you have more than one group.")
+        print("Press 'n' if you want to enter the filename regular expression")
         selected_groups = input("Enter the group number you want to reduce:")
-        selected_groups = selected_groups.strip().split(" ")
-        print("You selected the group(s)", " ".join(selected_groups))
+        if selected_groups == 'n':
+            groups_dict = grouping_with_re(config, datadir)
+            selected_groups = list(groups_dict.keys())
+        else:
+            selected_groups = selected_groups.strip().split(" ")
+            print("You selected the group(s)", " ".join(selected_groups))
         for group in selected_groups:
             selected_group_fnames = groups_dict[int(group)]
-            feed_to_txt_file(selected_group_fnames, config, datadir, group)
+            if len(selected_group_fnames['OBJECT']) > 0:
+                feed_to_txt_file(selected_group_fnames, config, datadir, group)
 
 
 def manual_inspect_obj(config):
+    """
+    Task 2.
+    Visually inspect the object files.
+    """
     print("This function will be added soon.")
 
 
