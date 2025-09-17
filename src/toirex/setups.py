@@ -4,8 +4,70 @@ import argparse
 import configparser
 import pyfiglet
 from colorama import init, Fore, Style
-
+import logging
+import sys
 from pathlib import Path
+
+
+'''
+===== Logging =====
+'''
+_logger = None  # module-level variable to store the configured logger
+
+
+def setup_logger_from_config(config: dict,
+                             log_file="TOIREx_logging.log") -> logging.Logger:
+    """
+    Configure logger using entries from the config.
+    The logger name is taken from config['INSTRUMENT'].
+    """
+    global _logger
+    if _logger is not None:
+        return _logger  # already configured
+
+    logger_name = config['inits']["INSTRUMENT"]
+    level_str = config['logging']['LEVEL']
+    level = getattr(logging, level_str, logging.INFO)
+    log_dir = config["outputs"]["OP_DIR"]
+
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(level)
+
+    if not logger.handlers:  # avoid duplicate handlers
+        formatter = logging.Formatter(
+            "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S"
+        )
+
+        # console handler
+        # ch = logging.StreamHandler(sys.stdout)
+        # ch.setFormatter(formatter)
+        # logger.addHandler(ch)
+
+        # file handler
+        if log_dir:
+            log_dir = Path(log_dir)
+            log_dir.mkdir(parents=True, exist_ok=True)
+            fh = logging.FileHandler(log_dir / log_file)
+            fh.setFormatter(formatter)
+            logger.addHandler(fh)
+
+    _logger = logger
+    return logger
+
+
+def get_logger(name=None) -> logging.Logger:
+    """
+    Return the configured logger.
+    If `name` is given, returns a child logger.
+    """
+    if _logger is None:
+        raise RuntimeError(
+            "Logger not set up. Call setup_logger_from_config first.")
+    if name:
+        return logging.getLogger(f"{_logger.name}.{name}")
+    return _logger
+
 
 '''
 ===== Initial setups =====

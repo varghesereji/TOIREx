@@ -8,6 +8,8 @@ from .setups import print_banner
 from .setups import create_dir
 from .setups import read_dirs
 from .setups import add_dict_keywords
+from .setups import setup_logger_from_config
+from .setups import get_logger
 
 from .obscatalog import create_catalog
 from .grouping_frames import grouping_items, grouping_with_re
@@ -32,6 +34,7 @@ def create_fileslog(config):
     -------
     Main config.
     '''
+    logging = get_logger()
     opdir, all_datadirs = get_directories(config)
     print("Running Task 0")
     for datadir in all_datadirs:
@@ -88,10 +91,13 @@ def main():
     config = add_dict_keywords(config)
     instrument = config['inits']['INSTRUMENT']
 
+    logger = setup_logger_from_config(config)
+    logger.info("Pipline started")
+
     print_banner()
     print("\n You are reducting data observed with {}".format(instrument))
     print("="*50)
-
+    
     # Reading the name of output directory from config file.
     opdir, config_data = get_directories(config, required='string')
     create_dir(opdir)
@@ -179,6 +185,7 @@ def main():
     elif config['inits']['MODE'] == 'AUTO':
         print("The pipeline running in automatic mode")
         task_list = list(tasks_dict.keys())
+    logger.info("Entered tasks:{}".format(task_list))
     for onetask in task_list:
         print('\n')
         tasks_dict[int(onetask)]['function'](config)
