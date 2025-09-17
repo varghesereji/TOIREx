@@ -329,13 +329,23 @@ def grouping_items(config, dirname, catalogue_dict=None,
             if fname in fnames:
                 # print(crorder, fname, 'in group', order)
                 subgroups_dict[flags[crorder]].append(fname)
+        if 'OBJECT' not in list(subgroups_dict.keys()):
+            grouped_txt_file.write("\n To object in this group \n")
+            continue
         for keys, fnames in subgroups_dict.items():
-            grouped_txt_file.write("{}: {}\n".format(keys, "\n".join(fnames)))
+            grouped_txt_file.write(
+                "{}: \n{}\n".format(keys, "\n".join(fnames))
+            )
             grouped_txt_file.write("\n")
         grouped_txt_file.write("\n")
         groups_dict[order] = subgroups_dict
     # A function to add continuum flats here.
     grouped_txt_file.close()
+    if (
+            config['inits']['MODE'] == "AUTO"
+            and config['inits']['TIMESERIES'] == 'N'
+    ):
+        open_editor = False
     if open_editor:
         open_in_editor(txt_fname, config)
     return groups_dict
@@ -406,7 +416,6 @@ def grouping_with_re(config, dirname):
 
     catalogue_dict = read_catalog(dirname, config)
     fnames = catalogue_dict['FNAME']
-    print(catalogue_dict)
     print('*'*10)
     print('For Regular Expression rules See:', end=" ")
     print('http://docs.python.org/2/howto/regex.html#regex-howto')

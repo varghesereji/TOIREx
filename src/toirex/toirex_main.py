@@ -12,6 +12,7 @@ from .setups import add_dict_keywords
 from .obscatalog import create_catalog
 from .grouping_frames import grouping_items, grouping_with_re
 from .selecting_frames import feed_to_txt_file
+from .manual_inspection import manual_inspection_obj
 
 
 def get_directories(config, required='list'):
@@ -52,7 +53,7 @@ def select_files(config):
         # Grouping files
         print("Running for the directory {}".format(datadir))
         groups_dict = grouping_items(config, datadir)
-        print("Use a comma if you have more than one group.")
+        print("Use a space if you have more than one group.")
         print("Press 'n' if you want to enter the filename regular expression")
         selected_groups = input("Enter the group number you want to reduce:")
         if selected_groups == 'n':
@@ -72,7 +73,11 @@ def manual_inspect_obj(config):
     Task 2.
     Visually inspect the object files.
     """
-    print("This function will be added soon.")
+    opdir, all_datadirs = get_directories(config)
+    print("Running Task 2")
+    for datadir in all_datadirs:
+        print("Working on ", datadir)
+        manual_inspection_obj(config, datadir)
 
 
 def main():
@@ -166,15 +171,20 @@ def main():
     print('-'*50)
     # Calling tasks.
     print('\n')
-    print("Enter the serial numbers", end="")
-    print("(Space separated if more than one task in succession).")
-    task = input("Enter the tasks you want to run:")
-    task_list = task.strip().split(' ')
+    if config['inits']['MODE'] == 'MANUAL':
+        print("Enter the serial numbers", end="")
+        print("(Space separated if more than one task in succession).")
+        task = input("Enter the tasks you want to run:")
+        task_list = task.strip().split(' ')
+    elif config['inits']['MODE'] == 'AUTO':
+        print("The pipeline running in automatic mode")
+        task_list = list(tasks_dict.keys())
     for onetask in task_list:
         print('\n')
         tasks_dict[int(onetask)]['function'](config)
         print('\nTask {} over'.format(onetask))
         print('*'*50)
+
 
 tasks_dict = {
     0: {'function': create_fileslog,
