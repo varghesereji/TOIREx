@@ -15,6 +15,7 @@ from .obscatalog import create_catalog
 from .grouping_frames import grouping_items, grouping_with_re
 from .selecting_frames import feed_to_txt_file
 from .manual_inspection import manual_inspection_obj
+from .manual_inspection import manual_inspection_flats
 
 
 def get_directories(config, required='list'):
@@ -81,6 +82,18 @@ def manual_inspect_obj(config):
     for datadir in all_datadirs:
         print("Working on ", datadir)
         manual_inspection_obj(config, datadir)
+
+
+def manual_inspect_cal(config):
+    """
+    Task 3
+    Visually inspect the flat/cal files.
+    """
+    opdir, all_datadirs = get_directories(config)
+    print("Running Task 2")
+    for datadir in all_datadirs:
+        print("Working on ", datadir)
+        manual_inspection_flats(config, datadir)
 
 
 def main():
@@ -202,8 +215,10 @@ tasks_dict = {
         },
     2: {'function': manual_inspect_obj,
         'menu': "Visually inspect and/or reject object images one by one"
+        },
+    3: {'function': manual_inspect_cal,
+        'menu': "Visually inspect and/or reject flat/cal images one by one"
         }
-
     }
 
 if __name__ == "__main__":
