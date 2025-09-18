@@ -1,13 +1,13 @@
 import numpy as np
 from pathlib import Path
-
+from collections import defaultdict
 
 from ariastro import combine_process
+from ariastro import divide_smoothgradient
 
 from .setups import get_logger
 from .utils import extract_number_from_fname
 from .plottings import imageplot
-
 
 
 def manual_inspection_obj(config, dirname):
@@ -104,6 +104,88 @@ def manual_inspection_flats(config, dirname):
                         fluxext=fluxexts,
                         varext=varexts)
         print("Saved the flat frame", combine_fname)
+        print("Median smoothing")
+        smooth_fname = op_path / "Smooth_Comb_flats_{}.fits".format(number[0])
+        divide_smoothgradient(combine_fname,
+                              smooth_fname,
+                              fluxext=[0],
+                              varext=[1])
 
+
+def manual_inspection_cals(config, dirname):
+    logger = get_logger("manual_inspect")
+    txtfile_re = "Objects_lamps_group*.txt"
+    op_path = Path(config['outputs']['OP_DIR']) / \
+        dirname
+    files_list = list(op_path.glob(txtfile_re))
+    for f in files_list:
+        number = extract_number_from_fname(f.name)
+
+        print("Group number running:", int(number[0]), "\n")
+        logger.info("Calling file" + f.name)
+        read_file = np.genfromtxt(f, dtype=str)
+        targets_name = list(read_file[0, 1:])
+        acceptall = False
+        lamps_dict = separate_lamps(config, op_path, targets_name)
+        for lamp, filenames in lamps_dict.items():
+            for target in filenames:
+                if not acceptall and config['visual']['LAMP'] == 'Y':
+                    target_fname = Path(dirname) / target
+                    title = target
+                    imageplot(target_fname, title=title)
+                    
+                if acceptall:
+                    UserInput = 'aa'
+                else:
+                    UserInput = input(
+                        'Enter "r" to reject and "aa" to accept:'
+                        )
+                if UserInput == 'r':
+                    print("Removing", target)
+                    targets_name.remove(target)
+                elif UserInput == 'aa':
+                    print("Accepting", target)
+                elif UserInput == 'acceptall':
+                    acceptall = True
+                    print(
+                        "Accepting every single remaining images of this night"
+                    )
+            targets_path = [Path(dirname) / frame for frame in targets_name]
+            comb_flatname = lamp.lower() + "_comb_{}.fits".format(number[0])
+            combine_fname = op_path / comb_flatname
+            fluxexts = list(config['inputs']['FLUXEXT'])
+            varexts = list(config['inputs']['VAREXT'])
+            logger.info("Flux extensions: {}".format(fluxexts))
+            logger.info("Variance extensions: {}".format(varexts))
+            logger.info("Combining {} by biweight".format(targets_path))
+            combine_process(targets_path,
+                            combine_fname,
+                            method='biweight',
+                            fluxext=fluxexts,
+                            varext=varexts)
+            print("Saved the lamp frame", combine_fname)
+
+
+def separate_lamps(config, dir_path, lamps_list):
+    """
+    config: config file.
+    dir_path: path object.
+    lamps_list: list of lamps.
+    """
+
+    # Opening the catalogue
+    catalogue = dir_path / config['outputs']['CATALOGUE_NAME']
+    catalogue_entries = np.genfromtxt(catalogue, dtype=str)
+    catalogue_names = catalogue_entries[:, 0]  # Filenames form catalogue
+    catalogue_flags = catalogue_entries[:, -1]  # Flags from catalogue
+
+    # Mask to find position of file in the catalogue
+    # Grouping the files based on flag.
+    lamps_dict = defaultdict(list)
+    for index, filename in enumerate(catalogue_names):
+        if filename in lamps_list:
+            flag = catalogue_flags[index]
+            lamps_dict[flag].append(filename)
+    return lamps_dict
 
 # End

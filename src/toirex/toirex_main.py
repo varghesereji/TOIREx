@@ -16,6 +16,7 @@ from .grouping_frames import grouping_items, grouping_with_re
 from .selecting_frames import feed_to_txt_file
 from .manual_inspection import manual_inspection_obj
 from .manual_inspection import manual_inspection_flats
+from .manual_inspection import manual_inspection_cals
 
 
 def get_directories(config, required='list'):
@@ -35,7 +36,6 @@ def create_fileslog(config):
     -------
     Main config.
     '''
-    logging = get_logger()
     opdir, all_datadirs = get_directories(config)
     print("Running Task 0")
     for datadir in all_datadirs:
@@ -94,6 +94,8 @@ def manual_inspect_cal(config):
     for datadir in all_datadirs:
         print("Working on ", datadir)
         manual_inspection_flats(config, datadir)
+        if config['inits']['TODO'] == 'S':
+            manual_inspection_cals(config, datadir)
 
 
 def main():
@@ -110,7 +112,7 @@ def main():
     print_banner()
     print("\n You are reducting data observed with {}".format(instrument))
     print("="*50)
-    
+
     # Reading the name of output directory from config file.
     opdir, config_data = get_directories(config, required='string')
     create_dir(opdir)
