@@ -415,7 +415,8 @@ def grouping_with_re(config, dirname):
     """
 
     catalogue_dict = read_catalog(dirname, config)
-    fnames = catalogue_dict['FNAME']
+    fnames_full = catalogue_dict['FNAME']
+    fnums_full = catalogue_dict['FNUM']
     print('*'*10)
     print('For Regular Expression rules See:', end=" ")
     print('http://docs.python.org/2/howto/regex.html#regex-howto')
@@ -424,33 +425,60 @@ def grouping_with_re(config, dirname):
     print('all the objects lines which has "M31" in it.')
     print('NB: Even you enter the regular expression, the objects', end=" ")
     print('will be grouped based on SLIT, GRATING, FILTER etc')
-    object_re = input("Enter the regular expression for SCIECNE frames:")
-    object_re = re.compile(r''+object_re)
-    flats_re = input("Enter the regular expression for FLAT frames:")
-    flats_re = re.compile(r''+flats_re)
+    enter_object = input("Enter the regular expression for SCIECNE frames:")
+    object_re, object_fnums = reading_re(enter_object)
+    re_dict = {object_re: object_fnums}
+    enter_flats = input("Enter the regular expression for FLAT frames:")
+    flats_re, flat_fnums = reading_re(enter_flats)
 
     re_list = [object_re, flats_re]
+    re_dict[flats_re] = flat_fnums
 
     if config['inits']['TODO'] == 'S':
         dictkw = config['inits']['DICTKW']
         lamp_keys = instrument_class[dictkw].lamp_kw
         for lamp in lamp_keys:
-            lamp_re = input(
+            enter_lamp = input(
                 "Enter the regular expression for {} frames:".format(lamp)
             )
-            lamp_re = re.compile(r''+lamp_re)
+            lamp_re, lamp_fnums = reading_re(enter_lamp)
             re_list.append(lamp_re)
+            re_dict[lamp_re] = lamp_fnums
     selected_objects_dict = defaultdict(list)
     catalog_kws = catalogue_dict.keys()
-    for n, imgline in enumerate(fnames):
-        for res in re_list:
+    for res_ent, fnums in re_dict.items():
+        fnum_mask = (fnums_full >= fnums[0]) & \
+            (fnums_full <= fnums[1])
+        fnames = fnames_full[fnum_mask]
+        for n, imgline in enumerate(fnames):
+            # Converting the entered re string to re object
+            res = re.compile(r''+res_ent)
             if res.search(imgline) is not None:
                 for dictkws in catalog_kws:
                     selected_objects_dict[dictkws].append(
-                        catalogue_dict[dictkws][n])
-
+                        catalogue_dict[dictkws][fnum_mask][n])
     grouped_dict = grouping_items(config, dirname,
                                   catalogue_dict=selected_objects_dict,
                                   open_editor=False)
     return grouped_dict
+
+
+def reading_re(entered_re):
+    """
+    Function to read the entered
+    regular expression and separate FNUM from the
+    entered item.
+    """
+    if len(entered_re.strip().split(" ")) == 3:
+        re_list = entered_re.strip().split(" ")
+        object_re = re_list[0]
+        start_fnum = int(re_list[1])
+        end_fnum = int(re_list[-1])
+    else:
+        object_re = entered_re
+        start_fnum = 0
+        end_fnum = 10000000
+    fnum_list = [start_fnum, end_fnum]
+    return object_re, fnum_list
+
 # End
