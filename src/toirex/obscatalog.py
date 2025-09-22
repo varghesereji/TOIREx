@@ -80,24 +80,19 @@ def create_catalog(dirname, config):
         filename_infos.append(flagged_list)
     ascii.write(list(zip(*filename_infos)),
                 file_path, names=catalog_headers,
-                format="fixed_width", overwrite=True)
+                format="basic",
+                delimiter="|",
+                overwrite=True)
 
 
 def read_catalog(dirname, config):
     catalog_name = config['outputs']['CATALOGUE_NAME']
     catalog_path = Path(config['outputs']['OP_DIR']) / dirname
     file_path = catalog_path / catalog_name
-    dictkw = config['inits']['DICTKW']
-    instrument = instrument_class[dictkw]
-    header_keys = instrument.catalog_headers
-    header_keys.append("FLAG")
-    header_keys.insert(0, "FNAME")
-    catalogue_dict = defaultdict(list)
-    with open(file_path, 'r') as catalogs:
-        for entries in catalogs:
-            entry_list = entries.strip().split(' ')
-            for n, element in enumerate(entry_list):
-                catalogue_dict[header_keys[n]].append(element)
+    print("Catalogue", file_path)
+    catalogue_dict = ascii.read(file_path,
+                                delimiter="|", header_start=0,
+                                data_start=1)
     return catalogue_dict
 
 

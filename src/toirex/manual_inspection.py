@@ -7,6 +7,7 @@ from ariastro import divide_smoothgradient
 
 from .setups import get_logger
 from .utils import extract_number_from_fname
+from .obscatalog import read_catalog
 from .utils import open_in_editor
 from .plottings import imageplot
 
@@ -135,14 +136,14 @@ def manual_inspection_cals(config, dirname):
         read_file = np.genfromtxt(f, dtype=str)
         targets_name = list(read_file[0, 1:])
         acceptall = False
-        lamps_dict = separate_lamps(config, op_path, targets_name)
+        lamps_dict = separate_lamps(config, dirname, targets_name)
         for lamp, filenames in lamps_dict.items():
             for target in filenames:
                 if not acceptall and config['visual']['LAMP'] == 'Y':
                     target_fname = Path(dirname) / target
                     title = target
                     imageplot(target_fname, title=title)
-                    
+
                 if acceptall:
                     UserInput = 'aa'
                 else:
@@ -183,10 +184,10 @@ def separate_lamps(config, dir_path, lamps_list):
     """
 
     # Opening the catalogue
-    catalogue = dir_path / config['outputs']['CATALOGUE_NAME']
-    catalogue_entries = np.genfromtxt(catalogue, dtype=str)
-    catalogue_names = catalogue_entries[:, 0]  # Filenames form catalogue
-    catalogue_flags = catalogue_entries[:, -1]  # Flags from catalogue
+    # catalogue = dir_path / config['outputs']['CATALOGUE_NAME']
+    catalogue_entries = read_catalog(dir_path, config)
+    catalogue_names = catalogue_entries['FNAME']  # Filenames form catalogue
+    catalogue_flags = catalogue_entries['FLAG']  # Flags from catalogue
 
     # Mask to find position of file in the catalogue
     # Grouping the files based on flag.
