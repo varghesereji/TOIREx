@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-
+import re
 from pathlib import Path
 from collections import defaultdict
-
+from astropy.io import ascii
 
 from .instrument import instrument_class
 
@@ -45,10 +45,6 @@ def create_catalog(dirname, config):
     if file_path.exists():
         print("Catalog for this directory already exists. Skipping...")
         return
-    else:
-        # Creating an empty txt file.
-        with open(file_path, 'w') as _:
-            pass
 
     # Importing all fits files in the directory.
     dirname = Path(dirname)
@@ -67,6 +63,10 @@ def create_catalog(dirname, config):
     fnamesortfunc = instrument.sort_filename_key
     sorted_files = sorted(fitsfiles, key=fnamesortfunc)
 
+    filename_infos = []
+    catalog_headers = instrument.catalog_headers
+    catalog_headers.insert(0, 'FNAME')
+    catalog_headers.append('FLAG')
     for filename in sorted_files:
         # To avoid selecting wrong frames,
         # making a decision weather a file to select or not.
@@ -75,9 +75,12 @@ def create_catalog(dirname, config):
             continue
         entries_list = extract_catalog_entries(filename, dictkw)
         flagged_list = instrument.catalog_flag(entries_list)
-        # print(entries_list)
-        with open(file_path, 'a') as catalog:
-            catalog.write(' '.join(flagged_list) + '\n')
+        if config['inputs']['SKY'] == 'Y':
+            flagged_list = flag_sky(flagged_list)
+        filename_infos.append(flagged_list)
+    ascii.write(list(zip(*filename_infos)),
+                file_path, names=catalog_headers,
+                format="fixed_width", overwrite=True)
 
 
 def read_catalog(dirname, config):
@@ -96,4 +99,17 @@ def read_catalog(dirname, config):
             for n, element in enumerate(entry_list):
                 catalogue_dict[header_keys[n]].append(element)
     return catalogue_dict
+
+
+def flag_sky(catalogue_entries):
+    """
+    The function to identify sky frames
+    and flag them.
+    """
+    fname = catalogue_entries[0]
+    if re.search("sky", fname, re.IGNORECASE):
+        catalogue_entries[-1] = 'SKY'
+    return catalogue_entries
+
+
 # End
