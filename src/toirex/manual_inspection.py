@@ -7,6 +7,7 @@ from ariastro import divide_smoothgradient
 
 from .setups import get_logger
 from .utils import extract_number_from_fname
+from .utils import open_in_editor
 from .plottings import imageplot
 
 
@@ -17,13 +18,17 @@ def manual_inspection_obj(config, dirname):
         dirname
     files_list = list(txt_path.glob(txtfile_re))
     Obj2CombFile = "ObjectsToCombine_group{}.txt"
-    for f in files_list:
-        number = extract_number_from_fname(f.name)
-        Obj2Comb_txt = open(txt_path / Obj2CombFile.format(number[0]), 'w')
+    for txtf in files_list:
+        number = extract_number_from_fname(txtf.name)
+        Obj2Comb_fname = txt_path / Obj2CombFile.format(number[0])
+        Obj2Comb_txt = open(Obj2Comb_fname, 'w')
         print("Group number running:", int(number[0]), "\n")
-        logger.info("Calling file " + f.name)
-        read_file = np.genfromtxt(f, dtype=str)
-        targets_name = list(read_file[:, 0])
+        logger.info("Calling file " + txtf.name)
+        targets_name = []
+        with open(txtf, 'r') as objectfile:
+            for line in objectfile:
+                stripped_line = line.strip().split()
+                targets_name.append(stripped_line[0])
         acceptall = False
         add_space = False
         if (config['inits']['TIMESERIES'] == 'Y'):
@@ -54,6 +59,9 @@ def manual_inspection_obj(config, dirname):
                 print("Accepting every single remaining images of this night")
             if add_space:
                 Obj2Comb_txt.write("\n")
+        Obj2Comb_txt.close()
+        print("Filenames are entered into", Obj2Comb_fname)
+        open_in_editor(Obj2Comb_fname, config)
 
 
 def manual_inspection_flats(config, dirname):
@@ -105,11 +113,12 @@ def manual_inspection_flats(config, dirname):
                         varext=varexts)
         print("Saved the flat frame", combine_fname)
         print("Median smoothing")
-        smooth_fname = op_path / "Smooth_Comb_flats_{}.fits".format(number[0])
-        divide_smoothgradient(combine_fname,
-                              smooth_fname,
-                              fluxext=[0],
-                              varext=[1])
+        # The following steps should be in Task 4
+        # smooth_fname = op_path / "Smooth_Comb_flats_{}.fits".format(number[0])
+        # divide_smoothgradient(combine_fname,
+        #                       smooth_fname,
+        #                       fluxext=[0],
+        #                       varext=[1])
 
 
 def manual_inspection_cals(config, dirname):

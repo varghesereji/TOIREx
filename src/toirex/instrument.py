@@ -25,12 +25,12 @@ class Instrument(ABC):
         pass
 
     @abstractmethod
-    def frame_select(self, fname:str) -> bool:
+    def frame_select(self, fname: str) -> bool:
         """Decide weather to select a frame or not."""
         pass
 
     @abstractmethod
-    def catalog_flag(self, flog_list: list) -> list:
+    def catalog_flag(self, fname: str, flog_list: list) -> list:
         """Return a flagged catalog entry"""
         pass
 
@@ -158,11 +158,12 @@ class SpecTANSPEC(Instrument):
 
     @property
     def flat_kw(self):
-        return ['CONT1', 'CONT2']
+        return ['CONT1', 'CONT2', 'SKY']
 
     @property
     def lamp_kw(self):
         return ['ARGON', 'NEON']
+
 
 '''
 TIRSPEC instrument
@@ -189,7 +190,7 @@ class TIRSPEC(Instrument):
     def frame_select(self, fname: str) -> bool:
         return True
 
-    def catalog_flag(self, flog_list: list) -> list:
+    def catalog_flag(self, fname: str, flog_list: list) -> list:
         flog_list.append("OBJECT")
         return flog_list
 

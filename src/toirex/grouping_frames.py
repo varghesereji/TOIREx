@@ -212,7 +212,7 @@ def ordered_keys(catalog_dict, config, grouping_keys, flats_keys, flat_flag):
 
     group_entries = []
 
-    select_flats(catalog_dict, flats_keys, flat_flag)
+    # select_flats(catalog_dict, flats_keys, flat_flag)
     for keys in grouping_keys:
         group_entries.append(catalog_dict[keys])
     group_entries = np.array(group_entries).T
