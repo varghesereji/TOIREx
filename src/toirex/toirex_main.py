@@ -113,10 +113,18 @@ def main():
     print("\n You are reducting data observed with {}".format(instrument))
     print("="*50)
 
+    print("\n *** Very Very Important: Backup your RAW data first.", end="")
+    print("Don't proceed without backup *** \n")
+
     # Reading the name of output directory from config file.
     opdir, config_data = get_directories(config, required='string')
     create_dir(opdir)
-
+    try:
+        with open(Path(opdir) / "StepsFinished", 'r') as stepsover:
+            StepsOver = stepsover.read()
+    except IOError:
+        StepsOver = "Nothing..."
+    print("\nSteps you have already finished: " + StepsOver + "\n")
     # Reading the directory config file.
     # This config does not exist if the pipeline is running for the first time.
     # Then this config file will be created, and write the name of data
@@ -206,6 +214,8 @@ def main():
         tasks_dict[int(onetask)]['function'](config)
         print('\nTask {} over'.format(onetask))
         print('*'*50)
+        with open(Path(opdir) / "StepsFinished", 'a') as stepsover:
+            stepsover.write(str(onetask) + " ")
 
 
 tasks_dict = {
