@@ -2,7 +2,7 @@
 from pathlib import Path
 
 from .utils import open_in_editor
-from .instrument import instrument_class
+from .instrument import instruments
 
 
 def feed_to_txt_file(grouped_files, config, dirname, group):
@@ -60,10 +60,10 @@ def feed_to_txt_file(grouped_files, config, dirname, group):
     """
 
     dictkw = config['inits']['DICTKW']
-    instrument = instrument_class[dictkw]
+    instrument = instruments[dictkw]
 
-    lamp_kw = instrument.lamp_kw  # Keywords for flats
-    flat_kw = instrument.flat_kw  # Keywords for lamps
+    lamp_kw = instrument['lamp_kw']  # Keywords for flats
+    flat_kw = instrument['flat_kw']  # Keywords for lamps
     lsets = [flat_kw, lamp_kw]    # List of both set of keywords
     objects = grouped_files['OBJECT']  # List of target filenames
 

@@ -4,7 +4,7 @@ import numpy as np
 from pathlib import Path
 import re
 from .obscatalog import read_catalog
-from .instrument import instrument_class
+from .instrument import instruments
 from .utils import open_in_editor
 
 
@@ -211,8 +211,7 @@ def ordered_keys(catalog_dict, config, grouping_keys, flats_keys, flat_flag):
     fnames = np.array(catalog_dict['FNAME'])
 
     group_entries = []
-
-    # select_flats(catalog_dict, flats_keys, flat_flag)
+    #  select_flats(catalog_dict, flats_keys, flat_flag)
     for keys in grouping_keys:
         group_entries.append(catalog_dict[keys])
     group_entries = np.array(group_entries).T
@@ -308,16 +307,15 @@ def grouping_items(config, dirname, catalogue_dict=None,
     catalog_fnames = np.array(catalogue_dict['FNAME'])
     flags = catalogue_dict['FLAG']
     dictkw = config['inits']['DICTKW']
-    # instrument = instrument_class[dictkw]
 
-    flat_flag = instrument_class[dictkw].flat_kw
+    flat_flag = instruments[dictkw]['flat_kw']
 
     groups_dict = {}
     txt_fname = Path(config['outputs']['OP_DIR']) / \
         dirname / "Grouped_txtfile.txt"
     grouped_txt_file = open(txt_fname, 'w')
-    grouping_keys = instrument_class[dictkw].grouping_keys
-    flat_keys = instrument_class[dictkw].flat_grouping_keys
+    grouping_keys = instruments[dictkw]['grouping_keys']
+    flat_keys = instruments[dictkw]['flat_grouping_keys']
     ordered_dict = ordered_keys(catalogue_dict, config,
                                 grouping_keys, flat_keys, flat_flag)
 
@@ -435,7 +433,7 @@ def grouping_with_re(config, dirname):
 
     if config['inits']['TODO'] == 'S':
         dictkw = config['inits']['DICTKW']
-        lamp_keys = instrument_class[dictkw].lamp_kw
+        lamp_keys = instruments[dictkw]['lamp_kw']
         for lamp in lamp_keys:
             enter_lamp = input(
                 "Enter the regular expression for {} frames:".format(lamp)

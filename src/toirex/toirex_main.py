@@ -9,7 +9,7 @@ from .setups import create_dir
 from .setups import read_dirs
 from .setups import add_dict_keywords
 from .setups import setup_logger_from_config
-from .setups import get_logger
+# from .setups import get_logger
 
 from .obscatalog import create_catalog
 from .grouping_frames import grouping_items, grouping_with_re

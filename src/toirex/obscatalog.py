@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 import re
 from pathlib import Path
-from collections import defaultdict
 from astropy.io import ascii
 
-from .instrument import instrument_class
+from .instrument import instruments
 
 
 def extract_catalog_entries(fname, dictkw):
@@ -15,11 +14,10 @@ def extract_catalog_entries(fname, dictkw):
     '''
     # Standardising header with the function appropriate to the instrument.
     # std_header_func = functions_dict[dictkw]['StandardiseHeader']
-    instrument = instrument_class[dictkw]
-    std_header = instrument.standardise_header(fname)
-
+    instrument = instruments[dictkw]
+    std_header = instrument['standardise_header'](fname)
     # Using the keywords required for specific instrument.
-    required_kws = instrument.catalog_headers
+    required_kws = instrument['catalog_headers']
     entries = [Path(fname).name]
     for kws in required_kws:
         entries.append(str(std_header[kws]).replace(" ", "_"))
@@ -57,29 +55,29 @@ def create_catalog(dirname, config):
             if fname in fitsfiles:
                 fitsfiles.remove(fname)
     dictkw = config['inits']['DICTKW']  # Calling the dictionary keyword.
-    instrument = instrument_class[dictkw]
+    instrument = instruments[dictkw]
     # Sorting the filenames based on FNUM
     # fnamesortfunc = functions_dict[dictkw]['filename_sort_func']
-    fnamesortfunc = instrument.sort_filename_key
+    fnamesortfunc = instrument['sort_filename_key']
     sorted_files = sorted(fitsfiles, key=fnamesortfunc)
 
     filename_infos = []
-    catalog_headers = instrument.catalog_headers
-    catalog_headers.insert(0, 'FNAME')
-    catalog_headers.append('FLAG')
     for filename in sorted_files:
         # To avoid selecting wrong frames,
         # making a decision weather a file to select or not.
-        frame_decision_function = instrument.frame_select
+        frame_decision_function = instrument['frame_select']
         if not frame_decision_function(filename):
             continue
         entries_list = extract_catalog_entries(filename, dictkw)
-        flagged_list = instrument.catalog_flag(entries_list)
+        flagged_list = instrument['catalog_flag'](entries_list)
         if config['inputs']['SKY'] == 'Y':
             flagged_list = flag_sky(flagged_list)
         filename_infos.append(flagged_list)
+    catalog_headers_full = instrument['catalog_headers']
+    catalog_headers_full.insert(0, 'FNAME')
+    catalog_headers_full.append('FLAG')
     ascii.write(list(zip(*filename_infos)),
-                file_path, names=catalog_headers,
+                file_path, names=catalog_headers_full,
                 format="basic",
                 delimiter="|",
                 overwrite=True)
