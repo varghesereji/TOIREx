@@ -62,11 +62,11 @@ def catalog_flag_spectanspec(flog_list: list) -> list:
     calmir_pos = headers_list == 'CALMIR'
     flog_list_red = np.array(flog_list[1:])
 
-    argon_flag = flog_list_red[argon_pos]
-    neon_flag = flog_list_red[neon_pos]
-    cont1_flag = flog_list_red[cont1_pos]
-    cont2_flag = flog_list_red[cont2_pos]
-    calmir_flag = flog_list_red[calmir_pos]
+    argon_flag = flog_list_red[argon_pos][0]
+    neon_flag = flog_list_red[neon_pos][0]
+    cont1_flag = flog_list_red[cont1_pos][0]
+    cont2_flag = flog_list_red[cont2_pos][0]
+    calmir_flag = flog_list_red[calmir_pos][0]
 
     lamp_flags = [
         argon_flag, neon_flag,
@@ -105,11 +105,11 @@ def standardise_header_tirspec(fname: str) -> dict:
     return header
 
 
-def frame_select_tirspec(self, fname: str) -> bool:
+def frame_select_tirspec(fname: str) -> bool:
     return True
 
 
-def catalog_flag_tirspec(self, fname: str, flog_list: list) -> list:
+def catalog_flag_tirspec(flog_list: list) -> list:
     flog_list.append("OBJECT")
     return flog_list
 
