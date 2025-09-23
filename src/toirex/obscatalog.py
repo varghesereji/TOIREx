@@ -69,7 +69,10 @@ def create_catalog(dirname, config):
         if not frame_decision_function(filename):
             continue
         entries_list = extract_catalog_entries(filename, dictkw)
-        flagged_list = instrument['catalog_flag'](entries_list)
+        flagged_list = instrument['catalog_flag'](
+            entries_list,
+            instrument['catalog_headers']
+        )
         if config['inputs']['SKY'] == 'Y':
             flagged_list = flag_sky(flagged_list)
         filename_infos.append(flagged_list)

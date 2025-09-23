@@ -8,9 +8,9 @@ from functools import partial
 from .utils import read_fits_header
 
 
-'''
-Common functions
-'''
+#################################
+#      Common functions         #
+#################################
 
 
 def sort_filename_key(fname: str, regexp=r"(\d+)\.Z\.fits"):
@@ -19,9 +19,9 @@ def sort_filename_key(fname: str, regexp=r"(\d+)\.Z\.fits"):
     return int(number.group(1)) if number else -1
 
 
-'''
-SpecTANSPEC instrument
-'''
+#################################
+#         SpecTANSPEC           #
+#################################
 
 
 def standardise_header_spectanspec(fname: str) -> dict:
@@ -40,7 +40,7 @@ def frame_select_spectanspec(fname: str) -> bool:
     return (header['NAXIS1'] == 2048) and (header['NAXIS2'] == 2048)
 
 
-def catalog_flag_spectanspec(flog_list: list) -> list:
+def catalog_flag_spectanspec(flog_list: list, headers_list: list) -> list:
     '''
     This function is to flag the
     frames as object, argon, neon, cont1
@@ -52,7 +52,6 @@ def catalog_flag_spectanspec(flog_list: list) -> list:
     ------
     catalog list with flag.
     '''
-    headers_list = instruments['SpecTANSPEC']['catalog_headers']
 
     headers_list = np.array(headers_list)
     argon_pos = headers_list == 'ARGONL'
@@ -62,11 +61,11 @@ def catalog_flag_spectanspec(flog_list: list) -> list:
     calmir_pos = headers_list == 'CALMIR'
     flog_list_red = np.array(flog_list[1:])
 
-    argon_flag = flog_list_red[argon_pos][0]
-    neon_flag = flog_list_red[neon_pos][0]
-    cont1_flag = flog_list_red[cont1_pos][0]
-    cont2_flag = flog_list_red[cont2_pos][0]
-    calmir_flag = flog_list_red[calmir_pos][0]
+    argon_flag = flog_list_red[argon_pos].item()
+    neon_flag = flog_list_red[neon_pos].item()
+    cont1_flag = flog_list_red[cont1_pos].item()
+    cont2_flag = flog_list_red[cont2_pos].item()
+    calmir_flag = flog_list_red[calmir_pos].item()
 
     lamp_flags = [
         argon_flag, neon_flag,
@@ -76,30 +75,32 @@ def catalog_flag_spectanspec(flog_list: list) -> list:
     object_flag = 'None'
     if calmir_flag == 'out':
         object_flag = "OBJECT"
-    elif (calmir_flag == 'in') and (lamp_flags == ['1', '0',
-                                                   '0', '0']):
-        object_flag = "ARGON"
-    elif (calmir_flag == 'in') and (lamp_flags == ['0', '1',
-                                                   '0', '0']):
-        object_flag = "NEON"
-    elif (calmir_flag == 'in') and (lamp_flags == ['0', '0',
-                                                   '1', '0']):
-        object_flag = "CONT1"
-    elif (calmir_flag == 'in') and (lamp_flags == ['0', '0',
-                                                   '0', '1']):
-        object_flag = "CONT2"
+    elif (calmir_flag == 'in'):
+        if (lamp_flags == ['1', '0',
+                           '0', '0']):
+            object_flag = "ARGON"
+        elif (lamp_flags == ['0', '1',
+                             '0', '0']):
+            object_flag = "NEON"
+        elif (lamp_flags == ['0', '0',
+                             '1', '0']):
+            object_flag = "CONT1"
+        elif (lamp_flags == ['0', '0',
+                             '0', '1']):
+            object_flag = "CONT2"
 
     flog_list.append(object_flag)
     return flog_list
 
 
-'''
-TIRSPEC instrument
-'''
+#################################
+#         TIRSPEC               #
+#################################
 
 
 def standardise_header_tirspec(fname: str) -> dict:
     header = read_fits_header(fname)
+    # FNUM not in header. Extracting from filename.
     fnum = instruments['TIRSPEC']['sort_filename_key'](fname)
     header['FNUM'] = fnum
     return header
@@ -109,14 +110,14 @@ def frame_select_tirspec(fname: str) -> bool:
     return True
 
 
-def catalog_flag_tirspec(flog_list: list) -> list:
+def catalog_flag_tirspec(flog_list: list, headers_list: list) -> list:
     flog_list.append("OBJECT")
     return flog_list
 
 
-'''
-Function dictionaries
-'''
+#################################
+#    Function dictionaries      #
+#################################
 
 instruments = {
     'SpecTANSPEC':
