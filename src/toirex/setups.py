@@ -144,7 +144,7 @@ def print_banner():
     '''
     init(autoreset=True)  # Automatically reset colors after print
 
-    text = "TOIRex"
+    text = "TOIREx"
 
     ascii_art = pyfiglet.figlet_format(text, font='slant')
 

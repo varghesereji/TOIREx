@@ -431,7 +431,6 @@ def grouping_with_re(config, dirname):
     enter_flats = input("Enter the regular expression for FLAT frames:")
     flats_re, flat_fnums = reading_re(enter_flats)
 
-    re_list = [object_re, flats_re]
     re_dict[flats_re] = flat_fnums
 
     if config['inits']['TODO'] == 'S':
@@ -442,7 +441,6 @@ def grouping_with_re(config, dirname):
                 "Enter the regular expression for {} frames:".format(lamp)
             )
             lamp_re, lamp_fnums = reading_re(enter_lamp)
-            re_list.append(lamp_re)
             re_dict[lamp_re] = lamp_fnums
     selected_objects_dict = defaultdict(list)
     catalog_kws = catalogue_dict.keys()
