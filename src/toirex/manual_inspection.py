@@ -3,18 +3,19 @@ from pathlib import Path
 from collections import defaultdict
 
 from ariastro import combine_process
-from ariastro import divide_smoothgradient
 
 from .setups import get_logger
 from .utils import extract_number_from_fname
 from .obscatalog import read_catalog
 from .utils import open_in_editor
+from .utils import read_txt_file
 from .plottings import imageplot
+from .instrument import instruments
 
 
 def manual_inspection_obj(config, dirname):
     logger = get_logger("manual_inspect")
-    txtfile_re = "Objects_lamps_group*.txt"
+    txtfile_re = "Objects_flats_group*.txt"
     txt_path = Path(config['outputs']['OP_DIR']) / \
         dirname
     files_list = list(txt_path.glob(txtfile_re))
@@ -25,11 +26,9 @@ def manual_inspection_obj(config, dirname):
         Obj2Comb_txt = open(Obj2Comb_fname, 'w')
         print("Group number running:", int(number[0]), "\n")
         logger.info("Calling file " + txtf.name)
-        targets_name = []
-        with open(txtf, 'r') as objectfile:
-            for line in objectfile:
-                stripped_line = line.strip().split()
-                targets_name.append(stripped_line[0])
+        txt_read_list = read_txt_file(txtf)
+        # Selecting only the science frames.
+        targets_name = [i[0] for i in txt_read_list]
         acceptall = False
         add_space = False
         if (config['inits']['TIMESERIES'] == 'Y'):
@@ -67,63 +66,98 @@ def manual_inspection_obj(config, dirname):
 
 def manual_inspection_flats(config, dirname):
     logger = get_logger("manual_inspect")
+    dictkw = config['inits']['DICTKW']
     txtfile_re = "Objects_flats_group*.txt"
     op_path = Path(config['outputs']['OP_DIR']) / \
         dirname
     files_list = list(op_path.glob(txtfile_re))
+    print("Use the following instructions to select the frames")
+    print("'r': Reject the frame for currect SCIENCE frame")
+    print("'ra': Reject the frame from the analysis")
+    print("'a': Accept the frame for current SCIENCE frame")
+    print("'aa': Accept the frame for the analysis")
+    print("'acceptall': Accept all frames without inspection")
     for f in files_list:
         number = extract_number_from_fname(f.name)
 
         print("Group number running:", int(number[0]), "\n")
         logger.info("Calling file" + f.name)
-        read_file = np.genfromtxt(f, dtype=str)
-        targets_name = list(read_file[0, 1:])
+        read_file = read_txt_file(f)
+        always_accept_list = []
+        always_reject_list = []
         acceptall = False
-        for target in targets_name:
-            if not acceptall and config['visual']['FLAT'] == 'Y':
-                target_fname = Path(dirname) / target
-                title = target
-                imageplot(target_fname, title=title)
-
-            if acceptall:
-                UserInput = 'aa'
-            else:
-                UserInput = input(
-                    'Enter "r" to reject and "aa" to accept:'
+        finalflat_txtfname = "Objects_finalflats_group{}.txt".format(number[0])
+        finalflat_txt = open(op_path / finalflat_txtfname, "w")
+        for line in read_file:
+            object_name = line[0]
+            flats_list = line[1:]
+            if not acceptall:
+                print("*"*30)
+                print("Inspecting flats for {}".format(object_name))
+            for target in flats_list:
+                if target in always_reject_list:
+                    flats_list.remove(target)
+                    continue
+                if target in always_accept_list:
+                    # print(target, "Is always accepted")
+                    continue
+                if not acceptall and config['visual']['FLAT'] == 'Y':
+                    target_fname = Path(dirname) / target
+                    title = target_fname
+                    print(target)
+                    imageplot(target_fname, title=title)
+                if acceptall:
+                    UserInput = 'aa'
+                else:
+                    UserInput = input(
+                        'Enter according to above instruction:'
                     )
-            if UserInput == 'r':
-                print("Removing", target)
-                targets_name.remove(target)
-            elif UserInput == 'aa':
-                print("Accepting", target)
-            elif UserInput == 'acceptall':
-                acceptall = True
-                print("Accepting every single remaining images of this night")
-        targets_path = [Path(dirname) / frame for frame in targets_name]
-        comb_flatname = "Comb_flats_{}.fits".format(number[0])
-        combine_fname = op_path / comb_flatname
-        fluxexts = list(config['inputs']['FLUXEXT'])
-        varexts = list(config['inputs']['VAREXT'])
-        logger.info("Flux extensions: {}".format(fluxexts))
-        logger.info("Variance extensions: {}".format(varexts))
-        logger.info("Combining {} by biweight".format(targets_path))
-        combine_process(targets_path,
-                        combine_fname,
-                        method='biweight',
-                        fluxext=fluxexts,
-                        varext=varexts)
-        print("Saved the flat frame", combine_fname)
-        print("Median smoothing")
-        # The following steps should be in Task 4
-        # smooth_fname = op_path / "Smooth_Comb_flats_{}.fits".format(number[0])
-        # divide_smoothgradient(combine_fname,
-        #                       smooth_fname,
-        #                       fluxext=[0],
-        #                       varext=[1])
+                if UserInput == 'ra':
+                    print("Completely Removing", target)
+                    flats_list.remove(target)
+                    always_reject_list.append(target)
+                elif UserInput == 'aa':
+                    print("Always Accepting", target)
+                    always_accept_list.append(target)
+                elif UserInput == 'r':
+                    flats_list.remove(target)
+                elif UserInput == 'acceptall':
+                    acceptall = True
+                    print(
+                        "Accepting every single remaining images of this night"
+                    )
+                else:
+                    print("Accepting", target)
+            fnums = []
+            for flat in flats_list:
+                fnum = instruments[dictkw]['sort_filename_key'](flat)
+                fnums.append(fnum)
+            comb_fnums = "_".join([str(n) for n in fnums])
+            targets_path = [Path(dirname) / frame for frame in flats_list]
+            comb_flatname = "Comb_flats_{}.fits".format(comb_fnums)
+            object_flat_list = object_name + " " + comb_flatname + "\n"
+            finalflat_txt.write(object_flat_list)
+            combine_fname = op_path / comb_flatname
+            if combine_fname.exists():
+                continue
+
+            fluxexts = list(config['inputs']['FLUXEXT'])
+            varexts = list(config['inputs']['VAREXT'])
+            logger.info("Flux extensions: {}".format(fluxexts))
+            logger.info("Variance extensions: {}".format(varexts))
+            logger.info("Combining {} by biweight".format(targets_path))
+            combine_process(targets_path,
+                            combine_fname,
+                            method='biweight',
+                            fluxext=fluxexts,
+                            varext=varexts)
+            # print("Saved the flat frame", combine_fname)
+        finalflat_txt.close()
 
 
 def manual_inspection_cals(config, dirname):
     logger = get_logger("manual_inspect")
+
     txtfile_re = "Objects_lamps_group*.txt"
     op_path = Path(config['outputs']['OP_DIR']) / \
         dirname

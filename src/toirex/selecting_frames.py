@@ -95,4 +95,5 @@ def feed_to_txt_file(grouped_files, config, dirname, group):
             txtfile.write(line)
         txtfile.close()
         open_in_editor(txtfile_path, config)
+
 # End
