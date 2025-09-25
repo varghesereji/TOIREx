@@ -2,6 +2,8 @@
 import re
 import numpy as np
 import subprocess
+from scipy import signal
+from astropy.stats import mad_std
 from astropy.io import fits
 
 
@@ -44,16 +46,30 @@ def DitherDetection(ObjectFile, ContWindowSelection,
 
     if startLoc is None:
         startLoc = ObjectFile.shape[1]//2
-    # Starting labelling Reference XD cut data; 
-    WindowStart = ContWindowSelection[0] 
-    WindowEnd = ContWindowSelection[1] 
-    RefXD = np.nanmedian(ObjectFile[WindowStart:WindowEnd,startLoc-avgHWindow:startLoc+avgHWindow],axis=1) 
+    # Starting labelling Reference XD cut data;
+    WindowStart = ContWindowSelection[0]
+    WindowEnd = ContWindowSelection[1]
+    RefXD = np.nanmedian(ObjectFile[WindowStart:WindowEnd,
+                                    startLoc-avgHWindow:startLoc+avgHWindow],
+                         axis=1)
     Refpixels = np.arange(len(RefXD))+WindowStart
-    Bkg = signal.order_filter(RefXD,domain=[True]*TraceHWidth*5,rank=int(TraceHWidth*5/10))
-    Flux = np.abs(RefXD -Bkg)
+    Bkg = signal.order_filter(
+        RefXD, domain=[True]*TraceHWidth*5, rank=int(TraceHWidth*5/10)
+    )
+    Flux = np.abs(RefXD - Bkg)
     ThreshMask = RefXD > (Bkg + np.abs(mad_std(Flux))*6)
-    centerpix = np.sum(Flux[ThreshMask]*Refpixels[ThreshMask])/np.sum(Flux[ThreshMask])
-    
+    centerpix = np.sum(
+        Flux[ThreshMask]*Refpixels[ThreshMask]
+    ) / np.sum(Flux[ThreshMask])
+
     return centerpix
+
+
+def read_txt_file(filename):
+    txtline = []
+    with open(filename, 'r') as txtfile:
+        for line in txtfile:
+            txtline.append(line.strip().split(" "))
+    return txtline
 
 # End
