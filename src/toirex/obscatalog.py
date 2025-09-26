@@ -86,11 +86,12 @@ def create_catalog(dirname, config):
                 overwrite=True)
 
 
-def read_catalog(dirname, config):
+def read_catalog(dirname, config, showcatname=True):
     catalog_name = config['outputs']['CATALOGUE_NAME']
     catalog_path = Path(config['outputs']['OP_DIR']) / dirname
     file_path = catalog_path / catalog_name
-    print("Catalogue", file_path)
+    if showcatname:
+        print("Catalogue", file_path)
     catalogue_dict = ascii.read(file_path,
                                 delimiter="|", header_start=0,
                                 data_start=1)
