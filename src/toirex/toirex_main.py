@@ -90,12 +90,22 @@ def manual_inspect_cal(config):
     Visually inspect the flat/cal files.
     """
     opdir, all_datadirs = get_directories(config)
-    print("Running Task 2")
+    print("Running Task 3")
     for datadir in all_datadirs:
         print("Working on ", datadir)
         manual_inspection_flats(config, datadir)
         if config['inits']['TODO'] == 'S':
             manual_inspection_cals(config, datadir)
+
+
+def combdith_flatcorr(config):
+    """
+    Task 4
+    Flat correction and dither combination
+    """
+    opdir, alldatadirs = get_directories(config)
+    print("Running Task 3")
+    print("This will be added soon")
 
 
 def main():
@@ -230,6 +240,9 @@ tasks_dict = {
         },
     3: {'function': manual_inspect_cal,
         'menu': "Visually inspect and/or reject flat/cal images one by one"
+        },
+    4: {'function': combdith_flatcorr,
+        'menu': "Apply Flat Correction and/or CR removal"
         }
     }
 

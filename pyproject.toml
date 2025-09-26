@@ -32,6 +32,7 @@ classifiers = [
 
 [project.scripts]
 toirex = "toirex.toirex_main:main"
+timshow = "toirex.plottings:plot_main"
 
 [tool.setuptools.package-data]
 "toirex" = ["data/*", "config/*"]
