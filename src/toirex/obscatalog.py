@@ -20,7 +20,10 @@ def extract_catalog_entries(fname, dictkw):
     required_kws = instrument['catalog_headers']
     entries = [Path(fname).name]
     for kws in required_kws:
-        entries.append(str(std_header[kws]).replace(" ", "_"))
+        try:
+            entries.append(str(std_header[kws]).replace(" ", "_"))
+        except KeyError:
+            entries.append("None")
     return entries
 
 

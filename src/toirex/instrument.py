@@ -111,7 +111,16 @@ def frame_select_tirspec(fname: str) -> bool:
 
 
 def catalog_flag_tirspec(flog_list: list, headers_list: list) -> list:
-    flog_list.append("OBJECT")
+    filename = flog_list[0]
+    flats_kws = ["flat", "cont"]
+    flat_check = np.array([
+        kw.lower() in filename.lower()
+        for kw in flats_kws])
+    if np.sum(flat_check) > 0:
+        flag = "FLAT"
+    else:
+        flag = "OBJECT"
+    flog_list.append(flag)
     return flog_list
 
 
@@ -146,7 +155,7 @@ instruments = {
      'grouping_keys': ['UPPER', 'LOWER', 'SLIT',
                        'TCSRA', 'TCSDEC'
                        ],
-     'flat_kw': [],
+     'flat_kw': ['FLAT'],
      'flat_grouping_keys': ['UPPER', 'LOWER'],
      'lamp_kw': ['ARGON'],
      'catalog_headers': [
