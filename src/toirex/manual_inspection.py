@@ -77,27 +77,32 @@ def manual_inspection_obj(config, dirname):
                 targets_name.remove(target)
             elif UserInput == 'aa':
                 print("Accepting", target)
-                Obj2Comb_txt.write(target+"\n")
+                line_to_txt = target
                 if config['dither']['DITHERING'] == 'Y':
                     if reference_frame is None:
                         reference_frame = target_fname
                     else:
                         img_shift = find_shift(reference_frame, target_fname,
                                                config)
-                        shift = img_shift[0]
+                        shift = np.array(img_shift[0], dtype=np.float64)
+                        shift = np.rint(shift).astype(int)
                         shift_err = img_shift[1]
-                        distance = np.sqrt(np.sum(np.array(shift)**2))
+                        distance = np.sqrt(np.sum(shift**2))
+                        # line_to_txt += " "
+                        # line_to_txt += " ".join(map(str, shift))
                         if distance > 3 * shift_err:
                             reference_frame = target_fname
                             add_space = True
+                            Obj2Comb_txt.write("\n")
                         else:
                             add_space = False
+                Obj2Comb_txt.write(line_to_txt+"\n")
             elif UserInput == 'acceptall':
                 acceptall = True
                 print("Accepting every single remaining images of this night")
             print("Reference frame is", reference_frame)
-            if add_space:
-                Obj2Comb_txt.write("\n")
+            # if add_space:
+            #     Obj2Comb_txt.write("\n")
         Obj2Comb_txt.close()
         print("Selected filenames are entered into", Obj2Comb_fname)
         print("Add space between the lines which you do not want to group")
