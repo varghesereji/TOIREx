@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 from pathlib import Path
 from collections import defaultdict
@@ -11,6 +13,7 @@ from .utils import open_in_editor
 from .utils import read_txt_file
 from .plottings import imageplot
 from .instrument import instruments
+from .dithering import find_shift
 
 
 def making_title_for_frame(fname, dirname, config):
@@ -57,8 +60,8 @@ def manual_inspection_obj(config, dirname):
             acceptall = True
             add_space = True
         for target in targets_name:
+            target_fname = Path(dirname) / target
             if not acceptall and config['visual']['SCIENCE'] == 'Y':
-                target_fname = Path(dirname) / target
                 title = making_title_for_frame(target,
                                                dirname,
                                                config)
@@ -75,8 +78,20 @@ def manual_inspection_obj(config, dirname):
             elif UserInput == 'aa':
                 print("Accepting", target)
                 Obj2Comb_txt.write(target+"\n")
-                if reference_frame is None:
-                    reference_frame = target
+                if config['dither']['DITHERING'] == 'Y':
+                    if reference_frame is None:
+                        reference_frame = target_fname
+                    else:
+                        img_shift = find_shift(reference_frame, target_fname,
+                                               config)
+                        shift = img_shift[0]
+                        shift_err = img_shift[1]
+                        distance = np.sqrt(np.sum(np.array(shift)**2))
+                        if distance > 3 * shift_err:
+                            reference_frame = target_fname
+                            add_space = True
+                        else:
+                            add_space = False
             elif UserInput == 'acceptall':
                 acceptall = True
                 print("Accepting every single remaining images of this night")
@@ -85,6 +100,8 @@ def manual_inspection_obj(config, dirname):
                 Obj2Comb_txt.write("\n")
         Obj2Comb_txt.close()
         print("Selected filenames are entered into", Obj2Comb_fname)
+        print("Add space between the lines which you do not want to group")
+        print("Remove the space if you want to combine")
         open_in_editor(Obj2Comb_fname, config)
 
 
