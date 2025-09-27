@@ -19,7 +19,7 @@ def imageplot(fname, ext=0, title=None, **kwargs):
     plt.figure(figsize=(9, 9))
     plt.imshow(data, **kwargs)
     if title is not None:
-        plt.title(title)
+        plt.title(title, loc="left")
     plt.tight_layout()
     plt.colorbar(label="Counts")
     plt.show()

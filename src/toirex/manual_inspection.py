@@ -1,3 +1,4 @@
+import numpy as np
 from pathlib import Path
 from collections import defaultdict
 
@@ -10,6 +11,24 @@ from .utils import open_in_editor
 from .utils import read_txt_file
 from .plottings import imageplot
 from .instrument import instruments
+
+
+def making_title_for_frame(fname, dirname, config):
+    """
+    Function to make title for the plot
+    """
+    dictkw = config['inits']['DICTKW']
+    header_keys = instruments[dictkw]["grouping_keys"]
+    catalog_dict = read_catalog(dirname, config, showcatname=False)
+    fnames_array = np.array(catalog_dict["FNAME"])
+    fname_mask = fnames_array == fname
+    title_str = [r"FNAME : $\mathbf{" + fname + "}$\n"]
+    for keys in header_keys:
+        col = np.array(catalog_dict[keys])
+        element = keys + r" : $\mathbf{" + col[fname_mask][0] + "}$\n"
+        title_str.append(element)
+    title_str = " ".join(title_str)
+    return title_str
 
 
 def manual_inspection_obj(config, dirname):
@@ -30,6 +49,7 @@ def manual_inspection_obj(config, dirname):
         targets_name = [i[0] for i in txt_read_list]
         acceptall = False
         add_space = False
+        reference_frame = None
         if (config['inits']['TIMESERIES'] == 'Y'):
             acceptall = True
             add_space = True
@@ -39,7 +59,9 @@ def manual_inspection_obj(config, dirname):
         for target in targets_name:
             if not acceptall and config['visual']['SCIENCE'] == 'Y':
                 target_fname = Path(dirname) / target
-                title = target
+                title = making_title_for_frame(target,
+                                               dirname,
+                                               config)
                 imageplot(target_fname, title=title)
             if acceptall:
                 UserInput = 'aa'
@@ -53,13 +75,16 @@ def manual_inspection_obj(config, dirname):
             elif UserInput == 'aa':
                 print("Accepting", target)
                 Obj2Comb_txt.write(target+"\n")
+                if reference_frame is None:
+                    reference_frame = target
             elif UserInput == 'acceptall':
                 acceptall = True
                 print("Accepting every single remaining images of this night")
+            print("Reference frame is", reference_frame)
             if add_space:
                 Obj2Comb_txt.write("\n")
         Obj2Comb_txt.close()
-        print("Filenames are entered into", Obj2Comb_fname)
+        print("Selected filenames are entered into", Obj2Comb_fname)
         open_in_editor(Obj2Comb_fname, config)
 
 
