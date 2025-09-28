@@ -208,6 +208,11 @@ def ordered_keys(catalog_dict, config, grouping_keys, flats_keys, flat_flag):
     array(['sci1.fits', 'sci2.fits', 'flat1.fits'], dtype='<U10')
     """
 
+    # Recognizing the position of flats_keys in grouping_keys.
+    # This will filter out the entries for flat.
+    # If this is not there, repeated entries will be grouped.
+    flat_key_pos = np.array([True if i in flats_keys else False
+                             for i in grouping_keys])
     fnames = np.array(catalog_dict['FNAME'])
 
     group_entries = []
@@ -222,17 +227,14 @@ def ordered_keys(catalog_dict, config, grouping_keys, flats_keys, flat_flag):
 
     for n, r in enumerate(reduced_groups):
         mask = group_entries == r
-
         matchings = np.sum(mask, axis=1) == len(r)
-
         matched_fnames = fnames[matchings]
-
         for flat_kw, flat_fnames in grouped_flats.items():
             flat_kwlist = flat_kw.strip().split(" ")
+            filtered_r = np.array(r)[flat_key_pos]
             entry_mask = np.array([
-                True if i in flat_kwlist else False for i in r
+                True if i in flat_kwlist else False for i in filtered_r
             ])
-
             if np.sum(entry_mask) == len(flat_kwlist):
                 matched_fnames = np.concatenate((
                     matched_fnames, np.array(flat_fnames
@@ -328,7 +330,7 @@ def grouping_items(config, dirname, catalogue_dict=None,
                 # print(crorder, fname, 'in group', order)
                 subgroups_dict[flags[crorder]].append(fname)
         if 'OBJECT' not in list(subgroups_dict.keys()):
-            grouped_txt_file.write("\n To object in this group \n")
+            grouped_txt_file.write("\n No object in this group \n")
             continue
         for keys, fnames in subgroups_dict.items():
             grouped_txt_file.write(

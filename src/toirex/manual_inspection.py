@@ -62,6 +62,7 @@ def manual_inspection_obj(config, dirname):
         for target in targets_name:
             target_fname = Path(dirname) / target
             if not acceptall and config['visual']['SCIENCE'] == 'Y':
+                print("Displaying ", target)
                 title = making_title_for_frame(target,
                                                dirname,
                                                config)
@@ -92,17 +93,13 @@ def manual_inspection_obj(config, dirname):
                         # line_to_txt += " ".join(map(str, shift))
                         if distance > 3 * shift_err:
                             reference_frame = target_fname
-                            add_space = True
                             Obj2Comb_txt.write("\n")
-                        else:
-                            add_space = False
                 Obj2Comb_txt.write(line_to_txt+"\n")
             elif UserInput == 'acceptall':
                 acceptall = True
                 print("Accepting every single remaining images of this night")
-            print("Reference frame is", reference_frame)
-            # if add_space:
-            #     Obj2Comb_txt.write("\n")
+            if add_space:
+                Obj2Comb_txt.write("\n")
         Obj2Comb_txt.close()
         print("Selected filenames are entered into", Obj2Comb_fname)
         print("Add space between the lines which you do not want to group")
