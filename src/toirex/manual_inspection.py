@@ -22,15 +22,22 @@ def making_title_for_frame(fname, dirname, config):
     """
     dictkw = config['inits']['DICTKW']
     header_keys = instruments[dictkw]["grouping_keys"]
+    header_keys.append("FLAG")
     catalog_dict = read_catalog(dirname, config, showcatname=False)
     fnames_array = np.array(catalog_dict["FNAME"])
     fname_mask = fnames_array == fname
-    title_str = [r"FNAME : $\mathbf{" + fname + "}$\n"]
+    title_str = [r"FNAME : $\bf{" + fname + "}$\n"]
     for keys in header_keys:
         col = np.array(catalog_dict[keys])
-        element = keys + r" : $\mathbf{" + col[fname_mask][0] + "}$\n"
+        value = col[fname_mask][0]
+
+        print("value", value)
+        element = keys + r" : $\mathbf{" + value + "}$\n"
         title_str.append(element)
     title_str = " ".join(title_str)
+    # Escape underscores for mathtext
+    title_str = title_str.replace("_", r"\_")
+    print(title_str)
     return title_str
 
 
@@ -146,7 +153,9 @@ def manual_inspection_flats(config, dirname):
                     continue
                 if not acceptall and config['visual']['FLAT'] == 'Y':
                     target_fname = Path(dirname) / target
-                    title = target_fname
+                    title = making_title_for_frame(target,
+                                                   dirname,
+                                                   config)
                     print(target)
                     imageplot(target_fname, title=title)
                 if acceptall:
@@ -241,8 +250,9 @@ def manual_inspection_cals(config, dirname):
                         continue
                     if not acceptall and config['visual']['LAMP'] == 'Y':
                         target_fname = Path(dirname) / target
-                        title = target
-                        print(target)
+                        title = making_title_for_frame(target,
+                                                       dirname,
+                                                       config)
                         imageplot(target_fname, title=title)
 
                     if acceptall:
