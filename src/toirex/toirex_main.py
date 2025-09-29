@@ -17,6 +17,7 @@ from .selecting_frames import feed_to_txt_file
 from .manual_inspection import manual_inspection_obj
 from .manual_inspection import manual_inspection_flats
 from .manual_inspection import manual_inspection_cals
+from .flat_corr import flat_correction
 
 
 def get_directories(config, required='list'):
@@ -98,14 +99,17 @@ def manual_inspect_cal(config):
             manual_inspection_cals(config, datadir)
 
 
-def combdith_flatcorr(config):
+def combframe_flatcorr(config):
     """
     Task 4
     Flat correction and dither combination
     """
-    opdir, alldatadirs = get_directories(config)
-    print("Running Task 3")
+    opdir, all_datadirs = get_directories(config)
+    print("Running Task 4")
     print("This will be added soon")
+    for datadir in all_datadirs:
+        print("Working on ", datadir)
+        flat_correction(config, datadir)
 
 
 def main():
@@ -241,7 +245,7 @@ tasks_dict = {
     3: {'function': manual_inspect_cal,
         'menu': "Visually inspect and/or reject flat/cal images one by one"
         },
-    4: {'function': combdith_flatcorr,
+    4: {'function': combframe_flatcorr,
         'menu': "Apply Flat Correction and/or CR removal"
         }
     }
