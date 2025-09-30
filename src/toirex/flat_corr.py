@@ -7,6 +7,7 @@ from collections import defaultdict
 from ariastro import combine_process
 
 from .utils import extract_number_from_fname
+from .utils import combine_frames
 from .utils import read_txt_file
 from .setups import get_logger
 from .instrument import instruments
@@ -141,30 +142,21 @@ def combining_frames(dithergroup_dict, op_path, write_txtfname,
     dictkw = config['inits']['DICTKW']
     print("Write to", write_txtfname)
     writetotxt = open(write_txtfname, 'w')
+    fluxexts = list(config['inputs']['FLUXEXT'])
+    varexts = list(config['inputs']['VAREXT'])
+    logger.info("Flux extensions: {}".format(fluxexts))
+    logger.info("Variance extensions: {}".format(varexts))
     for flats_cals, objects in dithergroup_dict.items():
-        fnums = []
-        for obj in objects:
-            fnum = instruments[dictkw]['sort_filename_key'](obj)
-            fnums.append(fnum)
-        comb_fnums = "_".join([str(n) for n in fnums])
         common_fname_prifix = common_prefix(objects)
-        datadir = Path(op_path.parts[1])  # Extracting the datadir
-        targets_path = [datadir / frame for frame in objects]
-        comb_objectname = "{}_{}.fits".format(common_fname_prifix, comb_fnums)
-        writetotxt.write(comb_objectname + " " + flats_cals)
-        combine_fname = op_path / comb_objectname
-        if not combine_fname.exists():
-            fluxexts = list(config['inputs']['FLUXEXT'])
-            varexts = list(config['inputs']['VAREXT'])
-            logger.info("Flux extensions: {}".format(fluxexts))
-            logger.info("Variance extensions: {}".format(varexts))
-            logger.info("Combining {} by biweight".format(targets_path))
-            combine_process(targets_path,
-                            combine_fname,
-                            method='biweight',
-                            fluxext=fluxexts,
-                            varext=varexts)
-        # print("Targets_path", targets_path)
+        comb_prifix = "{}_".format(common_fname_prifix)
+        comb_filename = combine_frames(
+            objects, op_path,
+            instruments[dictkw]['sort_filename_key'],
+            method='biweight',
+            op_prefix=comb_prifix,
+            fluxext=fluxexts,
+            varext=varexts)
+        writetotxt.write(comb_filename + " " + flats_cals)
     writetotxt.close()
 
 

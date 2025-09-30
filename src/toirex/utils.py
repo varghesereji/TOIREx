@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import re
 import numpy as np
+from pathlib import Path
 import subprocess
 from scipy import signal
 from astropy.stats import mad_std
@@ -69,5 +70,28 @@ def read_txt_file(filename):
             txtline.append(line.strip().split(" "))
     return txtline
 
+
+def combine_frames(files_list, op_dirname, sorting_function,
+                   method='median',
+                   op_prefix="Comb_",
+                   fluxext=0,
+                   varext=1):
+    fnums = []
+    for fname in files_list:
+        fnum = sorting_function(fname)
+        fnums.append(fnum)
+    comb_fnums = "_".join([str(n) for n in fnums])
+    comb_filename = op_prefix + "{}.fits".format(comb_fnums)
+    data_dirname = Path(op_dirname.name)
+    targets_path = [data_dirname / frame for frame in files_list]
+    comb_fname = op_dirname / comb_filename
+    if comb_fname.exists():
+        return comb_fname.name
+    combine_process(targets_path,
+                    comb_fname,
+                    method='biweight',
+                    fluxext=fluxext,
+                    varext=varext)
+    return comb_fname.name
 
 # End

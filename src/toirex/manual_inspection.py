@@ -11,6 +11,8 @@ from .utils import extract_number_from_fname
 from .obscatalog import read_catalog
 from .utils import open_in_editor
 from .utils import read_txt_file
+from .utils import combine_frames
+
 from .plottings import imageplot
 from .instrument import instruments
 from .dithering import find_shift
@@ -179,30 +181,21 @@ def manual_inspection_flats(config, dirname):
                     )
                 else:
                     print("Accepting", target)
-            fnums = []
-            for flat in flats_list:
-                fnum = instruments[dictkw]['sort_filename_key'](flat)
-                fnums.append(fnum)
-            comb_fnums = "_".join([str(n) for n in fnums])
-            targets_path = [Path(dirname) / frame for frame in flats_list]
-            comb_flatname = "Comb_flats_{}.fits".format(comb_fnums)
-            object_flat_list = object_name + " " + comb_flatname + "\n"
-            finalflat_txt.write(object_flat_list)
-            combine_fname = op_path / comb_flatname
-            if combine_fname.exists():
-                continue
-
             fluxexts = list(config['inputs']['FLUXEXT'])
             varexts = list(config['inputs']['VAREXT'])
             logger.info("Flux extensions: {}".format(fluxexts))
             logger.info("Variance extensions: {}".format(varexts))
-            logger.info("Combining {} by biweight".format(targets_path))
-            combine_process(targets_path,
-                            combine_fname,
-                            method='biweight',
-                            fluxext=fluxexts,
-                            varext=varexts)
-            # print("Saved the flat frame", combine_fname)
+            # logger.info("Combining {} by biweight".format(targets_path))
+
+            comb_flatname = combine_frames(
+                flats_list, op_path,
+                instruments[dictkw]['sort_filename_key'],
+                method='biweight',
+                op_prefix="Comb_flats_",
+                fluxext=fluxexts,
+                varext=varexts)
+            object_flat_list = object_name + " " + comb_flatname + "\n"
+            finalflat_txt.write(object_flat_list)
         finalflat_txt.close()
 
 
@@ -276,32 +269,24 @@ def manual_inspection_cals(config, dirname):
                         )
                     else:
                         print("Accepting", target)
-                fnums = []
-                for cals in filenames:
-                    fnum = instruments[dictkw]['sort_filename_key'](cals)
-                    fnums.append(fnum)
-                comb_fnums = "_".join([str(n) for n in fnums])
-                targets_path = [Path(dirname) / frame for frame in filenames]
-                comb_filename = lamp.lower() + "_comb_{}.fits".format(
-                    comb_fnums)
+                fluxexts = list(config['inputs']['FLUXEXT'])
+                varexts = list(config['inputs']['VAREXT'])
+                logger.info("Flux extensions: {}".format(fluxexts))
+                logger.info("Variance extensions: {}".format(varexts))
+
+                comb_filename = combine_frames(
+                    filenames, op_path,
+                    instruments[dictkw]['sort_filename_key'],
+                    method='biweight',
+                    op_prefix="Comb_lamp_"+lamp.lower() + "_",
+                    fluxext=fluxexts,
+                    varext=varexts)
+
                 txtfile_line.append(comb_filename)
-                combine_fname = op_path / comb_filename
-                if not combine_fname.exists():
-                    fluxexts = list(config['inputs']['FLUXEXT'])
-                    varexts = list(config['inputs']['VAREXT'])
-                    logger.info("Flux extensions: {}".format(fluxexts))
-                    logger.info("Variance extensions: {}".format(varexts))
-                    logger.info("Combining {} by biweight".format(targets_path))
-                    combine_process(targets_path,
-                                    combine_fname,
-                                    method='biweight',
-                                    fluxext=fluxexts,
-                                    varext=varexts)
-                    # print("Saved the lamp frame", combine_fname)
             object_cal_list = " ".join(txtfile_line) + "\n"
             finalcals_txt.write(object_cal_list)
         finalcals_txt.close()
-                
+
 
 def separate_lamps(config, dir_path, lamps_list):
     """
