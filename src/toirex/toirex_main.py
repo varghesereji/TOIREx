@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
-import importlib.resources as resources
+
 from pathlib import Path
+try:
+    import importlib.resources as resources
+except ImportError:
+    import importlib_resources as resources
 
 from .setups import read_config, create_config
 from .setups import read_args
@@ -37,11 +41,10 @@ def get_instrument_dir(instrument_name: str):
                 return
     except FileNotFoundError:
         pass
+    path = resources.files("toirex.data") / instrument_name
     print(f"[INFO] Downloading {instrument_name} data ....")
-    download_instrument(instrument_name)
-    
-    
-    
+    download_instrument(instrument_name, path)
+
 
 def get_directories(config, required='list'):
     if required == 'string':
