@@ -6,6 +6,8 @@ from scipy import signal
 from astropy.stats import mad_std
 from astropy.io import fits
 
+from ariastro import combine_process
+
 
 def extract_number_from_fname(fname):
     numbers = re.findall(r"\d+", fname)
@@ -38,10 +40,34 @@ def open_in_editor(path, config):
 
 
 def read_txt_file(filename):
+    """
+    Reads a text file and returns its contents as a list of lists of strings.
+
+    Each line in the file is stripped of leading/trailing whitespace and split
+    into components using spaces as delimiters.
+
+    Parameters
+    ----------
+    filename : str
+        Path to the text file to read.
+
+    Returns
+    -------
+    list of list of str
+        A list where each element corresponds to a line in the file, and
+        each line is represented as a list of strings obtained by splitting
+        on spaces.
+
+    Example
+    -------
+    >>> read_txt_file("data.txt")
+    [['123', 'abc'], ['456', 'def']]
+    """
     txtline = []
     with open(filename, 'r') as txtfile:
         for line in txtfile:
             txtline.append(line.strip().split(" "))
     return txtline
+
 
 # End
