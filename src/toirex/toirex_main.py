@@ -41,7 +41,7 @@ def get_instrument_dir(instrument_name: str):
                 return
     except FileNotFoundError:
         pass
-    path = resources.files("toirex.data") / instrument_name
+    path = resources.files("toirex.data")
     print(f"[INFO] Downloading {instrument_name} data ....")
     download_instrument(instrument_name, path)
 

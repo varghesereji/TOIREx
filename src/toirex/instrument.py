@@ -2,11 +2,16 @@
 
 import re
 from pathlib import Path
+try:
+    from importlib import resources
+except ImportError:
+    import importlib_resources as resources
+
 import numpy as np
 from functools import partial
 
 from .utils import read_fits_header
-
+from .utils import read_fits_data
 
 #################################
 #      Common functions         #
@@ -93,6 +98,51 @@ def catalog_flag_spectanspec(flog_list: list, headers_list: list) -> list:
     return flog_list
 
 
+def makemasterflat_tanspec(normcontdata):
+    """
+    This function will create a master flat using the continuum flat of each
+    night and already generated master flat. This is to take care of noise for
+    higher orders (orders 10, 11 nd 12) in XD mode. Basically, we will use
+    the master flat to remove noise in higher orders and for the lower orders,
+    the pipeline will use the continuum lamp observed in each night for the
+    flat correction. In the end it will return the data for the new continuum
+    flat.
+    """
+    mastercontname = 'master-cont1xd_S-1.0.fits'
+    continuum_locname = 'ContinuumCutLine.npy'
+
+    # Getting path
+    masterconti_path = resources.files("toirex.data") / mastercontname
+    continuum_locpath = resources.files("toirex.data") / continuum_locname
+
+    # Loadig file
+    mastrrcontidata = read_fits_data(masterconti_path)
+    continuum_locdata = np.load(continuum_locpath)
+
+    x_value, y_value = continuum_locdata[:, 0], continuum_locdata[:, 1]
+    z = np.polyfit(x_value, y_value, 3)
+    p = np.poly1d(z)
+
+    xnewvalue = np.arange(1, normcontdata.shape[0]+1, 1)
+    loc_array = p(xnewvalue)
+
+    ynewvalue = np.tile(np.arange(2048), (2048, 1))
+
+    nrows, ncols = ynewvalue.shape
+    row, col = np.ogrid[:nrows, :ncols]
+    boolmask = row < loc_array
+
+    newflatdata = np.where(boolmask, normcontdata, mastrrcontidata)
+    return newflatdata
+
+
+def masterflat_combination(flat_fname):
+    header = read_fits_header(flat_fname)
+    if header['GRATING'] == 'grating1':
+        print("need to create a master flat for ", flat_fname)
+    else:
+        return flat_fname
+
 #################################
 #         TIRSPEC               #
 #################################
@@ -134,6 +184,7 @@ instruments = {
      'standardise_header': standardise_header_spectanspec,
      'frame_select': frame_select_spectanspec,
      'catalog_flag': catalog_flag_spectanspec,
+     'masterflat': masterflat_combination,
      'grouping_keys': ['GRATING', 'SLIT',
                        'A_TRGTRA', 'A_TRGTDE'],
      'flat_kw': ['CONT1', 'CONT2', 'SKY'],
@@ -152,6 +203,7 @@ instruments = {
      'standardise_header': standardise_header_tirspec,
      'frame_select': frame_select_tirspec,
      'catalog_flag': catalog_flag_tirspec,
+     'masterflat': None,
      'grouping_keys': ['UPPER', 'LOWER', 'SLIT',
                        'TCSRA', 'TCSDEC'
                        ],
