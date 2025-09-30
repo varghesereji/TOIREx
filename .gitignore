@@ -3,3 +3,5 @@ src/TOIREx.egg-info
 src/toirex/__pycache__
 */__pycache__
 *.log
+src/toirex/data/*
+!src/toirex/data/__init__.py

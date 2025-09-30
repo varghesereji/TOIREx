@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import importlib.resources as resources
 from pathlib import Path
 
 from .setups import read_config, create_config
@@ -9,7 +9,6 @@ from .setups import create_dir
 from .setups import read_dirs
 from .setups import add_dict_keywords
 from .setups import setup_logger_from_config
-# from .setups import get_logger
 
 from .obscatalog import create_catalog
 from .grouping_frames import grouping_items, grouping_with_re
@@ -18,7 +17,31 @@ from .manual_inspection import manual_inspection_obj
 from .manual_inspection import manual_inspection_flats
 from .manual_inspection import manual_inspection_cals
 from .flat_corr import flat_correction
+from .utils import download_instrument
 
+
+def get_instrument_dir(instrument_name: str):
+    """
+    Ensures the instrument directory exists inside package data.
+
+    If the directory does not exist, downloads it from the remote repository.
+
+    Parameters:
+    -----------
+    instrument : str
+        Name of the instrument directory (e.g., "TANSPEC", "TIRSPEC").
+    """
+    try:
+        with resources.path("toirex.data", instrument_name) as p:
+            if p.exists():
+                return
+    except FileNotFoundError:
+        pass
+    print(f"[INFO] Downloading {instrument_name} data ....")
+    download_instrument(instrument_name)
+    
+    
+    
 
 def get_directories(config, required='list'):
     if required == 'string':
@@ -119,7 +142,7 @@ def main():
     config = read_config(configfilename)
     config = add_dict_keywords(config)
     instrument = config['inits']['INSTRUMENT']
-
+    get_instrument_dir(instrument)
     logger = setup_logger_from_config(config)
     logger.info("Pipline started")
 

@@ -2,9 +2,33 @@
 import re
 from pathlib import Path
 import subprocess
+import requests
+import zipfile
+import io
 from astropy.io import fits
 
 from ariastro import combine_process
+
+
+def download_instrument(instrument: str, outdir: Path = Path("data")) -> Path:
+    """
+    Download a whole instrument directory (e.g., TANSPEC) from GitLab repo.
+    """
+    url = "https://gitlab.com/varghesereji/toirex-data/-/archive/\
+    main/toirex-data-main.zip"
+    print("Downloading data for {}".format(instrument))
+    r = requests.get(url)
+    r.raise_for_status()
+
+    with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+        members = [m for m in z.namelist() if f"/{instrument}/" in m]
+        for member in members:
+            z.extract(member, outdir)
+
+    path = outdir / f"toirex-data-main/{instrument}"
+    dest = Path(outdir) / path.name
+    path.rename(dest)
+    Path(path.parent).rmdir()
 
 
 def extract_number_from_fname(fname):
