@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 import re
-import numpy as np
 from pathlib import Path
 import subprocess
-from scipy import signal
-from astropy.stats import mad_std
 from astropy.io import fits
 
 from ariastro import combine_process

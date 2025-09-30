@@ -5,7 +5,6 @@ import configparser
 import pyfiglet
 from colorama import init, Fore, Style
 import logging
-import sys
 from pathlib import Path
 
 

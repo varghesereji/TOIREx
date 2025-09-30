@@ -4,7 +4,6 @@ import numpy as np
 from pathlib import Path
 from collections import defaultdict
 
-from ariastro import combine_process
 
 from .setups import get_logger
 from .utils import extract_number_from_fname

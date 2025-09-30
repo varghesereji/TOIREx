@@ -3,6 +3,7 @@ from collections import defaultdict
 import numpy as np
 from pathlib import Path
 import re
+
 from .obscatalog import read_catalog
 from .instrument import instruments
 from .utils import open_in_editor
