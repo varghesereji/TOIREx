@@ -152,7 +152,7 @@ def manual_inspection_flats(config, dirname):
                     continue
                 if not acceptall and config['visual']['FLAT'] == 'Y':
                     target_fname = Path(dirname) / target
-                    print("target", target)
+                    print("Displaying ", target)
                     title = making_title_for_frame(target,
                                                    dirname,
                                                    config)
@@ -241,6 +241,7 @@ def manual_inspection_cals(config, dirname):
                         continue
                     if not acceptall and config['visual']['LAMP'] == 'Y':
                         target_fname = Path(dirname) / target
+                        print("Displaying", target)
                         title = making_title_for_frame(target,
                                                        dirname,
                                                        config)

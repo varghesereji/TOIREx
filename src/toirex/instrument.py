@@ -9,6 +9,7 @@ except ImportError:
 
 import numpy as np
 from functools import partial
+from astropy.io import fits
 
 from .utils import read_fits_header
 from .utils import read_fits_data
@@ -108,8 +109,8 @@ def makemasterflat_tanspec(normcontdata):
     flat correction. In the end it will return the data for the new continuum
     flat.
     """
-    mastercontname = 'master-cont1xd_S-1.0.fits'
-    continuum_locname = 'ContinuumCutLine.npy'
+    mastercontname = 'TANSPEC/CONTLAMPDIR/master-cont1xd_S-1.0.fits'
+    continuum_locname = 'TANSPEC/CONTLAMPDIR/ContinuumCutLine.npy'
 
     # Getting path
     masterconti_path = resources.files("toirex.data") / mastercontname
@@ -137,10 +138,22 @@ def makemasterflat_tanspec(normcontdata):
 
 
 def masterflat_combination(flat_fname):
-    header = read_fits_header(flat_fname)
+    hdul = fits.open(flat_fname, mode='update')
+    header = hdul[0].header
     if header['GRATING'] == 'grating1':
-        print("need to create a master flat for ", flat_fname)
+        # print("need to create a master flat for ", flat_fname)
+        # Updating the flat file
+        data = hdul[0].data
+        newflatdata = makemasterflat_tanspec(data)
+        hdul[0].data = newflatdata
+        hdul[0].header.add_history(
+            "Created master flat by combine with flats saved with pipeline")
+        # Save changes
+        hdul.flush()
+        # Close the fits file
+        hdul.close()
     else:
+        hdul.close()
         return flat_fname
 
 #################################

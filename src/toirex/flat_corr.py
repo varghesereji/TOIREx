@@ -4,6 +4,7 @@ import numpy as np
 from pathlib import Path
 from collections import defaultdict
 
+from ariastro import divide_smoothgradient
 
 from .utils import extract_number_from_fname
 from .utils import combine_frames
@@ -135,8 +136,8 @@ def common_prefix(strings):
     return "".join(prefix_chars)
 
 
-def combining_frames(dithergroup_dict, op_path, write_txtfname,
-                     config):
+def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
+                                  config):
     logger = get_logger("flat_corr")
     dictkw = config['inits']['DICTKW']
     print("Write to", write_txtfname)
@@ -155,8 +156,32 @@ def combining_frames(dithergroup_dict, op_path, write_txtfname,
             op_prefix=comb_prifix,
             fluxext=fluxexts,
             varext=varexts)
-        writetotxt.write(comb_filename + " " + flats_cals)
+        # Creating masterflat
+        flats_cals_list = flats_cals.strip().split(" ")
+        comb_flat_fname = flats_cals_list[0]
+        comb_flat_path = Path(op_path) / comb_flat_fname
+        smooth_flat = create_smoothmasterflat(
+            comb_flat_path,
+            instruments[dictkw]['masterflat']
+        )
+        flats_cals_list[0] = smooth_flat
+        updated_flats_cals = " ".join(flats_cals_list)
+        writetotxt.write(comb_filename + " " + updated_flats_cals)
+        # print("Saved", comb_filename)
     writetotxt.close()
+
+
+def create_smoothmasterflat(flatfile, masterflat_fn=None):
+    opfname = "Smooth_" + flatfile.name
+    opfname_path = Path(flatfile.parent) / opfname
+    if not opfname_path.exists:
+        divide_smoothgradient(flatfile, opfname_path,
+                              fluxext=[0], varext=[1])
+        if masterflat_fn is not None:
+            masterflat_fn(opfname_path)
+    else:
+        print(opfname_path, "already exists")
+    return opfname
 
 
 def flat_correction(config, dirname):
@@ -228,8 +253,10 @@ def flat_correction(config, dirname):
             combobj_flat_txtfname = "Combobj_flat_group{}_d{}.txt".format(
                 number[0], n)
             combobj_flat_txtfname = op_path / combobj_flat_txtfname
-            combining_frames(flatcorr_group, op_path, combobj_flat_txtfname,
-                             config)
+            join_frames_create_masterflat(flatcorr_group, op_path,
+                                          combobj_flat_txtfname,
+                                          config)
+
 
 
 # End
