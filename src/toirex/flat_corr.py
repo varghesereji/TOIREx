@@ -6,6 +6,7 @@ from collections import defaultdict
 
 from ariastro import divide_smoothgradient
 from ariastro import operate_process
+from ariastro import remove_cosmic_rays
 
 from .utils import extract_number_from_fname
 from .utils import combine_frames
@@ -175,13 +176,14 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
 def create_smoothmasterflat(flatfile, masterflat_fn=None):
     opfname = "Smooth_" + flatfile.name
     opfname_path = Path(flatfile.parent) / opfname
-    if not opfname_path.exists:
+    if not opfname_path.exists():
         divide_smoothgradient(flatfile, opfname_path,
                               fluxext=[0], varext=[1])
         if masterflat_fn is not None:
             masterflat_fn(opfname_path)
     else:
-        print(opfname_path, "already exists")
+        # print(opfname_path, "already exists")
+        pass
     return opfname
 
 
@@ -192,7 +194,6 @@ def dividing_flats(dithergroup_txtfname, config, op_path):
     fluxexts = list(config['inputs']['FLUXEXT'])
     varexts = list(config['inputs']['VAREXT'])
     for dgroup in dithergroups:
-        print(dgroup)
         sci_fname = op_path / dgroup[0]
         flat_fname = op_path / dgroup[1]
         op_fname = sci_fname.stem + "_FC.fits"
@@ -202,7 +203,14 @@ def dividing_flats(dithergroup_txtfname, config, op_path):
                         op_fname, operation="/",
                         fluxext=fluxexts,
                         varext=varexts)
-        print("Saved", op_fname)
+        if config['inputs']['REMOVECR'] == 'Y':
+            crop_fname = op_fname.stem+"_CR.fits"
+            crop_fname = op_path / crop_fname
+            remove_cosmic_rays(op_fname,
+                               crop_fname,
+                               fluxext=fluxexts,
+                               varext=varexts)
+        # print("Saved", op_fname)
 
 
 def flat_correction(config, dirname):
