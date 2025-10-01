@@ -89,8 +89,9 @@ def feed_to_txt_file(grouped_files, config, dirname, group):
                 lamp_fnames = grouped_files[lamp]
                 if len(lamp_fnames) == 0:
                     pass
-                line += " ".join(lamp_fnames)
-                line += " "
+                else:
+                    line += " ".join(lamp_fnames)
+                    line += " "
             line += "\n"
             txtfile.write(line)
         txtfile.close()
