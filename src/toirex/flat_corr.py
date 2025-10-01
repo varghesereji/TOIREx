@@ -5,6 +5,7 @@ from pathlib import Path
 from collections import defaultdict
 
 from ariastro import divide_smoothgradient
+from ariastro import operate_process
 
 from .utils import extract_number_from_fname
 from .utils import combine_frames
@@ -184,6 +185,26 @@ def create_smoothmasterflat(flatfile, masterflat_fn=None):
     return opfname
 
 
+def dividing_flats(dithergroup_txtfname, config, op_path):
+    dithergroups = read_txt_file(dithergroup_txtfname)
+    # print(dithergroups)
+    # Going through each dither group
+    fluxexts = list(config['inputs']['FLUXEXT'])
+    varexts = list(config['inputs']['VAREXT'])
+    for dgroup in dithergroups:
+        print(dgroup)
+        sci_fname = op_path / dgroup[0]
+        flat_fname = op_path / dgroup[1]
+        op_fname = sci_fname.stem + "_FC.fits"
+        op_fname = op_path / op_fname
+        # print(sci_fname, flat_fname, op_fname)
+        operate_process(sci_fname, flat_fname,
+                        op_fname, operation="/",
+                        fluxext=fluxexts,
+                        varext=varexts)
+        print("Saved", op_fname)
+
+
 def flat_correction(config, dirname):
     """
     Perform flat-field and calibration corrections for grouped dither frames.
@@ -256,6 +277,8 @@ def flat_correction(config, dirname):
             join_frames_create_masterflat(flatcorr_group, op_path,
                                           combobj_flat_txtfname,
                                           config)
+            dividing_flats(combobj_flat_txtfname,
+                           config, op_path)
 
 
 

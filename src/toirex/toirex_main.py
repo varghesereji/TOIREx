@@ -42,8 +42,11 @@ def get_instrument_dir(instrument_name: str):
     except FileNotFoundError:
         pass
     path = resources.files("toirex.data")
-    print(f"[INFO] Downloading {instrument_name} data ....")
-    download_instrument(instrument_name, path)
+    try:
+        print(f"[INFO] Downloading {instrument_name} data ....")
+        download_instrument(instrument_name, path)
+    except FileNotFoundError:
+        print(f"Data for {instrument_name} is not added to the reposetory")
 
 
 def get_directories(config, required='list'):
