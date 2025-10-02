@@ -200,7 +200,7 @@ instruments = {
      'masterflat': masterflat_combination,
      'grouping_keys': ['GRATING', 'SLIT',
                        'A_TRGTRA', 'A_TRGTDE'],
-     'flat_kw': ['CONT1', 'CONT2', 'SKY'],
+     'flat_kw': ['CONT1', 'CONT2'],
      'flat_grouping_keys': ['GRATING', 'SLIT'],
      'lamp_kw': ['ARGON', 'NEON'],
      'catalog_headers': [

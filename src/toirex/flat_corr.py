@@ -53,7 +53,10 @@ def read_files_group(fname):
     return dither_groups
 
 
-def group_files_for_flatsandcals(dither_list, objflat_list, objcal_list=None):
+def group_files_for_flatsandcals(dither_list,
+                                 objflat_list,
+                                 objcal_list=None,
+                                 objsky_list=None):
     """
     Group dither frames by the flat and calibration frames used.
 
@@ -73,6 +76,10 @@ def group_files_for_flatsandcals(dither_list, objflat_list, objcal_list=None):
         A 2D array where the first column contains dither frame names
         and the remaining columns contain corresponding calibration
         frame names. If ``None``, no calibration frames are used.
+    objsky_list : array-like of shape (N, M), optional
+        A 2D array where the first column contains dither frame names
+        and the remaining columns contain corresponding sky frame
+        frame names. If ``None ``, no sky frames are used.
 
     Returns
     -------
@@ -96,8 +103,8 @@ def group_files_for_flatsandcals(dither_list, objflat_list, objcal_list=None):
     objflat_list = np.array(objflat_list)
     if objcal_list is not None:
         objcal_list = np.array(objcal_list)
-        # cal_frames = objcal_list[:, 1:]
-        # print(cal_frames)
+    if objsky_list is not None:
+        objsky_list = np.array(objsky_list)
     flat_obj = objflat_list[:, 0]
     flat_frame = objflat_list[:, 1]
     flatcorr_group = defaultdict(list)
@@ -112,6 +119,11 @@ def group_files_for_flatsandcals(dither_list, objflat_list, objcal_list=None):
                 oneframe_cals = oneframe_cals[0]
 
             oneframe_flats = np.concatenate((oneframe_flats, oneframe_cals))
+        if objsky_list is not None:
+            oneframe_sky = objsky_list[frame_mask, 1:]
+            if len(oneframe_sky.shape) > 1:
+                oneframe_sky = oneframe_sky[0]
+            oneframe_flats = np.concatenate((oneframe_flats, oneframe_sky))
         if len(oneframe_flats) > 0:
             dithergroup_key = " ".join(oneframe_flats)
         else:
@@ -187,35 +199,110 @@ def create_smoothmasterflat(flatfile, masterflat_fn=None):
     return opfname
 
 
-def dividing_flats(dithergroup_txtfname, config, op_path):
+def frame_operation(dithergroup_txtfname,
+                    config,
+                    op_path,
+                    write_txtfname,
+                    required="Flat"
+                    ):
+    """
+    Perform flat-fielding or sky subtraction on groups of FITS files.
+
+    This function reads dithergroups from a text file and processes each
+    group according to the `required` parameter. For "Flat", it performs
+    flat-field division, optionally removes cosmic rays, and appends
+    filenames of the processed frames. For "Sky", it performs sky
+    subtraction and appends the resulting filenames. All processed
+    filenames are written to `write_txtfname`.
+
+    Parameters
+    ----------
+    dithergroup_txtfname : str or Path
+        Path to the text file containing lists of FITS filenames grouped
+        by dithers.
+    config : dict
+        Configuration dictionary containing processing parameters. Expected
+        keys:
+        - 'inputs': {
+            'FLUXEXT': list of flux extension indices,
+            'VAREXT': list of variance extension indices,
+            'REMOVECR': 'Y' or 'N'
+          }
+    op_path : Path
+        Directory path where input FITS files are stored and output files
+        should be written.
+    write_txtfname : str or Path
+        Path to the output text file where processed filenames will be written.
+    required : str, optional
+        Type of operation to perform. Supported values:
+        - "Flat": flat-field division (default)
+        - "Sky": sky subtraction
+
+    Returns
+    -------
+    None
+        Writes processed filenames to `write_txtfname` and creates
+        processed FITS files in `op_path`.
+
+    Raises
+    ------
+    FileNotFoundError
+        If any input file listed in `dithergroup_txtfname` does not exist.
+    KeyError
+        If required keys in `config` are missing.
+    Exception
+        If processing fails in `operate_process` or `remove_cosmic_rays`.
+    """
     dithergroups = read_txt_file(dithergroup_txtfname)
     # print(dithergroups)
     # Going through each dither group
     fluxexts = list(config['inputs']['FLUXEXT'])
     varexts = list(config['inputs']['VAREXT'])
+    new_list = []
+    writetotxt = open(write_txtfname, 'w')
     for dgroup in dithergroups:
         sci_fname = op_path / dgroup[0]
-        flat_fname = op_path / dgroup[1]
-        op_fname = sci_fname.stem + "_FC.fits"
+
+        if required == "Flat":
+            op_fname = sci_fname.stem + "_FC.fits"
+            operation = "/"
+            secondframe_fname = op_path / dgroup[1]
+        elif required == "Sky":
+            op_fname = sci_fname.stem + "_Skysubtr.fits"
+            operation = "-"
+            secondframe_fname = op_path / dgroup[-1]
         op_fname = op_path / op_fname
         # print(sci_fname, flat_fname, op_fname)
-        operate_process(sci_fname, flat_fname,
-                        op_fname, operation="/",
+        operate_process(sci_fname, secondframe_fname,
+                        op_fname, operation=operation,
                         fluxext=fluxexts,
                         varext=varexts)
-        if config['inputs']['REMOVECR'] == 'Y':
-            crop_fname = op_fname.stem+"_CR.fits"
-            crop_fname = op_path / crop_fname
-            remove_cosmic_rays(op_fname,
-                               crop_fname,
-                               fluxext=fluxexts,
-                               varext=varexts)
-        # print("Saved", op_fname)
+        new_list.append(op_fname.name)
+        if required == "Flat":
+            if (config['inputs']['REMOVECR'] == 'Y'):
+                crop_fname = op_fname.stem+"_CR.fits"
+                crop_fname = op_path / crop_fname
+                remove_cosmic_rays(op_fname,
+                                   crop_fname,
+                                   fluxext=fluxexts,
+                                   varext=varexts)
+                new_list[0] = crop_fname.name
+            if len(dgroup[2:]) != 0:
+                new_list = new_list + dgroup[2:]
+                new_list_str = " ".join(new_list)
+            else:
+                new_list_str = new_list[0]
+        elif required == "Sky":
+            new_list = new_list + dgroup[1:-1]
+            new_list_str = " ".join(new_list)
+        writetotxt.write(new_list_str)
+    writetotxt.close()
 
 
-def flat_correction(config, dirname):
+def frame_correction(config, dirname):
     """
     Perform flat-field and calibration corrections for grouped dither frames.
+    Sky subtraction will be done if specified in config file.
 
     This function locates the text files containing grouped dither frames,
     reads the corresponding flat-field and calibration frame lists, and
@@ -270,6 +357,12 @@ def flat_correction(config, dirname):
             finalcal_list = read_txt_file(op_path / finalcal_txtfile)
         else:
             finalcal_list = None
+        if config['inputs']['SKY'] == 'Y':
+            finalsky_txtfile = "Objects_finalsky_group{}.txt".format(
+                number[0])
+            finalsky_list = read_txt_file(op_path / finalsky_txtfile)
+        else:
+            finalsky_list = None
         print("Group numbr running:", int(number[0]))
         logger.info("Calling file"+f.name)
         dither_groups = read_files_group(f)
@@ -278,16 +371,31 @@ def flat_correction(config, dirname):
             print("Dither group", n)
             flatcorr_group = group_files_for_flatsandcals(samepos,
                                                           finalflat_list,
-                                                          finalcal_list)
+                                                          finalcal_list,
+                                                          finalsky_list)
             combobj_flat_txtfname = "Combobj_flat_group{}_d{}.txt".format(
                 number[0], n)
             combobj_flat_txtfname = op_path / combobj_flat_txtfname
             join_frames_create_masterflat(flatcorr_group, op_path,
                                           combobj_flat_txtfname,
                                           config)
-            dividing_flats(combobj_flat_txtfname,
-                           config, op_path)
-
+            if config['inputs']['SKY'] == 'Y':
+                # Sky subtraction
+                skysubtr_txtfname = "Skysubtr_frame_group{}_d{}.txt".format(
+                    number[0], n)
+                frame_operation(combobj_flat_txtfname,
+                                config,
+                                op_path,
+                                skysubtr_txtfname,
+                                required="Sky")
+                combobj_flat_txtfname = skysubtr_txtfname
+            clean_frame_txtfname = "Clean_frame_group{}_d{}.txt".format(
+                number[0], n)
+            clean_frame_txtfname = op_path / clean_frame_txtfname
+            # Flat correction
+            frame_operation(combobj_flat_txtfname,
+                            config, op_path,
+                            clean_frame_txtfname)
 
 
 # End

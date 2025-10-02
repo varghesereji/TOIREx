@@ -22,7 +22,7 @@ def making_title_for_frame(fname, dirname, config):
     Function to make title for the plot
     """
     dictkw = config['inits']['DICTKW']
-    header_keys = instruments[dictkw]["grouping_keys"]
+    header_keys = instruments[dictkw]["grouping_keys"].copy()
     header_keys.append("FLAG")
     catalog_dict = read_catalog(dirname, config, showcatname=False)
     fnames_array = np.array(catalog_dict["FNAME"])
@@ -113,10 +113,13 @@ def manual_inspection_obj(config, dirname):
         open_in_editor(Obj2Comb_fname, config)
 
 
-def manual_inspection_flats(config, dirname):
+def manual_inspection_flats(config, dirname, framecat="FLATS"):
     logger = get_logger("manual_inspect")
     dictkw = config['inits']['DICTKW']
-    txtfile_re = "Objects_flats_group*.txt"
+    if framecat == "FLATS":
+        txtfile_re = "Objects_flats_group*.txt"
+    elif framecat == "SKY":
+        txtfile_re = "Objects_sky_group*.txt"
     op_path = Path(config['outputs']['OP_DIR']) / \
         dirname
     files_list = list(op_path.glob(txtfile_re))
@@ -135,14 +138,22 @@ def manual_inspection_flats(config, dirname):
         always_accept_list = []
         always_reject_list = []
         acceptall = False
-        finalflat_txtfname = "Objects_finalflats_group{}.txt".format(number[0])
-        finalflat_txt = open(op_path / finalflat_txtfname, "w")
+        if framecat == "FLATS":
+            finalframe_txtfname = "Objects_finalflats_group{}.txt".format(
+                number[0]
+            )
+        elif framecat == "SKY":
+            finalframe_txtfname = "Objects_finalsky_group{}.txt".format(
+                number[0]
+            )
+        finalframe_txt = open(op_path / finalframe_txtfname, "w")
         for line in read_file:
             object_name = line[0]
             flats_list = line[1:]
             if not acceptall:
                 print("*"*30)
-                print("Inspecting flats for {}".format(object_name))
+                print("Inspecting {} for {}".format(framecat.lower(),
+                                                    object_name))
             for target in flats_list:
                 if target in always_reject_list:
                     flats_list.remove(target)
@@ -185,17 +196,17 @@ def manual_inspection_flats(config, dirname):
             logger.info("Flux extensions: {}".format(fluxexts))
             logger.info("Variance extensions: {}".format(varexts))
             # logger.info("Combining {} by biweight".format(targets_path))
-
-            comb_flatname = combine_frames(
+            op_fname = framecat.lower()
+            comb_framename = combine_frames(
                 flats_list, op_path,
                 instruments[dictkw]['sort_filename_key'],
                 method='biweight',
-                op_prefix="Comb_flats_",
+                op_prefix="Comb_{}_".format(op_fname),
                 fluxext=fluxexts,
                 varext=varexts)
-            object_flat_list = object_name + " " + comb_flatname + "\n"
-            finalflat_txt.write(object_flat_list)
-        finalflat_txt.close()
+            object_frame_list = object_name + " " + comb_framename + "\n"
+            finalframe_txt.write(object_frame_list)
+        finalframe_txt.close()
 
 
 def manual_inspection_cals(config, dirname):

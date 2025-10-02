@@ -20,7 +20,7 @@ from .selecting_frames import feed_to_txt_file
 from .manual_inspection import manual_inspection_obj
 from .manual_inspection import manual_inspection_flats
 from .manual_inspection import manual_inspection_cals
-from .flat_corr import flat_correction
+from .flat_corr import frame_correction
 from .utils import download_instrument
 
 
@@ -112,6 +112,9 @@ def manual_inspect_obj(config):
     for datadir in all_datadirs:
         print("Working on ", datadir)
         manual_inspection_obj(config, datadir)
+        if config['inputs']['SKY'] == 'Y':
+            manual_inspection_flats(config, datadir,
+                                    framecat="SKY")
 
 
 def manual_inspect_cal(config):
@@ -132,13 +135,16 @@ def combframe_flatcorr(config):
     """
     Task 4
     Flat correction and dither combination
+    If specified in config file,
+    sky subtrction will be done before
+    flat correction.
     """
     opdir, all_datadirs = get_directories(config)
     print("Running Task 4")
     print("This will be added soon")
     for datadir in all_datadirs:
         print("Working on ", datadir)
-        flat_correction(config, datadir)
+        frame_correction(config, datadir)
 
 
 def main():

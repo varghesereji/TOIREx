@@ -66,12 +66,16 @@ def feed_to_txt_file(grouped_files, config, dirname, group):
     flat_kw = instrument['flat_kw']  # Keywords for lamps
     lsets = [flat_kw, lamp_kw]    # List of both set of keywords
     objects = grouped_files['OBJECT']  # List of target filenames
-
-    # Name of text files. Frist one will be for flats, second one is for lamps.
     txt_fnames = [
         'Objects_flats_group{}.txt'.format(group),
         'Objects_lamps_group{}.txt'.format(group)
     ]
+
+    if config['inputs']['SKY'] == 'Y':
+        sky_kw = ['SKY']
+        txt_fnames.insert(0, 'Objects_sky_group{}.txt'.format(group))
+        lsets.insert(0, sky_kw)
+    # Name of text files. Frist one will be for flats, second one is for lamps.
 
     # No lamps if the reduction is for photometry.
     # Therefore, removing that element from the txt filenames.
