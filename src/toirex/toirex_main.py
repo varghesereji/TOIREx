@@ -20,7 +20,7 @@ from .selecting_frames import feed_to_txt_file
 from .manual_inspection import manual_inspection_obj
 from .manual_inspection import manual_inspection_flats
 from .manual_inspection import manual_inspection_cals
-from .flat_corr import frame_correction
+from .clean_frame import frame_correction
 from .utils import download_instrument
 
 
