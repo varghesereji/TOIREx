@@ -176,7 +176,8 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
         comb_flat_path = Path(op_path) / comb_flat_fname
         smooth_flat = create_smoothmasterflat(
             comb_flat_path,
-            instruments[dictkw]['masterflat']
+            instruments[dictkw]['masterflat'],
+            fluxext=fluxexts, varext=varexts
         )
         flats_cals_list[0] = smooth_flat
         updated_flats_cals = " ".join(flats_cals_list)
@@ -185,12 +186,17 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
     writetotxt.close()
 
 
-def create_smoothmasterflat(flatfile, masterflat_fn=None):
+def create_smoothmasterflat(flatfile, masterflat_fn=None,
+                            fluxext=[0], varext=[1]):
     opfname = "Smooth_" + flatfile.name
     opfname_path = Path(flatfile.parent) / opfname
+
+    if "".join(varext) == "None":
+        varext = None
+
     if not opfname_path.exists():
         divide_smoothgradient(flatfile, opfname_path,
-                              fluxext=[0], varext=[1])
+                              fluxext=fluxext, varext=varext)
         if masterflat_fn is not None:
             masterflat_fn(opfname_path)
     else:
@@ -258,6 +264,8 @@ def frame_operation(dithergroup_txtfname,
     # Going through each dither group
     fluxexts = list(config['inputs']['FLUXEXT'])
     varexts = list(config['inputs']['VAREXT'])
+    if "".join(varexts) == "None":
+        varexts = None
     new_list = []
     writetotxt = open(write_txtfname, 'w')
     for dgroup in dithergroups:

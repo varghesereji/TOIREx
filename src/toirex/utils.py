@@ -98,6 +98,8 @@ def combine_frames(files_list, op_dirname, sorting_function,
                    fluxext=0,
                    varext=1):
     fnums = []
+    if "".join(varext) == 'None':
+        varext = None
     for fname in files_list:
         fnum = sorting_function(fname)
         fnums.append(fnum)

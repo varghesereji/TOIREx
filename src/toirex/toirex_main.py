@@ -141,10 +141,19 @@ def combframe_flatcorr(config):
     """
     opdir, all_datadirs = get_directories(config)
     print("Running Task 4")
-    print("This will be added soon")
     for datadir in all_datadirs:
         print("Working on ", datadir)
         frame_correction(config, datadir)
+
+
+def frame_dithercombine(config):
+    """
+    Task 5
+    Dither combination and nameing
+    the output files
+    """
+    print("Running Task 5")
+    print("This will be added soon")
 
 
 def main():
@@ -282,6 +291,9 @@ tasks_dict = {
         },
     4: {'function': combframe_flatcorr,
         'menu': "Apply Flat Correction and/or CR removal"
+        },
+    5: {'function': frame_dithercombine,
+        'menu': "Combine/Subtracting dither frames"
         }
     }
 
