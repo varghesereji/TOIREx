@@ -209,9 +209,9 @@ def pairsubtraction(pair, group,
 def subtract_dithers(config, datadir):
     opdir = Path(config['outputs']['OP_DIR']) / datadir
     groups_dithers = get_dithers(opdir)
-    outfileprefix = "Test"  # input(
-    # "Enter the prefix of you want for reduce 1d spectra:"
-    # )
+    outfileprefix = input(
+        "Enter the prefix of you want for reduce 1d spectra:"
+    )
     print("\n")
     print("-" * 30)
     print("Enter the pairs to subtract in space separated form")
