@@ -111,6 +111,26 @@ def find_shift(frame_1, frame_2, config):
 
 
 def dithers_and_groups(groups_dithers_list):
+    """
+    Organize a list of [group, dither] pairs into a dictionary mapping groups
+    to dithers.
+
+    Takes a list of two-element lists or tuples where the first element is a
+    group identifier and the second element is a dither number.
+    Returns a defaultdict where each key is a group and the value is a list
+    of dithers belonging to that group.
+
+    Args:
+        groups_dithers_list (list): List of [group, dither] pairs.
+
+    Returns:
+        defaultdict: Dictionary mapping group identifiers to lists of dither
+             numbers.
+
+    Example:
+        >>> dithers_and_groups([[1, 0], [1, 1], [2, 0]])
+        defaultdict(<class 'list'>, {1: [0, 1], 2: [0]})
+    """
     groups_dithers_dict = defaultdict(list)
     for sublist in groups_dithers_list:
         groups_dithers_dict[sublist[0]].append(sublist[1])
@@ -118,6 +138,26 @@ def dithers_and_groups(groups_dithers_list):
 
 
 def get_dithers(opdir):
+    """
+    Retrieve groups and their associated dithers from the output directory.
+
+    Searches the output directory for dither text files matching the pattern
+    'Clean_frame_group*_d*.txt', extracts group and dither numbers from each
+    filename, and organizes them into a structure mapping groups to dithers.
+
+    Args:
+        opdir (Path): Path to the output directory containing dither text
+             files.
+
+    Returns:
+        dict or suitable structure: Mapping of group identifiers to lists of
+        associated dither numbers.
+
+    Notes:
+        Depends on helper functions `extract_number_from_fname` to parse
+        numbers from filenames and `dithers_and_groups` to organize the
+        mappings.
+    """
     dithertxt_fname = "Clean_frame_group*_d*.txt"
     dither_txtfiles = list(opdir.glob(dithertxt_fname))
     groups_dithers = []
@@ -138,6 +178,26 @@ def get_dithers(opdir):
 
 def read_dither_txtfile(pairstr, group,
                         opdir):
+    """
+    Read the dither text file for a specific group and dither position.
+
+    Converts a dither character (A-Z) to its numeric position, constructs
+    the filename, reads the corresponding text file from the output directory,
+    and returns its lines.
+
+    Args:
+        pairstr (str or int): Dither identifier as a letter (e.g., 'A') or
+            numeric position.
+        group (str or int): Frame group identifier.
+        opdir (Path): Directory path containing the dither text files.
+
+    Returns:
+        list: Lines read from the specified dither text file.
+
+    Notes:
+        Assumes existence of a helper function `read_txt_file` that reads
+        the content of a text file and returns the lines.
+    """
     if isinstance(pairstr, str):
         ditherpos_num = ord(pairstr) - ord("A")
     else:
@@ -150,6 +210,29 @@ def read_dither_txtfile(pairstr, group,
 
 def copy_nopair_frames(dither, group, opdir,
                        opfilename, writeto):
+    """
+    Copy single dither frames without subtraction and log the operations.
+
+    Reads the dither text file for the specified dither and group, copies
+    each listed frame to a new file with an optional index suffix, and writes
+    a descriptive line to the given writable file.
+
+    Args:
+        dither (str): Identifier of the dither to copy.
+        group (str/int): Frame group identifier.
+        opdir (Path): Directory path where the frames and output files are
+            located.
+        opfilename (str): Base filename prefix for output files.
+        writeto (file-like object): Open file handle used to write operation
+          logs.
+
+    Writes:
+        Lines describing each copied frame to the `writeto` file.
+
+    Notes:
+        Uses helper function `read_dither_txtfile` to obtain frame info.
+        Each copied file is suffixed with an index if multiple frames exist.
+    """
     txtlines_full = read_dither_txtfile(dither,
                                         group,
                                         opdir)
@@ -170,6 +253,38 @@ def pairsubtraction(pair, group,
                     writeto,
                     fluxext=[0],
                     varext=None):
+    """
+    Perform subtraction between dither pairs of astronomical frames.
+
+    For the given pair of dithers in a group, this function reads the
+    corresponding dither text files, iterates over all combinations of
+    frames, performs subtraction of one frame from the other, and writes a
+    descriptive line for each output to the provided writable file.
+
+    The output file names are constructed combining prefix, dither names,
+    and indices if multiple frames are present.
+
+    Args:
+        pair (str): Two-character string denoting dither pair (e.g., 'AB').
+        group (str/int): Identifier for frame group.
+        opdir (Path): Path to the output directory containing dither files.
+        opf_prefix (str): Prefix string used for naming output files.
+        writeto (file-like): Open file handle for writing summary info.
+        fluxext (list, optional): List indicating flux extensions to process
+            (default: [0]).
+        varext (optional): Variance extension to be processed (default: None).
+
+    Writes:
+        Lines describing each subtraction to `writeto` file.
+
+    Calls:
+        helper `operate_process` to perform the subtraction on frame
+        file pairs.
+
+    Notes:
+        Assumes existence of helper function `read_dither_txtfile` to load
+        dither frame info, and `operate_process` to compute subtraction.
+    """
     first_dithers = read_dither_txtfile(pair[0],
                                         group,
                                         opdir)
@@ -207,6 +322,36 @@ def pairsubtraction(pair, group,
 
 
 def subtract_dithers(config, datadir):
+    """
+    Interactively process groups of dithered frames for subtraction or copying.
+
+    This function iterates over groups of astronomical data, prompting the
+    user to specify a filename prefix and pairs of dither instructions.
+    For groups with a single dither, it copies the frame without subtraction.
+    For each user-provided instruction: a single character copies one frame,
+    while a two-character string indicates a pairwise subtraction operation
+    (e.g., 'AB' subtracts B from A). The function writes the processed frame
+    information to a summary text file for each group.
+
+    Args:
+        config (dict): Configuration dictionary with an 'outputs' key,
+            which must contain 'OP_DIR' for specifying the output directory.
+        datadir (str or Path): Name of the subdirectory containing the
+            dataset to process.
+
+    Prompts:
+        - Output file prefix.
+        - Space-separated dither pairs or single-frame instructions
+          for each group (e.g., 'AB BA A').
+
+    Writes:
+        For each group, creates a text file 'ReadyToReduct_group<GROUP>.txt'
+        in the output directory with records of operations performed.
+
+    Notes:
+        Single-letter instructions copy frames; two-letter instructions
+        perform subtractions. Interactive input required.
+    """
     opdir = Path(config['outputs']['OP_DIR']) / datadir
     groups_dithers = get_dithers(opdir)
     outfileprefix = input(
