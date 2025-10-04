@@ -22,6 +22,7 @@ from .manual_inspection import manual_inspection_flats
 from .manual_inspection import manual_inspection_cals
 from .clean_frame import frame_correction
 from .utils import download_instrument
+from .dithering import subtract_dithers
 
 
 def get_instrument_dir(instrument_name: str):
@@ -152,8 +153,13 @@ def frame_dithercombine(config):
     Dither combination and nameing
     the output files
     """
+    opdir, all_datadirs = get_directories(config)
     print("Running Task 5")
-    print("This will be added soon")
+    for datadir in all_datadirs:
+        if config['inits']['TODO'] == "S":
+            subtract_dithers(config, datadir)
+        elif config['inits']['TODO'] == "P":
+            print("Function to combine dither frames")
 
 
 def main():

@@ -1,10 +1,20 @@
 #!/usr/bin/env python3
 
+from pathlib import Path
+from collections import defaultdict
 from scipy.ndimage import median_filter
 from skimage import registration
+import shutil
 
+from ariastro import operate_process
 
 from .utils import read_fits_data
+from .utils import extract_number_from_fname
+from .utils import read_txt_file
+
+# ----------------#
+# Identify dither #
+# ----------------#
 
 
 def filter_image(frame, size=(20, 20)):
@@ -95,32 +105,149 @@ def find_shift(frame_1, frame_2, config):
         upsample_factor=upsample_factor)
     return difference
 
+# ---------------------------- #
+# Common functions for dithers #
+# ---------------------------- #
 
-# def DitherDetection(ObjectFile, ContWindowSelection,
-#                     startLoc=None, avgHWindow=21, TraceHWidth=5):
 
-#     """identify the center of a spectrum window """
-#     if isinstance(ObjectFile, str):
-#         ObjectFile = read_fits_data(ObjectFile)
+def dithers_and_groups(groups_dithers_list):
+    groups_dithers_dict = defaultdict(list)
+    for sublist in groups_dithers_list:
+        groups_dithers_dict[sublist[0]].append(sublist[1])
+    return groups_dithers_dict
 
-#     if startLoc is None:
-#         startLoc = ObjectFile.shape[1]//2
-#     # Starting labelling Reference XD cut data;
-#     WindowStart = ContWindowSelection[0]
-#     WindowEnd = ContWindowSelection[1]
-#     RefXD = np.nanmedian(ObjectFile[WindowStart:WindowEnd,
-#                                     startLoc-avgHWindow:startLoc+avgHWindow],
-#                          axis=1)
-#     Refpixels = np.arange(len(RefXD))+WindowStart
-#     Bkg = signal.order_filter(
-#         RefXD, domain=[True]*TraceHWidth*5, rank=int(TraceHWidth*5/10)
-#     )
-#     Flux = np.abs(RefXD - Bkg)
-#     ThreshMask = RefXD > (Bkg + np.abs(mad_std(Flux))*6)
-#     centerpix = np.sum(
-#         Flux[ThreshMask]*Refpixels[ThreshMask]
-#     ) / np.sum(Flux[ThreshMask])
 
-#     return centerpix
+def get_dithers(opdir):
+    dithertxt_fname = "Clean_frame_group*_d*.txt"
+    dither_txtfiles = list(opdir.glob(dithertxt_fname))
+    groups_dithers = []
+    for group in dither_txtfiles:
+        # The text file name have two integers. So, the
+        # function will return two numners. first one
+        # will be the group number, and second one
+        # will be dither number
+        numbers = extract_number_from_fname(group.name)
+        groups_dithers.append(numbers)
+    return dithers_and_groups(groups_dithers)
+
+
+# ----------------------------- #
+# Subtract dithers in spectra   #
+# ----------------------------- #
+
+
+def read_dither_txtfile(pairstr, group,
+                        opdir):
+    if isinstance(pairstr, str):
+        ditherpos_num = ord(pairstr) - ord("A")
+    else:
+        ditherpos_num = pairstr
+    dithertxt = "Clean_frame_group{}_d{}.txt".format(group,
+                                                     ditherpos_num)
+    txtlines = read_txt_file(opdir / dithertxt)
+    return txtlines
+
+
+def copy_nopair_frames(dither, group, opdir,
+                       opfilename, writeto):
+    txtlines_full = read_dither_txtfile(dither,
+                                        group,
+                                        opdir)
+
+    for n, line in enumerate(txtlines_full):
+        scfname = line[0]
+        if len(txtlines_full) > 1:
+            opfilename = opfilename + str(n)
+        opfilename = opfilename + ".fits"
+        shutil.copy(opdir / scfname, opdir / opfilename)
+        txtline = line[1:]
+        txtline.insert(0, opfilename)
+        writeto.write(" ".join(txtline) + "\n")
+
+
+def pairsubtraction(pair, group,
+                    opdir, opf_prefix,
+                    writeto,
+                    fluxext=[0],
+                    varext=None):
+    first_dithers = read_dither_txtfile(pair[0],
+                                        group,
+                                        opdir)
+    second_dithers = read_dither_txtfile(pair[1],
+                                         group,
+                                         opdir)
+    filename = opf_prefix
+    # If there is more than one line
+    # in each dither txtfile,
+    # it should go through each combination
+    # and do subtraction.
+    # In readytoreduce, the lamps
+    # of only first one will be written.
+    for n, line_first in enumerate(first_dithers):
+        frame_1 = line_first[0]
+        filename = filename + "_" + pair[0]
+        if len(first_dithers) > 1:
+            filename += str(n)
+        for m, line_second in enumerate(second_dithers):
+            frame_2 = line_second[0]
+            filename = filename + "-" + pair[1]
+            if len(second_dithers) > 1:
+                filename += str(m)
+            filename += ".fits"
+            txtline = line_first[1:]
+            txtline.insert(0, filename)
+            writeto.write(" ".join(txtline) + "\n")
+            frame_1 = opdir / frame_1
+            frame_2 = opdir / frame_2
+            op_fname = opdir / filename
+            operate_process(frame_1, frame_2,
+                            op_fname, '-',
+                            fluxext=fluxext,
+                            varext=varext)
+
+
+def subtract_dithers(config, datadir):
+    opdir = Path(config['outputs']['OP_DIR']) / datadir
+    groups_dithers = get_dithers(opdir)
+    outfileprefix = "Test"  # input(
+    # "Enter the prefix of you want for reduce 1d spectra:"
+    # )
+    print("\n")
+    print("-" * 30)
+    print("Enter the pairs to subtract in space separated form")
+    print("For example an input: AB BA A")
+    print(
+        "Corresponding images produced by subtraction or not are :",
+        "A-B, B-A and A"
+    )
+    print("Note: the final A is not a subtracted image")
+    print("-" * 30)
+    print("\n")
+    for groups, dithers in groups_dithers.items():
+        dithers.sort()  # Just making them to be ascending order
+        writeto = open(opdir / "ReadyToReduct_group{}.txt".format(groups), 'w')
+        if len(dithers) == 1:
+            opfname = outfileprefix
+            print("No dithers to subtract in this group")
+            copy_nopair_frames(0, groups,
+                               opdir,
+                               opfname,
+                               writeto)
+            continue
+        print("Doing for Group {}".format(groups))
+        subpairs = input("Pairs to process:")
+        subpairs = subpairs.split()
+
+        for instr in subpairs:
+            if len(instr) == 1:
+                opfname = outfileprefix + "_" + instr
+                copy_nopair_frames(instr,
+                                   groups,
+                                   opdir,
+                                   opfname,
+                                   writeto)
+            elif len(instr) == 2:
+                pairsubtraction(instr, groups, opdir, outfileprefix, writeto)
+        writeto.close()
 
 # End
