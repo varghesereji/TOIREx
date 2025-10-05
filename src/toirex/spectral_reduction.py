@@ -67,11 +67,12 @@ def extract_spectra(txtline, config,
                                               config,
                                               instrument)
     op_fname = Path(data_fname).stem + ".ms.fits"
+    op_fname = Path(opdir) / op_fname
 
     OutputObjSpec, Avg_XD_shift, PixDomain = specextractor.main(
         [str(data_fname),
          str(extraction_config),
-         op_fname]
+         str(op_fname)]
     )
 
 
