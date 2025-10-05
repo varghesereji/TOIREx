@@ -162,6 +162,16 @@ def frame_dithercombine(config):
             print("Function to combine dither frames")
 
 
+def data_extraction(config):
+    opdir, all_datadirs = get_directories(config)
+    print("Running Task 6")
+    for datadir in all_datadirs:
+        if config['inits']['TODO'] == "S":
+            print("In prepration")
+        elif config['inits']['TODO'] == "P":
+            print("In prepration")
+
+
 def main():
     parser = read_args()
     args = parser.parse_args()
@@ -300,6 +310,9 @@ tasks_dict = {
         },
     5: {'function': frame_dithercombine,
         'menu': "Combine/Subtracting dither frames"
+        },
+    6: {'function': data_extraction,
+        'menu': "Data extraction"
         }
     }
 

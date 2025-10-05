@@ -371,6 +371,7 @@ def subtract_dithers(config, datadir):
     for groups, dithers in groups_dithers.items():
         dithers.sort()  # Just making them to be ascending order
         writeto = open(opdir / "ReadyToReduct_group{}.txt".format(groups), 'w')
+        print("Running for group", groups)
         if len(dithers) == 1:
             opfname = outfileprefix
             print("No dithers to subtract in this group")
