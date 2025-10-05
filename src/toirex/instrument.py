@@ -13,6 +13,9 @@ from astropy.io import fits
 
 from .utils import read_fits_header
 from .utils import read_fits_data
+from .utils import get_pkgpath
+from .setups import read_config
+
 
 #################################
 #      Common functions         #
@@ -156,6 +159,32 @@ def masterflat_combination(flat_fname):
         hdul.close()
         return flat_fname
 
+
+def select_trace_spectanspec(
+        dataframe,
+        instrument_config="config/instrument_templates.config"):
+    header = read_fits_header(dataframe)
+    pkgpath = get_pkgpath()
+    instconfig = pkgpath / instrument_config
+    instrument_configs = read_config(instconfig)
+    if header["GRATING"] == 'grating1':
+        # grating_items = instrument_configs['TANSPEC_XD']
+        mode = "XD"
+    elif header["GRATING"] == 'grating2':
+        # grating_items = instrument_configs['TANSPEC_LR']
+        mode = "LR"
+    grating_items = instrument_configs['TANSPEC_' + mode]
+    star_trace = grating_items['ContinuumFile']
+    aperture_label = grating_items['ApertureLabel']
+    aperturetrace = grating_items['ApertureTraceFilename']
+
+    star_trace = pkgpath / "data/TANSPEC" / mode / 'traces' / star_trace
+    aperture_label = pkgpath / "data/TANSPEC" / mode / 'traces' /\
+        aperture_label
+    aperturetrace = pkgpath / "data/TANSPEC" / mode / 'traces' / aperturetrace
+    return star_trace, aperture_label, aperturetrace
+
+
 #################################
 #         TIRSPEC               #
 #################################
@@ -198,6 +227,7 @@ instruments = {
      'frame_select': frame_select_spectanspec,
      'catalog_flag': catalog_flag_spectanspec,
      'masterflat': masterflat_combination,
+     'select_trace': select_trace_spectanspec,
      'grouping_keys': ['GRATING', 'SLIT',
                        'A_TRGTRA', 'A_TRGTDE'],
      'flat_kw': ['CONT1', 'CONT2'],

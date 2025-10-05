@@ -107,6 +107,7 @@ def read_config(configfile):
     config: Read config file. dict.
     '''
     config = configparser.ConfigParser()
+    config.optionxform = str  # <-- preserve case
     config.read(configfile)
     return config
 
@@ -120,8 +121,18 @@ def create_config(configfilename, entries):
     entries: Keywords and values as a dictionary.
     '''
     config = configparser.ConfigParser()
+    config.optionxform = str  # preserve case
+    # for section, options in entries.items():
+    #     config[section] = options
+    if "DEFAULT" in entries:
+        for key, value in entries["DEFAULT"].items():
+            config["DEFAULT"][key] = str(value)
     for section, options in entries.items():
-        config[section] = options
+        if section == 'DEFAULT':
+            continue
+        config.add_section(section)  # explicitly add section
+        for key, value in options.items():
+            config.set(section, key, str(value))  # explicitly set each key
     with open(configfilename, "w") as configs:
         config.write(configs)
 
@@ -159,7 +170,7 @@ def add_dict_keywords(config):
         dictkw = 'SpecTANSPEC'
     elif instrument == 'TIRSPEC':
         dictkw = 'TIRSPEC'
-    config['inits']['DICTKW'] = dictkw
+    config['inits']['dictkw'] = dictkw
     if len(config['inputs']['VAREXT']) == 0:
         config['inputs']['VAREXT'] = 'None'
     return config
