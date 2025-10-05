@@ -17,7 +17,9 @@ dependencies = [
     "numpy>=1.21",
     "pyfiglet",
     "colorama",
-    "AriAstro @ git+https://github.com/varghesereji/AriAstro@main"
+    "AriAstro @ git+https://github.com/varghesereji/AriAstro@main",
+    "SpectrumExtractor @ git+https://github.com/indiajoe/SpectrumExtractor.git@master",
+    "WavelengthCalibrationTool @ git+https://github.com/indiajoe/WavelengthCalibrationTool.git@master"
 ]
 keywords = ["example", "package"]
 classifiers = [
