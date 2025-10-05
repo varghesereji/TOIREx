@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
-try:
-    import importlib.resources as resources
-except ImportError:
-    import importlib_resources as resources
 
 from .setups import read_config, create_config
 from .setups import read_args
@@ -21,33 +17,9 @@ from .manual_inspection import manual_inspection_obj
 from .manual_inspection import manual_inspection_flats
 from .manual_inspection import manual_inspection_cals
 from .clean_frame import frame_correction
-from .utils import download_instrument
+from .utils import get_instrument_dir
 from .dithering import subtract_dithers
-
-
-def get_instrument_dir(instrument_name: str):
-    """
-    Ensures the instrument directory exists inside package data.
-
-    If the directory does not exist, downloads it from the remote repository.
-
-    Parameters:
-    -----------
-    instrument : str
-        Name of the instrument directory (e.g., "TANSPEC", "TIRSPEC").
-    """
-    try:
-        with resources.path("toirex.data", instrument_name) as p:
-            if p.exists():
-                return
-    except FileNotFoundError:
-        pass
-    path = resources.files("toirex.data")
-    try:
-        print(f"[INFO] Downloading {instrument_name} data ....")
-        download_instrument(instrument_name, path)
-    except FileNotFoundError:
-        print(f"Data for {instrument_name} is not added to the reposetory")
+from .spectral_reduction import spectral_reduction
 
 
 def get_directories(config, required='list'):
@@ -163,11 +135,17 @@ def frame_dithercombine(config):
 
 
 def data_extraction(config):
+    """
+    Task 6
+    Data extraction
+    """
     opdir, all_datadirs = get_directories(config)
     print("Running Task 6")
+    # data_dir = resources.files("toirex").joinpath("data")
+    # print(data_dir / "TANSPEC")
     for datadir in all_datadirs:
         if config['inits']['TODO'] == "S":
-            print("In prepration")
+            spectral_reduction(config, datadir)
         elif config['inits']['TODO'] == "P":
             print("In prepration")
 

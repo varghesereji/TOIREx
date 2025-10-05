@@ -7,7 +7,46 @@ import zipfile
 import io
 from astropy.io import fits
 
+try:
+    import importlib.resources as resources
+except ImportError:
+    import importlib_resources as resources
+
 from ariastro import combine_process
+
+
+def get_pkgpath():
+    """
+    Function to get the path
+    to the package.
+    """
+    pkgpath = resources.files("toirex").joinpath(".")
+    return pkgpath
+
+
+def get_instrument_dir(instrument_name: str):
+    """
+    Ensures the instrument directory exists inside package data.
+
+    If the directory does not exist, downloads it from the remote repository.
+
+    Parameters:
+    -----------
+    instrument : str
+        Name of the instrument directory (e.g., "TANSPEC", "TIRSPEC").
+    """
+    try:
+        with resources.path("toirex.data", instrument_name) as p:
+            if p.exists():
+                return
+    except FileNotFoundError:
+        pass
+    path = resources.files("toirex.data")
+    try:
+        print(f"[INFO] Downloading {instrument_name} data ....")
+        download_instrument(instrument_name, path)
+    except FileNotFoundError:
+        print(f"Data for {instrument_name} is not added to the reposetory")
 
 
 def download_instrument(instrument: str, outdir: Path = Path("data")) -> Path:
