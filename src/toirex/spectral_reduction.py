@@ -80,7 +80,7 @@ def spectral_reduction(config, dirname):
     """
     Spectral reduction for each frame.
     """
-    dictkw = config['inits']['dictkw']
+    dictkw = config['inits']['DICTKW']
     opdir = Path(config['outputs']['OP_DIR']) / dirname
     reduce_txtfname = "ReadyToReduce_group*.txt"
     txtfiles_groups = opdir.glob(reduce_txtfname)
