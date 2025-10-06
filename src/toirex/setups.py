@@ -170,7 +170,7 @@ def add_dict_keywords(config):
         dictkw = 'SpecTANSPEC'
     elif instrument == 'TIRSPEC':
         dictkw = 'TIRSPEC'
-    config['inits']['dictkw'] = dictkw
+    config['inits']['DICTKW'] = dictkw
     if len(config['inputs']['VAREXT']) == 0:
         config['inputs']['VAREXT'] = 'None'
     return config
