@@ -166,7 +166,7 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
         comb_filename = combine_frames(
             objects, op_path,
             instruments[dictkw]['sort_filename_key'],
-            method='biweight',
+            method=config['inputs']['FRAMECOMBINE'].lower(),
             op_prefix=comb_prifix,
             fluxext=fluxexts,
             varext=varexts)
