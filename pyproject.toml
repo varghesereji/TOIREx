@@ -18,7 +18,7 @@ dependencies = [
     "pyfiglet",
     "colorama",
     "AriAstro @ git+https://github.com/varghesereji/AriAstro@main",
-    "SpectrumExtractor @ git+https://github.com/indiajoe/SpectrumExtractor.git@master",
+    "SpectrumExtractor @ git+https://github.com/varghesereji/SpectrumExtractor.git@master",
     "WavelengthCalibrationTool @ git+https://github.com/indiajoe/WavelengthCalibrationTool.git@master"
 ]
 keywords = ["example", "package"]

@@ -41,6 +41,28 @@ def config_for_extraction(data_fname, config,
         tracing_settings['ApertureLabel'] = str(aperture_label)
         tracing_settings['ApertureTraceFilename'] = str(aperturetrace)
 
+        # Tracing settings from config file
+        tracing_settings['ReFitApertureInXD'] = config[
+            'spectral_extraction'
+        ][
+            'REFITAPERTUREINXD'
+        ]
+        tracing_settings['ReFitApertureInXD_DWindow'] = config[
+            'spectral_extraction'
+        ][
+            'REFITAPERTUREINXD_DWINDOW'
+        ]
+        tracing_settings['ReFitApertureInXD_BkgMedianFilt'] = config[
+            'spectral_extraction'
+        ][
+            'REFITAPERTUREINXD_BKGMEDIANFILT'
+        ]
+        tracing_settings['DCoeffModelForAperReFit'] = config[
+            'spectral_extraction'
+        ][
+            'DCOEFFMODELFORAPERREFIT'
+        ]
+
     # Setting up aperture windows
     extraction_settings = extraction_config['extraction_settings']
     aperturewindow = config['spectral_extraction']['APERTUREWINDOW']
