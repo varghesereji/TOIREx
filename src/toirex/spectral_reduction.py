@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from ariastro import combine_process
 import SpectrumExtractor.spectrum_extractor as specextractor
 
 from .instrument import instruments
@@ -84,6 +85,7 @@ def config_for_extraction(data_fname, config,
         tracing_settings["ReFitApertureInXD"] = str(
             for_lamp["ReFitApertureInXD"]
         )
+        tracing_settings["ShowPlot_Trace"] = str(False)
 
     new_configfname = dirname / new_configfname
 
@@ -91,10 +93,10 @@ def config_for_extraction(data_fname, config,
     return new_configfname
 
 
-def extract_spectra(txtline, config,
-                    opdir, instrument):
+def extract_spectra_and_wlcal(txtline, config,
+                              opdir, instrument):
     """
-    Spectral extraction
+    Spectral extraction and wavelength calibration
     """
     data_fname = opdir / txtline[0]
 
@@ -104,19 +106,43 @@ def extract_spectra(txtline, config,
     op_fname = Path(data_fname).stem + ".ms.fits"
     op_fname = Path(opdir) / op_fname
 
-    OutputObjSpec, Avg_XD_shift, PixDomain = specextractor.main(
+    outputobjspec, avg_xd_shift, pixdomain = specextractor.main(
         [str(data_fname),
          str(extraction_config),
          str(op_fname)]
     )
-    ReFitApertureInXD = [tuple(Avg_XD_shift), tuple(PixDomain)]
-    lamp_entries = {"ReFitApertureInXD": ReFitApertureInXD}
+    refitapertureinxd = [tuple(avg_xd_shift), tuple(pixdomain)]
+
+    # Extracting lamps
+    # We want to extract the lamp spectra from the same place where
+    # science spectra was extracted.
+    lamp_entries = {"ReFitApertureInXD": refitapertureinxd}
     config['spectral_extraction']['EXTRACTORCONFIG'] = str(extraction_config)
     lamp_config = config_for_extraction(data_fname,
                                         config,
                                         instrument,
                                         for_lamp=lamp_entries
                                         )
+    lamp_fnames = txtline[1:]
+    extracted_lamps_list = []
+    for n, lamps in enumerate(lamp_fnames):
+        lampfile = opdir / lamps
+        outlamp_fname = Path(op_fname).stem + "_arc{}.fits".format(n+1)
+        outlamp_fname = opdir / outlamp_fname
+        outputlampspec, avgxdshift, pixdomain = specextractor.main(
+            [str(lampfile),
+             str(lamp_config),
+             str(outlamp_fname)]
+        )
+        extracted_lamps_list.append(outlamp_fname)
+    if len(extracted_lamps_list) > 1:
+        comb_lampname = Path(op_fname).stem + "_combarc.fits"
+        comb_lampname = opdir / comb_lampname
+        combine_process(extracted_lamps_list,
+                        comb_lampname,
+                        method='mean',
+                        fluxext=[0],
+                        varext=[1])
 
 
 def spectral_reduction(config, dirname):
@@ -131,7 +157,7 @@ def spectral_reduction(config, dirname):
     for groupfile in txtfiles_groups:
         txtfile_full = read_txt_file(groupfile)
         for txtline in txtfile_full:
-            extract_spectra(txtline, config, opdir,
-                            instrument['select_trace'])
+            extract_spectra_and_wlcal(txtline, config, opdir,
+                                      instrument['select_trace'])
 
     # traces = instrument['select_trace']
