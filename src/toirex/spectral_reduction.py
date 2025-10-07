@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
-import pprint
+
 import SpectrumExtractor.spectrum_extractor as specextractor
 
 from .instrument import instruments
@@ -12,25 +12,29 @@ from .setups import create_config
 
 
 def config_for_extraction(data_fname, config,
-                          trace_selection):
+                          trace_selection, for_lamp=None):
     """
-    Function to create a config file for spectral extraction
+    Function to create a config file for spectral extraction.
+    To create config for lamp, for_lamp is a dictionary. None else.
     """
     dirname = Path(data_fname.parent)
     # opdir = Path(config['outputs']['OP_DIR']) / dirname
-    extractor_fname = config['spectral_extraction']['EXTRACTORCONFIG']
+    extractorconfig_fname = config['spectral_extraction']['EXTRACTORCONFIG']
     defaultconfig = False
     # If user does not specify any config file for spectral extraction,
     # uses default config and traces. The traces will be specific for
     # each instrument.
-    if (len(extractor_fname) == 0) or (extractor_fname.lower() == 'default'):
+    if (len(extractorconfig_fname) == 0) or (
+            extractorconfig_fname.lower() == 'default'):
         defaultconfig = True
         print('\n \033[1;32m Uses default config file\033[0m' +
               '\033[1;32m (https://github.com/varghesereji/config/' +
               'spectrum_extractor.config)'
               + ' for spectrum extraction' + '\033[0m')
-        extractor_fname = get_pkgpath() / 'config/spectrum_extractor.config'
-    extraction_config = read_config(extractor_fname)
+        extractorconfig_fname = get_pkgpath() / \
+            'config/spectrum_extractor.config'
+
+    extraction_config = read_config(extractorconfig_fname)
     tracing_settings = extraction_config['tracing_settings']
     if defaultconfig:
         # Taking trace saved with pipeline
@@ -71,7 +75,16 @@ def config_for_extraction(data_fname, config,
     extraction_settings['BkgWindows'] = bkgwindow
 
     # Creating new configfile
-    new_configfname = Path(data_fname).stem + ".config"
+    if for_lamp is None:
+        # Creating the config file for extraction from science frame
+        new_configfname = Path(data_fname).stem + ".config"
+    else:
+        # Creating the config file for lamps
+        new_configfname = Path(data_fname).stem + ".Lamp.config"
+        tracing_settings["ReFitApertureInXD"] = str(
+            for_lamp["ReFitApertureInXD"]
+        )
+
     new_configfname = dirname / new_configfname
 
     create_config(new_configfname, extraction_config)
@@ -96,6 +109,14 @@ def extract_spectra(txtline, config,
          str(extraction_config),
          str(op_fname)]
     )
+    ReFitApertureInXD = [tuple(Avg_XD_shift), tuple(PixDomain)]
+    lamp_entries = {"ReFitApertureInXD": ReFitApertureInXD}
+    config['spectral_extraction']['EXTRACTORCONFIG'] = str(extraction_config)
+    lamp_config = config_for_extraction(data_fname,
+                                        config,
+                                        instrument,
+                                        for_lamp=lamp_entries
+                                        )
 
 
 def spectral_reduction(config, dirname):
