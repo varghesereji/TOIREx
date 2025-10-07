@@ -179,10 +179,9 @@ def select_trace_spectanspec(
     aperture_label = grating_items['ApertureLabel']
     aperturetrace = grating_items['ApertureTraceFilename']
 
-    star_trace = pkgpath / "data/TANSPEC" / mode / 'traces' / star_trace
-    aperture_label = pkgpath / "data/TANSPEC" / mode / 'traces' /\
-        aperture_label
-    aperturetrace = pkgpath / "data/TANSPEC" / mode / 'traces' / aperturetrace
+    star_trace = pkgpath / star_trace
+    aperture_label = pkgpath / aperture_label
+    aperturetrace = pkgpath / aperturetrace
     return star_trace, aperture_label, aperturetrace
 
 
@@ -200,6 +199,7 @@ def pixel_offset_spectanspec(lampspectra):
         template = np.load(template_filename)
         pixeloffset = get_pixel_shift(arc_lamp, template)
     return pixeloffset
+
 
 #################################
 #         TIRSPEC               #
