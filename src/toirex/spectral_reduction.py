@@ -4,6 +4,7 @@ from pathlib import Path
 
 from ariastro import combine_process
 import SpectrumExtractor.spectrum_extractor as specextractor
+from astropy.io import fits
 
 from .instrument import instruments
 from .utils import get_pkgpath
@@ -93,10 +94,33 @@ def config_for_extraction(data_fname, config,
     return new_configfname
 
 
-def extract_spectra_and_wlcal(txtline, config,
-                              opdir, instrument):
+def wavelength_calibration(txtline, config,
+                           opdir, instrument):
+    op_fname = opdir / txtline[0]
+    arclamp1 = opdir / txtline[1]
+    calculate_pixel_offset = instrument['pixel_offset']
+    if calculate_pixel_offset is None:
+        offset = 0
+    else:
+        offset = calculate_pixel_offset(arclamp1)
+    if len(txtline) > 1:
+        comb_lampname = Path(op_fname).stem + "_combarc.fits"
+        comb_lampname = opdir / comb_lampname
+        lamps_list = [opdir / i for i in txtline[1:]]
+        combine_process(lamps_list,
+                        comb_lampname,
+                        method='mean',
+                        fluxext=[0],
+                        varext=[1])
+    else:
+        comb_lampname = arclamp1
+    hdu_arcdata = fits.getdata(comb_lampname, ext=0)
+
+
+def extract_spectra(txtline, config,
+                    opdir, instrument):
     """
-    Spectral extraction and wavelength calibration
+    Extracting lamp and star spectra.
     """
     data_fname = opdir / txtline[0]
 
@@ -105,7 +129,7 @@ def extract_spectra_and_wlcal(txtline, config,
                                               instrument)
     op_fname = Path(data_fname).stem + ".ms.fits"
     op_fname = Path(opdir) / op_fname
-
+    optxtfile_line = [op_fname.name]
     outputobjspec, avg_xd_shift, pixdomain = specextractor.main(
         [str(data_fname),
          str(extraction_config),
@@ -124,25 +148,27 @@ def extract_spectra_and_wlcal(txtline, config,
                                         for_lamp=lamp_entries
                                         )
     lamp_fnames = txtline[1:]
-    extracted_lamps_list = []
+    # extracted_lamps_list = []
     for n, lamps in enumerate(lamp_fnames):
         lampfile = opdir / lamps
         outlamp_fname = Path(op_fname).stem + "_arc{}.fits".format(n+1)
+        optxtfile_line.append(outlamp_fname)
         outlamp_fname = opdir / outlamp_fname
         outputlampspec, avgxdshift, pixdomain = specextractor.main(
             [str(lampfile),
              str(lamp_config),
              str(outlamp_fname)]
         )
-        extracted_lamps_list.append(outlamp_fname)
-    if len(extracted_lamps_list) > 1:
-        comb_lampname = Path(op_fname).stem + "_combarc.fits"
-        comb_lampname = opdir / comb_lampname
-        combine_process(extracted_lamps_list,
-                        comb_lampname,
-                        method='mean',
-                        fluxext=[0],
-                        varext=[1])
+        # extracted_lamps_list.append(outlamp_fname)
+    # if len(extracted_lamps_list) > 1:
+    #     comb_lampname = Path(op_fname).stem + "_combarc.fits"
+    #     comb_lampname = opdir / comb_lampname
+    #     combine_process(extracted_lamps_list,
+    #                     comb_lampname,
+    #                     method='mean',
+    #                     fluxext=[0],
+    #                     varext=[1])
+    return optxtfile_line
 
 
 def spectral_reduction(config, dirname):
@@ -155,9 +181,15 @@ def spectral_reduction(config, dirname):
     txtfiles_groups = opdir.glob(reduce_txtfname)
     instrument = instruments[dictkw]
     for groupfile in txtfiles_groups:
+        # op_txtfname = opdir / "Extracted_group{}.txt".format(groupfile)
+        # writeto_op = open(op_txtfname)
         txtfile_full = read_txt_file(groupfile)
         for txtline in txtfile_full:
-            extract_spectra_and_wlcal(txtline, config, opdir,
-                                      instrument['select_trace'])
-
+            optxt_line = extract_spectra(txtline, config, opdir,
+                                         instrument['select_trace'])
+            wavelength_calibration(optxt_line, config,
+                                   opdir, instrument)
+            
+            # writeto_op.write(" ".join(optxt_line))
+        # writeto_op.close()
     # traces = instrument['select_trace']

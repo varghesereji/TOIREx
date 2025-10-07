@@ -6,6 +6,10 @@ import requests
 import zipfile
 import io
 from astropy.io import fits
+from scipy import signal
+from scipy import ndimage
+
+from WavelengthCalibrationTool import recalibrate
 
 try:
     import importlib.resources as resources
@@ -155,5 +159,16 @@ def combine_frames(files_list, op_dirname, sorting_function,
                     fluxext=fluxext,
                     varext=varext)
     return comb_fname.name
+
+
+def get_pixel_shift(spectra, template, medfilt=3, sigma=10, radius=20):
+    """
+    Function to find pixel offset between two spectra.
+    """
+    arc_filtered = ndimage.gaussian_filter(signal.medfilt(spectra, medfilt),
+                                           sigma=10, radius=20)
+    pixelshift = recalibrate.calculate_pixshift_with_phase_cross_correlation(
+        template, arc_filtered)
+    return pixelshift
 
 # End

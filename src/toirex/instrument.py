@@ -14,6 +14,7 @@ from astropy.io import fits
 from .utils import read_fits_header
 from .utils import read_fits_data
 from .utils import get_pkgpath
+from .utils import get_pixel_shift
 from .setups import read_config
 
 
@@ -185,6 +186,21 @@ def select_trace_spectanspec(
     return star_trace, aperture_label, aperturetrace
 
 
+def pixel_offset_spectanspec(lampspectra):
+    header = fits.getheader(lampspectra)
+    if header['GRATING'] == 'grating2':
+        pixeloffset = 0
+    elif header['GRATING'] == 'grating1':
+        lamp_spec = fits.getdata(lampspectra, ext=0)
+        arc_lamp = lamp_spec[7:9].flatten()
+        arc_lamp = np.asarray(arc_lamp, dtype=np.float64)
+        pkgpath = get_pkgpath()
+        template_filename = pkgpath / \
+            "data/TANSPEC/XD/pixeloffsettemplate/pixeloffsettemplate_s0.5.npy"
+        template = np.load(template_filename)
+        pixeloffset = get_pixel_shift(arc_lamp, template)
+    return pixeloffset
+
 #################################
 #         TIRSPEC               #
 #################################
@@ -228,6 +244,7 @@ instruments = {
      'catalog_flag': catalog_flag_spectanspec,
      'masterflat': masterflat_combination,
      'select_trace': select_trace_spectanspec,
+     'pixel_offset': pixel_offset_spectanspec,
      'grouping_keys': ['GRATING', 'SLIT',
                        'A_TRGTRA', 'A_TRGTDE'],
      'flat_kw': ['CONT1', 'CONT2'],
@@ -247,6 +264,8 @@ instruments = {
      'frame_select': frame_select_tirspec,
      'catalog_flag': catalog_flag_tirspec,
      'masterflat': None,
+     'select_trace': None,
+     'pixel_offset': None,
      'grouping_keys': ['UPPER', 'LOWER', 'SLIT',
                        'TCSRA', 'TCSDEC'
                        ],
