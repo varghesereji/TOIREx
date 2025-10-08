@@ -126,6 +126,22 @@ def subtract_background(fname, config):
     # print(aperture_width,)
     clear_flux = flux - aperture_bkg
     hdul[0].data = clear_flux
+
+    # Error propagation, if variance exists
+    ext_name = "VARIANCE"
+    exists = any(hdu.name == ext_name for hdu in hdul)
+    if exists:
+        fluxvar = hdul['VARIANCE'].data
+        bkgvar_0 = hdul['BKG VARIANCE 0'].data
+        bkgvar_1 = hdul['BKG VARIANCE 1'].data
+
+        scale_bkgvar_1 = bkgvar_0 / bkg_width1 ** 2
+        scale_bkgvar_2 = bkgvar_1 / bkg_width2 ** 2
+
+        comb_bkgvar = (scale_bkgvar_1 + scale_bkgvar_2) / 4
+        clear_fluxvar = fluxvar + comb_bkgvar * aperture_width**2
+        hdul['VARIANCE'].data = clear_fluxvar
+
     hdr = hdul[0].header
     history = "Subtracted background using aperture window {}\
     and bkg window {}."
