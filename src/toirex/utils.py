@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import re
 from pathlib import Path
+import numpy as np
 import subprocess
 import requests
 import zipfile
@@ -8,6 +9,7 @@ import io
 from astropy.io import fits
 from scipy import signal
 from scipy import ndimage
+from astropy.modeling import models, fitting
 
 from WavelengthCalibrationTool import recalibrate
 
@@ -171,4 +173,21 @@ def get_pixel_shift(spectra, template, medfilt=3, sigma=10, radius=20):
         template, arc_filtered)
     return pixelshift
 
+
+def fit_gaussian_profile(counts):
+    x = np.arange(len(counts))
+
+    # Initial guess: amplitude, mean, stddev
+    amplitude_guess = np.max(counts) - np.min(counts)
+    mean_guess = np.argmax(counts)
+    stddev_guess = len(counts) / 4
+
+    g_init = models.Gaussian1D(amplitude=amplitude_guess,
+                               mean=mean_guess,
+                               stddev=stddev_guess)
+    fit_g = fitting.LevMarLSQFitter()
+
+    g_fit = fit_g(g_init, x, counts)
+
+    return x, counts, g_fit(x), g_fit
 # End
