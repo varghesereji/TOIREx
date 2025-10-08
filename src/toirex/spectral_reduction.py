@@ -3,6 +3,7 @@
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
+import ast
 
 from ariastro import combine_process
 import SpectrumExtractor.spectrum_extractor as specextractor
@@ -97,9 +98,48 @@ def config_for_extraction(data_fname, config,
     create_config(new_configfname, extraction_config)
     return new_configfname
 
+
+# ---------------------------
+# Background subtraction
+# ---------------------------
+
+def subtract_background(fname, config):
+    hdul = fits.open(fname, mode='update')
+    flux = hdul[0].data
+    bkg1 = hdul[1].data
+    bkg2 = hdul[2].data
+
+    aperture_window = ast.literal_eval(
+        config['spectral_extraction']['APERTUREWINDOW']
+        )
+    bkg_window = ast.literal_eval(
+        config['spectral_extraction']['BKGWINDOWS']
+        )
+    aperture_width = float(aperture_window[1]) - float(aperture_window[0])
+    bkg_width1 = float(bkg_window[0][1]) - float(bkg_window[0][0])
+    bkg_width2 = float(bkg_window[1][1]) - float(bkg_window[1][0])
+
+    # Calculating average bkg per pixel
+    avgbkg = ((bkg1 / bkg_width1) + (bkg2 / bkg_width2)) / 2
+    aperture_bkg = avgbkg * aperture_width
+
+    # print(aperture_width,)
+    clear_flux = flux - aperture_bkg
+    hdul[0].data = clear_flux
+    hdr = hdul[0].header
+    history = "Subtracted background using aperture window {}\
+    and bkg window {}."
+    hdr.add_history(
+        history.format(
+            aperture_window, bkg_window))
+
+    hdul.flush()
+    hdul.close()
+
 # ---------------------------
 # Wavelength calibration
 # ---------------------------
+
 
 def wavelength_calibration(txtline, config,
                            opdir, instrument):
@@ -241,4 +281,5 @@ def spectral_reduction(config, dirname):
                                           instrument['select_trace'])
             wlsolved_fname = wavelength_calibration(optxt_line, config,
                                                     opdir, instrument)
-
+            if config['spectral_extraction']['SUBTRACT_BKG'] == 'Y':
+                subtract_background(opdir / wlsolved_fname, config)
