@@ -201,6 +201,34 @@ def pixel_offset_spectanspec(lampspectra):
     return pixeloffset
 
 
+def get_template_spectanspec(
+        lampfname,
+        index,
+        instrument_config="config/instrument_templates.config"
+):
+    header = read_fits_header(lampfname)
+    pkgpath = get_pkgpath()
+    instconfig = pkgpath / instrument_config
+    instrument_configs = read_config(instconfig)
+    if header["GRATING"] == 'grating1':
+        # grating_items = instrument_configs['TANSPEC_XD']
+        mode = "XD"
+    elif header["GRATING"] == 'grating2':
+        # grating_items = instrument_configs['TANSPEC_LR']
+        mode = "LR"
+    slitwidth = header['SLIT'][2:]
+    instrument_specs = instrument_configs['TANSPEC_'+mode]
+    temp_path = instrument_specs['LampTrace_dict']
+    trace_nameformat = instrument_specs['LampTrace_nameformat']
+    if mode == "LR":
+        trace_name = trace_nameformat.format("LR")
+    elif mode == "XD":
+        trace_name = trace_nameformat.format(index)
+    template_path = pkgpath / temp_path / slitwidth / trace_name
+    template = np.load(template_path)
+    return template
+
+
 #################################
 #         TIRSPEC               #
 #################################
@@ -244,6 +272,7 @@ instruments = {
      'catalog_flag': catalog_flag_spectanspec,
      'masterflat': masterflat_combination,
      'select_trace': select_trace_spectanspec,
+     'get_template': get_template_spectanspec,
      'pixel_offset': pixel_offset_spectanspec,
      'grouping_keys': ['GRATING', 'SLIT',
                        'A_TRGTRA', 'A_TRGTDE'],

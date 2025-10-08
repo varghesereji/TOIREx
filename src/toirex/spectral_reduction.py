@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
+import numpy as np
+import matplotlib.pyplot as plt
 
 from ariastro import combine_process
 import SpectrumExtractor.spectrum_extractor as specextractor
+from WavelengthCalibrationTool import recalibrate
+
 from astropy.io import fits
 
 from .instrument import instruments
@@ -93,6 +97,9 @@ def config_for_extraction(data_fname, config,
     create_config(new_configfname, extraction_config)
     return new_configfname
 
+# ---------------------------
+# Wavelength calibration
+# ---------------------------
 
 def wavelength_calibration(txtline, config,
                            opdir, instrument):
@@ -115,11 +122,48 @@ def wavelength_calibration(txtline, config,
     else:
         comb_lampname = arclamp1
     hdu_arcdata = fits.getdata(comb_lampname, ext=0)
-
+    wlsoln = None
+    for index, lampflux in enumerate(hdu_arcdata):
+        lamp = hdu_arcdata[index]
+        template = instrument['get_template'](comb_lampname, index)
+        soln, shift = recalibrate.ReCalibrateDispersionSolution(
+            lamp,
+            template.T,
+            method='p3',
+            initial_guess=[1,
+                           -offset * np.median(
+                               np.gradient(
+                                   template.T[:, 0])
+                           )*2/(max(template.T[:, 0])-min(template.T[:, 0])),
+                           1, 0, 0]
+            )
+        plt.figure()
+        plt.plot(soln, lamp/np.max(lamp), label='Observed lamp')
+        plt.plot(template[0], template[1] / np.max(template[1]),
+                 label='Template')
+        plt.legend()
+        template_match_filename = opdir / \
+            'template_match_aperture{}.pdf'.format(index)
+        plt.title('Aperture {}'.format(index))
+        plt.savefig(template_match_filename)
+        plt.close()
+        if wlsoln is None:
+            wlsoln = soln
+        else:
+            wlsoln = np.vstack((wlsoln, soln))
+    # Saving wavelength solution with result
+    op_hdul = fits.open(op_fname)
+    wlsoln_hdu = fits.ImageHDU(wlsoln, name="Wavelength")
+    op_hdul.append(wlsoln_hdu)
+    soln_fname = op_fname.stem + ".wlc.fits"
+    soln_fname = opdir / soln_fname
+    op_hdul.writeto(soln_fname)
+    return soln_fname.name
 
 # --------------------- #
 #  Spectral Extraction  #
 # --------------------- #
+
 
 def extraction(fname, extraction_config,
                op_fname=None):
@@ -195,6 +239,6 @@ def spectral_reduction(config, dirname):
         for txtline in txtfile_full:
             optxt_line = extract_obj_lamp(txtline, config, opdir,
                                           instrument['select_trace'])
-            wavelength_calibration(optxt_line, config,
-                                   opdir, instrument)
+            wlsolved_fname = wavelength_calibration(optxt_line, config,
+                                                    opdir, instrument)
 
