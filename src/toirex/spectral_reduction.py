@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import ast
 
 from ariastro import combine_process
+from ariastro import combine_spectra
 import SpectrumExtractor.spectrum_extractor as specextractor
 from WavelengthCalibrationTool import recalibrate
 
@@ -292,10 +293,22 @@ def spectral_reduction(config, dirname):
     instrument = instruments[dictkw]
     for groupfile in txtfiles_groups:
         txtfile_full = read_txt_file(groupfile)
+        reduced_spectra = []
         for txtline in txtfile_full:
             optxt_line = extract_obj_lamp(txtline, config, opdir,
                                           instrument['select_trace'])
             wlsolved_fname = wavelength_calibration(optxt_line, config,
                                                     opdir, instrument)
+            reduced_spectra.append(wlsolved_fname)
             if config['spectral_extraction']['SUBTRACT_BKG'] == 'Y':
                 subtract_background(opdir / wlsolved_fname, config)
+        if (len(reduced_spectra) > 1) & (config['spectral_extraction']['SCOMBINE']):
+            opfilename = Path(reduced_spectra[0]).stem + '.avg.fits'
+            opfilename = opdir / opfilename
+            reduced_spectra = [opdir / i for i in reduced_spectra]
+            combine_spectra(reduced_spectra,
+                            opfilename=opfilename,
+                            method=config['inputs']['FRAMECOMBINE'],
+                            fluxext=[0, 1, 2],
+                            varext=[3, 4, 5],
+                            wlext=[6, 6, 6])
