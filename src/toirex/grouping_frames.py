@@ -7,6 +7,7 @@ import re
 from .obscatalog import read_catalog
 from .instrument import instruments
 from .utils import open_in_editor
+from .utils import extract_fname_prefix
 
 
 def remove_repeated_values(candidate_list):
@@ -313,14 +314,15 @@ def grouping_items(config, dirname, catalogue_dict=None,
     flat_flag = instruments[dictkw]['flat_kw']
 
     groups_dict = {}
-    txt_fname = Path(config['outputs']['OP_DIR']) / \
-        dirname / "Grouped_txtfile.txt"
+    opdir = Path(config['outputs']['OP_DIR']) / \
+        dirname
+    txt_fname = opdir / "Grouped_txtfile.txt"
     grouped_txt_file = open(txt_fname, 'w')
     grouping_keys = instruments[dictkw]['grouping_keys']
     flat_keys = instruments[dictkw]['flat_grouping_keys']
     ordered_dict = ordered_keys(catalogue_dict, config,
                                 grouping_keys, flat_keys, flat_flag)
-
+    opfilename_prefix = open(opdir / "Filename_suggestions.txt", 'w')
     for order, fnames in ordered_dict.items():
         subgroups_dict = defaultdict(list)
         group_header = "*" * 10 + "Group {} ".format(order) + "*" * 10 + "\n"
@@ -332,6 +334,11 @@ def grouping_items(config, dirname, catalogue_dict=None,
         if 'OBJECT' not in list(subgroups_dict.keys()):
             grouped_txt_file.write("\n No object in this group \n")
             continue
+
+        opfilename_prefix.write(
+            "{} : {}\n".format(order,
+                             extract_fname_prefix(subgroups_dict['OBJECT'][0]))
+        )
         for keys, fnames in subgroups_dict.items():
             grouped_txt_file.write(
                 "{}: \n{}\n".format(keys, "\n".join(fnames))
@@ -341,6 +348,7 @@ def grouping_items(config, dirname, catalogue_dict=None,
         groups_dict[order] = subgroups_dict
     # A function to add continuum flats here.
     grouped_txt_file.close()
+    opfilename_prefix.close()
     if (
             config['inits']['MODE'] == "AUTO"
             and config['inits']['TIMESERIES'] == 'N'
