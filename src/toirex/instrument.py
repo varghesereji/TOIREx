@@ -229,6 +229,24 @@ def get_template_spectanspec(
     return template
 
 
+def get_stdsky_spectanspec(
+        fname,
+        instrument_config="config/instrument_templates.config"
+):
+    header = read_fits_header(fname)
+    pkgpath = get_pkgpath()
+    instconfig = pkgpath / instrument_config
+    instrument_configs = read_config(instconfig)
+    if header["GRATING"] == 'grating1':
+        # grating_items = instrument_configs['TANSPEC_XD']
+        mode = "XD"
+    elif header["GRATING"] == 'grating2':
+        mode = "LR"
+
+    instrument_specs = instrument_configs['TANSPEC_' + mode]
+    sky_fname = pkgpath / instrument_specs['StdSky']
+    return sky_fname
+
 #################################
 #         TIRSPEC               #
 #################################
@@ -274,6 +292,7 @@ instruments = {
      'select_trace': select_trace_spectanspec,
      'get_template': get_template_spectanspec,
      'pixel_offset': pixel_offset_spectanspec,
+     'get_stdsky': get_stdsky_spectanspec,
      'grouping_keys': ['GRATING', 'SLIT',
                        'A_TRGTRA', 'A_TRGTDE'],
      'flat_kw': ['CONT1', 'CONT2'],
@@ -295,6 +314,7 @@ instruments = {
      'masterflat': None,
      'select_trace': None,
      'pixel_offset': None,
+     'get_stdsky': None,
      'grouping_keys': ['UPPER', 'LOWER', 'SLIT',
                        'TCSRA', 'TCSDEC'
                        ],

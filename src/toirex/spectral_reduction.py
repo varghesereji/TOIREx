@@ -17,6 +17,7 @@ from .utils import get_pkgpath
 from .utils import read_txt_file
 from .setups import read_config
 from .setups import create_config
+from .plottings import plot_arrays
 
 
 def config_for_extraction(data_fname, config,
@@ -221,6 +222,40 @@ def wavelength_calibration(txtline, config,
     op_hdul.writeto(soln_fname)
     return soln_fname.name
 
+
+# Plot sky
+
+def plot_sky(fname, opdir, getsky_fn):
+    if getsky_fn is None:
+        return
+    fname = opdir / fname
+    hdul = fits.open(fname)
+    bkg1 = hdul['BKG FLUX 0'].data
+    bkg2 = hdul['BKG FLUX 1'].data
+    bkg1 = bkg1 / np.nanmedian(bkg1)
+    bkg2 = bkg2 / np.nanmedian(bkg2)
+    wl = hdul['WAVELENGTH'].data
+    hdul.close()
+    fig, axs = plot_arrays(wl, bkg1, title="Background",
+                           label="Bkg 1", show=False)
+    plot_arrays(wl, bkg2, fig_axs=(fig, axs), label="Bkg 2", show=False)
+    stdsky_fname = getsky_fn(fname)
+    try:
+        hdul_std = fits.open(stdsky_fname)
+    except FileNotFoundError:
+        print("Standard sky does not exist")
+    else:
+        sky_std = hdul_std[0].data
+        sky_std = sky_std / np.nanmedian(sky_std)
+        wl_std = hdul_std[1].data
+        plot_arrays(wl_std, sky_std, fig_axs=(fig, axs), label="Std sky",
+                    show=False)
+        plot_name = fname.stem + "_stdsky.pdf"
+        plot_name = opdir / plot_name
+        fig.savefig(plot_name)
+    plt.close()
+
+
 # --------------------- #
 #  Spectral Extraction  #
 # --------------------- #
@@ -303,6 +338,7 @@ def spectral_reduction(config, dirname):
                                           instrument['select_trace'])
             wlsolved_fname = wavelength_calibration(optxt_line, config,
                                                     opdir, instrument)
+            plot_sky(wlsolved_fname, opdir, instrument['get_stdsky'])
             reduced_spectra.append(wlsolved_fname)
             if config['spectral_extraction']['SUBTRACT_BKG'] == 'Y':
                 subtract_background(opdir / wlsolved_fname, config)

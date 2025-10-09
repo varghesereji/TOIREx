@@ -78,14 +78,58 @@ def enable_line_profile(fig, ax, image):
     fig.canvas.mpl_connect("button_press_event", onclick)
 
 
+def specplot(fname, ext=0, wlext=1, title=None, **kwargs):
+    flux = read_fits_data(fname, ext=ext)
+    wl = read_fits_data(fname, ext=wlext)
+    plot_arrays(wl, flux, title=title, **kwargs)
+
+
+def plot_arrays(wl_array, flux_array, title=None,
+                fig_axs=None, clear=False, show=True,
+                **kwargs):
+    n = len(wl_array)
+    ncols = 1 if n <= 5 else 2
+    nrows = int(np.ceil(n / ncols))
+    if fig_axs is None:
+        fig, axs = plt.subplots(nrows, ncols, figsize=(6 * ncols, 3 * nrows))
+        axs = np.atleast_1d(axs).ravel()  # flatten even if it's 1D
+    else:
+        fig, axs = fig_axs
+        if clear:
+            for ax in axs:
+                ax.clear()
+
+    for i, wlarr in enumerate(wl_array):
+        axs[i].plot(wlarr, flux_array[i], **kwargs)
+        axs[i].set_ylim(bottom=-5)
+        axs[i].legend()
+    # Hide any unused subplots
+    for j in range(i + 1, len(axs)):
+        axs[j].set_visible(False)
+    fig.suptitle(title)
+    fig.tight_layout()
+    if show:
+        plt.show()
+    else:
+        return fig, axs
+
+
 def plot_main():
     parser = argparse.ArgumentParser(
         description="Plotting the fits frame")
     parser.add_argument("fname", type=str, help="Filename to display")
     parser.add_argument("--ext", type=int, help="Extension to display",
                         default=0)
+    parser.add_argument("--xext",
+                        type=int,
+                        help="Extension to be added in x axis. \
+                        If None, make imshow.",
+                        default=None)
     args = parser.parse_args()
     fname = args.fname
-    imageplot(fname, title="file : " + fname, line_profile=True)
+    if args.xext is not None:
+        specplot(fname, args.ext, args.xext, title="file : " + fname)
+    else:
+        imageplot(fname, title="file : " + fname, line_profile=True)
 
 # End
