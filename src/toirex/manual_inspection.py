@@ -128,7 +128,7 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
     print("'ra': Reject the frame from the analysis")
     print("'a': Accept the frame for current SCIENCE frame")
     print("'aa': Accept the frame for the analysis")
-    print("'acceptall': Accept all frames without inspection")
+    print("Press Enter without anything: Accept all frames without inspection")
     for f in files_list:
         number = extract_number_from_fname(f.name)
 
@@ -174,7 +174,7 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
                 else:
                     UserInput = input(
                         'Enter according to above instruction:'
-                    )
+                    ) or 'acceptall'
                 if UserInput == 'ra':
                     print("Completely Removing", target)
                     flats_list.remove(target)
@@ -221,7 +221,7 @@ def manual_inspection_cals(config, dirname):
     print("'ra': Reject the frame from the analysis")
     print("'a': Accept the frame for current SCIENCE frame")
     print("'aa': Accept the frame for the analysis")
-    print("'acceptall': Accept all frames without inspection")
+    print("Press Enter without anything: Accept all frames without inspection")
 
     for f in files_list:
         number = extract_number_from_fname(f.name)
@@ -263,7 +263,7 @@ def manual_inspection_cals(config, dirname):
                     else:
                         UserInput = input(
                             'Enter "r" to reject and "aa" to accept:'
-                        )
+                        ) or 'acceptall'
                     if UserInput == 'ra':
                         print("Completely Removing", target)
                         filenames.remove(target)
