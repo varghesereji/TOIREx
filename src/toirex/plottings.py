@@ -132,4 +132,8 @@ def plot_main():
     else:
         imageplot(fname, title="file : " + fname, line_profile=True)
 
+
+if __name__ == "__main__":
+    plot_main()
+
 # End
