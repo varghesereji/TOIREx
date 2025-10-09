@@ -76,11 +76,18 @@ def download_instrument(instrument: str, outdir: Path = Path("data")) -> Path:
     Path(path.parent).rmdir()
 
 
+# Filename functions
 def extract_number_from_fname(fname):
     numbers = re.findall(r"\d+", fname)
     return numbers
 
 
+def extract_fname_prefix(fname):
+    match = re.match(r"^(.*?)(\d+)", fname)
+    return match.group(1) if match else "AAA"
+
+
+# Header functions
 def read_fits_header(filename, ext=0):
     '''
     Function to read the header of the fits file.
