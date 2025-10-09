@@ -208,7 +208,11 @@ def wavelength_calibration(txtline, config,
             wlsoln = soln
         else:
             wlsoln = np.vstack((wlsoln, soln))
+    # Make sure the wavelength solution is always 2D array
+    if wlsoln.ndim == 1:
+        wlsoln = wlsoln.reshape(1, -1)
     # Saving wavelength solution with result
+
     op_hdul = fits.open(op_fname)
     wlsoln_hdu = fits.ImageHDU(wlsoln, name="Wavelength")
     op_hdul.append(wlsoln_hdu)
@@ -302,7 +306,8 @@ def spectral_reduction(config, dirname):
             reduced_spectra.append(wlsolved_fname)
             if config['spectral_extraction']['SUBTRACT_BKG'] == 'Y':
                 subtract_background(opdir / wlsolved_fname, config)
-        if (len(reduced_spectra) > 1) & (config['spectral_extraction']['SCOMBINE']):
+        if (len(reduced_spectra) > 1) & (
+                config['spectral_extraction']['SCOMBINE'] == 'Y'):
             opfilename = Path(reduced_spectra[0]).stem + '.avg.fits'
             opfilename = opdir / opfilename
             reduced_spectra = [opdir / i for i in reduced_spectra]
