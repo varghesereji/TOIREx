@@ -11,6 +11,7 @@ from ariastro import operate_process
 from .utils import read_fits_data
 from .utils import extract_number_from_fname
 from .utils import read_txt_file
+from .utils import read_filename_suggestion
 
 # ----------------#
 # Identify dither #
@@ -354,9 +355,7 @@ def subtract_dithers(config, datadir):
     """
     opdir = Path(config['outputs']['OP_DIR']) / datadir
     groups_dithers = get_dithers(opdir)
-    outfileprefix = input(
-        "Enter the prefix of you want for reduce 1d spectra:"
-    )
+
     print("\n")
     print("-" * 30)
     print("Enter the pairs to subtract in space separated form")
@@ -369,9 +368,15 @@ def subtract_dithers(config, datadir):
     print("-" * 30)
     print("\n")
     for groups, dithers in groups_dithers.items():
+        print("Running for group", groups)
+        fname_suggestion = read_filename_suggestion(groups, opdir)
+        outfileprefix = input(
+            "Enter output filename prefix (default: {}) :".format(
+                fname_suggestion)
+        ) or fname_suggestion
         dithers.sort()  # Just making them to be ascending order
         writeto = open(opdir / "ReadyToReduce_group{}.txt".format(groups), 'w')
-        print("Running for group", groups)
+
         if len(dithers) == 1:
             opfname = outfileprefix
             print("No dithers to subtract in this group")

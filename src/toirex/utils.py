@@ -83,8 +83,23 @@ def extract_number_from_fname(fname):
 
 
 def extract_fname_prefix(fname):
-    match = re.match(r"^(.*?)(\d+)", fname)
+    match = re.match(r"^(.*?)-\d{5}\.Z\.fits$", fname)
     return match.group(1) if match else "AAA"
+
+
+def read_filename_suggestion(group, opdir):
+    if isinstance(opdir, str):
+        opdir = Path(opdir)
+    txtfname = "Filename_suggestions.txt"
+    txtfile = opdir / txtfname
+    text = txtfile.read_text().splitlines()
+    mapping = {}
+    for line in text:
+        key, value = line.split(":", 1)
+        mapping[int(key.strip())] = value.strip()
+    return mapping[int(group)]
+
+
 
 
 # Header functions
