@@ -1,12 +1,14 @@
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
 
 from .utils import read_fits_data
 from .utils import fit_gaussian_profile
+from .image_utils import select_source
 
 
-def imageplot(fname, ext=0, title=None, line_profile=False, **kwargs):
+def imageplot(fname, ext=0, title=None, line_profile='drawline', **kwargs):
     data = read_fits_data(fname, ext=ext)
 
     if "vmin" not in kwargs:
@@ -23,9 +25,15 @@ def imageplot(fname, ext=0, title=None, line_profile=False, **kwargs):
         axs.set_title(title, loc="left")
     plt.tight_layout()
     fig.colorbar(im, ax=axs, label="Counts")
-    if line_profile:
+    centroid_list = None
+    if line_profile == 'drawline':
         enable_line_profile(fig, axs, data)
+    elif line_profile == 'aperture':
+        title = title + "\n Press Ctrl and click on apertures to select them"
+        axs.set_title(title, loc="left")
+        centroid_list = select_aperture(fig, axs, data)
     plt.show()
+    return centroid_list
 
 
 def enable_line_profile(fig, ax, image):
@@ -78,6 +86,38 @@ def enable_line_profile(fig, ax, image):
     fig.canvas.mpl_connect("button_press_event", onclick)
 
 
+def select_aperture(fig, ax, image):
+    centroids_list = []
+    # plt.show()
+    # annotation = None
+
+    def onclick(event):
+        # nonlocal line_coords
+        if event.inaxes != ax:
+            return
+        if not (event.key == 'control'):
+            return  # quietly ignore other clicks
+
+        xdata, ydata = event.xdata, event.ydata
+        # ax.plot(xdata, ydata, 'o', color='red')
+        # print(xdata, ydata)
+        sel_reg = image[int(ydata)-10:int(ydata)+10,
+                        int(xdata)-10:int(xdata)+10]
+        centroid = select_source(sel_reg)
+        x_center = centroid[1] + xdata-10
+        y_center = centroid[0] + ydata-10
+        centroids_list.append([x_center,
+                               y_center])
+        radius = 10
+        circle = Circle((x_center, y_center), radius,
+                        edgecolor='red', facecolor='none', linewidth=2)
+        ax.add_patch(circle)
+        fig.canvas.draw()
+
+    fig.canvas.mpl_connect("button_press_event", onclick)
+    return centroids_list
+
+
 def specplot(fname, ext=0, wlext=1, title=None, **kwargs):
     flux = read_fits_data(fname, ext=ext)
     wl = read_fits_data(fname, ext=wlext)
@@ -125,12 +165,17 @@ def plot_main():
                         help="Extension to be added in x axis. \
                         If None, make imshow.",
                         default=None)
+    parser.add_argument("--aperture",
+                        type=str,
+                        help="Draw line and fit gaussian or select sircular \
+                        aperture (drawline, aperture)",
+                        default='drawline')
     args = parser.parse_args()
     fname = args.fname
     if args.xext is not None:
         specplot(fname, args.ext, args.xext, title="file : " + fname)
     else:
-        imageplot(fname, title="file : " + fname, line_profile=True)
+        imageplot(fname, title="file : " + fname, line_profile=args.aperture)
 
 
 if __name__ == "__main__":
