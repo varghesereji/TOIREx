@@ -17,7 +17,7 @@ dependencies = [
     "numpy>=1.21",
     "pyfiglet",
     "colorama",
-    "AriAstro @ git+https://github.com/varghesereji/AriAstro@main",
+    "AriAstroTools @ git+https://github.com/varghesereji/AriAstroTools@main",
     "SpectrumExtractor @ git+https://github.com/varghesereji/SpectrumExtractor.git@master",
     "WavelengthCalibrationTool @ git+https://github.com/indiajoe/WavelengthCalibrationTool.git@master"
 ]
@@ -34,7 +34,6 @@ classifiers = [
 
 [project.scripts]
 toirex = "toirex.toirex_main:main"
-timshow = "toirex.plottings:plot_main"
 
 [tool.setuptools.package-data]
 "toirex" = ["data/*", "config/*"]
