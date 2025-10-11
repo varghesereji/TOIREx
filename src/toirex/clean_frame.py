@@ -4,9 +4,10 @@ import numpy as np
 from pathlib import Path
 from collections import defaultdict
 
-from ariastro import divide_smoothgradient
-from ariastro import operate_process
-from ariastro import remove_cosmic_rays
+from ariastrotools import divide_smoothgradient
+from ariastrotools import operate_process
+from ariastrotools import remove_cosmic_rays
+from ariastrotools import combine_process
 
 from .utils import extract_number_from_fname
 from .utils import combine_frames
@@ -208,7 +209,6 @@ def create_smoothmasterflat(flatfile, masterflat_fn=None,
 def frame_operation(dithergroup_txtfname,
                     config,
                     op_path,
-                    write_txtfname,
                     required="Flat"
                     ):
     """
@@ -267,7 +267,7 @@ def frame_operation(dithergroup_txtfname,
     if "".join(varexts) == "None":
         varexts = None
     new_list = []
-    writetotxt = open(write_txtfname, 'w')
+    txtfile_line = []
     for dgroup in dithergroups:
         sci_fname = op_path / dgroup[0]
 
@@ -296,15 +296,40 @@ def frame_operation(dithergroup_txtfname,
                                    varext=varexts)
                 new_list[0] = crop_fname.name
             if len(dgroup[2:]) != 0:
+                # For photometry, there will be lamp.
+                # That is writinig to the text editor.
                 new_list = new_list + dgroup[2:]
                 new_list_str = " ".join(new_list)
             else:
                 new_list_str = new_list[0]
         elif required == "Sky":
+            # In the list dgroup, if sky subtraction is
+            # activated in config file, last entry will be
+            # sky. That is removed here.
             new_list = new_list + dgroup[1:-1]
             new_list_str = " ".join(new_list)
-        writetotxt.write(new_list_str)
-    writetotxt.close()
+        txtfile_line.append(new_list_str+"\n")
+    # writetotxt.close()
+    return txtfile_line
+
+
+def mediancomb_sky_subtr(frames_list, opdir, config, group):
+    frames_list = [opdir / i for i in frames_list]
+    print(frames_list)
+    combkg_fname = opdir / "mediancomb_bkg{}.fits".format(group)
+    combine_process(frames_list,
+                    combkg_fname,
+                    method='median',
+                    fluxext=list(config['inputs']['FLUXEXT']),
+                    varext=list(config['inputs']['VAREXT'])
+                    )
+    for dframe in frames_list:
+        operate_process(dframe, combkg_fname,
+                        dframe, operation='-',
+                        fluxext=list(config['inputs']['FLUXEXT']),
+                        varext=list(config['inputs']['VAREXT']))
+
+
 
 
 def frame_correction(config, dirname):
@@ -373,6 +398,27 @@ def frame_correction(config, dirname):
             finalsky_list = None
         print("Group numbr running:", int(number[0]))
         logger.info("Calling file"+f.name)
+        if config['inits']['TODO'] == 'P':
+            # For photmetry extraction, there is no other calibration after
+            # flat correction. Therefore, no need to keep each dither frame
+            # in separate txt files. In spectroscopy. We are keeping different
+            # text file for each dither position is because the lamp file
+            # may be different for different frame, even for same target.
+            # So, in same dither position, the lines in text editor
+            # can be used for different lamp/flat combinations.
+            # In photometry, there is no wavelength calibration.
+            # Therefore, we can combine the frames in same dither position
+            # after flat correction, and keep same text file for all
+            # dither frames.
+
+            clean_frame_txtfname = "Clean_frame_group{}_d{}.txt".format(
+                    number[0], "Full")
+            clean_frame_txtfname = op_path / clean_frame_txtfname
+            writetotxt_cleanframe = open(clean_frame_txtfname, 'w')
+            # If observed sky is not available,
+            # median-combine all dither frames and subtract that from
+            # combined-flat corrected frame.
+            allditherpos_list = []
         dither_groups = read_files_group(f)
         for n, samepos in dither_groups.items():
             logger.info("Dither pos {}: {}".format(n, samepos))
@@ -391,19 +437,55 @@ def frame_correction(config, dirname):
                 # Sky subtraction
                 skysubtr_txtfname = "Skysubtr_frame_group{}_d{}.txt".format(
                     number[0], n)
-                frame_operation(combobj_flat_txtfname,
-                                config,
-                                op_path,
-                                skysubtr_txtfname,
-                                required="Sky")
+                skysubtr_txtfname = op_path / skysubtr_txtfname
+                skysubtr_writeto = open(skysubtr_txtfname)
+                txtfile_line_sky = frame_operation(combobj_flat_txtfname,
+                                                   config,
+                                                   op_path,
+                                                   required="Sky")
+                full_lines_sky = "".join(txtfile_line_sky)
+                writetotxt_cleanframe.write(full_lines_sky)
+                skysubtr_writeto.close()
                 combobj_flat_txtfname = skysubtr_txtfname
-            clean_frame_txtfname = "Clean_frame_group{}_d{}.txt".format(
-                number[0], n)
-            clean_frame_txtfname = op_path / clean_frame_txtfname
+            if config['inits']['TODO'] == 'S':
+                clean_frame_txtfname = "Clean_frame_group{}_d{}.txt".format(
+                    number[0], n)
+                clean_frame_txtfname = op_path / clean_frame_txtfname
+                writetotxt_cleanframe = open(clean_frame_txtfname, 'w')
             # Flat correction
-            frame_operation(combobj_flat_txtfname,
-                            config, op_path,
-                            clean_frame_txtfname)
+            txtfile_line = frame_operation(combobj_flat_txtfname,
+                                           config, op_path
+                                           )
 
+            if config['inits']['TODO'] == 'P':
+                # Combine all flat-corrected frames in
+                # same dither positions.
+                if len(txtfile_line) > 1:
+                    fname_stems = [Path(i).stem for i in txtfile_line]
+                    comb_dither_fname = "+".join(fname_stems) + ".fits"
+                     # adding path to each frame name
+                    fnames_path = [op_path / i for i in txtfile_line]
+                    combine_process(fnames_path,
+                                    op_path / comb_dither_fname,
+                                    method=config['inputs']['FRAMECOMBINE'],
+                                    fluxext=list(config['inputs']['FLUXEXT']),
+                                    varext=list(config['inputs']['VAREXT'])
+                                    )
+                    full_lines = comb_dither_fname
+                else:
+                    full_lines = txtfile_line[0]
+                allditherpos_list.append(full_lines.strip())
+                full_lines = 'd{} : '.format(n) + full_lines
+            else:
+                full_lines = "".join(txtfile_line)
+            writetotxt_cleanframe.write(full_lines)
+
+            if config['inits']['TODO'] == 'S':
+                writetotxt_cleanframe.close()
+        if config['inits']['TODO'] == 'P':
+            # For photometry, the text editor was open before the for loop.
+            # That is closed here.
+            mediancomb_sky_subtr(allditherpos_list, op_path, config, number[0])
+            writetotxt_cleanframe.close()
 
 # End

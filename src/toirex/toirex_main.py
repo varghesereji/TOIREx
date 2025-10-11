@@ -157,14 +157,14 @@ def main():
     config = read_config(configfilename)
     config = add_dict_keywords(config)
     instrument = config['inits']['INSTRUMENT']
-    get_instrument_dir(instrument)
+    
     logger = setup_logger_from_config(config)
     logger.info("Pipline started")
 
     print_banner()
     print("\n You are reducting data observed with {}".format(instrument))
     print("="*50)
-
+    get_instrument_dir(instrument)
     print("\n *** Very Very Important: Backup your RAW data first.", end="")
     print("Don't proceed without backup *** \n")
 

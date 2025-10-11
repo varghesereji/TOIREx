@@ -18,7 +18,7 @@ try:
 except ImportError:
     import importlib_resources as resources
 
-from ariastro import combine_process
+from ariastrotools import combine_process
 
 
 def get_pkgpath():
@@ -41,6 +41,10 @@ def get_instrument_dir(instrument_name: str):
     instrument : str
         Name of the instrument directory (e.g., "TANSPEC", "TIRSPEC").
     """
+    data_for = ['TANSPEC']
+    if instrument_name not in data_for:
+        print("No data for {}".format(instrument_name))
+        return
     try:
         with resources.path("toirex.data", instrument_name) as p:
             if p.exists():
