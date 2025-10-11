@@ -6,7 +6,7 @@ from scipy.ndimage import median_filter
 from skimage import registration
 import shutil
 
-from ariastro import operate_process
+from ariastrotools import operate_process
 
 from .utils import read_fits_data
 from .utils import extract_number_from_fname

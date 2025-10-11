@@ -5,8 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ast
 
-from ariastro import combine_process
-from ariastro import combine_spectra
+from ariastrotools import combine_process
+from ariastrotools import combine_spectra
 import SpectrumExtractor.spectrum_extractor as specextractor
 from WavelengthCalibrationTool import recalibrate
 
