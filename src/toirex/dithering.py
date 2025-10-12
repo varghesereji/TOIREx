@@ -430,6 +430,19 @@ def select_reference_positions(dither_dict, opdir):
     return selected_positions
 
 
+def get_dither_shift_auto(dither_dict, opdir, config):
+    ref_image = None
+    for dither, fname in dither_dict.items():
+        print(dither, fname)
+        if ref_image is None:
+            ref_image = opdir / fname
+        else:
+            shifts = find_shift(ref_image, opdir / fname,
+                                config)
+            print(shifts)
+
+
+
 def combine_dithers(config, datadir):
     opdir = Path(config['outputs']['OP_DIR']) / datadir
     groups_dithers = get_dithers(opdir, mode="P")
@@ -446,8 +459,11 @@ def combine_dithers(config, datadir):
         if len(list(dither_dict.keys())) == 1:
             print("Single image. Nothing to combine")
         else:
-            select_reference_positions(dither_dict, opdir)
-            
+            if config['dither']['AUTODITHER'] == 'N':
+                select_reference_positions(dither_dict, opdir)
+            else:
+                get_dither_shift_auto(dither_dict, opdir, config)
+
 
 
 
