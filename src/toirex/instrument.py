@@ -293,6 +293,7 @@ instruments = {
      'get_template': get_template_spectanspec,
      'pixel_offset': pixel_offset_spectanspec,
      'get_stdsky': get_stdsky_spectanspec,
+     'fname_regexp': r"^(.*?)-\d{5}\.Z\.fits$",
      'grouping_keys': ['GRATING', 'SLIT',
                        'A_TRGTRA', 'A_TRGTDE'],
      'flat_kw': ['CONT1', 'CONT2'],
@@ -315,6 +316,7 @@ instruments = {
      'select_trace': None,
      'pixel_offset': None,
      'get_stdsky': None,
+     'fname_regexp': r"^(.*?)-\d{3}\.Z\.fits$",
      'grouping_keys': ['UPPER', 'LOWER', 'SLIT',
                        'TCSRA', 'TCSDEC'
                        ],

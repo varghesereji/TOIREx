@@ -86,8 +86,8 @@ def extract_number_from_fname(fname):
     return numbers
 
 
-def extract_fname_prefix(fname):
-    match = re.match(r"^(.*?)-\d{5}\.Z\.fits$", fname)
+def extract_fname_prefix(fname, regexp=r"^(.*?)-\d{5}\.Z\.fits$"):
+    match = re.match(regexp, fname)
     return match.group(1) if match else "AAA"
 
 

@@ -336,8 +336,13 @@ def grouping_items(config, dirname, catalogue_dict=None,
             continue
 
         opfilename_prefix.write(
-            "{} : {}\n".format(order,
-                             extract_fname_prefix(subgroups_dict['OBJECT'][0]))
+            "{} : {}\n".format(
+                order,
+                extract_fname_prefix(
+                    subgroups_dict['OBJECT'][0],
+                    instruments[dictkw]['fname_regexp']
+                )
+            )
         )
         for keys, fnames in subgroups_dict.items():
             grouped_txt_file.write(
