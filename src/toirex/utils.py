@@ -9,6 +9,7 @@ import io
 from astropy.io import fits
 from scipy import signal
 from scipy import ndimage
+from astropy.io import ascii
 from astropy.modeling import models, fitting
 
 from WavelengthCalibrationTool import recalibrate
@@ -91,19 +92,27 @@ def extract_fname_prefix(fname, regexp=r"^(.*?)-\d{5}\.Z\.fits$"):
     return match.group(1) if match else "AAA"
 
 
-def read_filename_suggestion(group, opdir):
+def text_to_dict(opdir='.',
+                 txtfname="Filename_suggestions.txt"):
     if isinstance(opdir, str):
         opdir = Path(opdir)
-    txtfname = "Filename_suggestions.txt"
     txtfile = opdir / txtfname
     text = txtfile.read_text().splitlines()
     mapping = {}
     for line in text:
         key, value = line.split(":", 1)
-        mapping[int(key.strip())] = value.strip()
-    return mapping[int(group)]
+        mapping[key.strip()] = value.strip()
+    return mapping
 
 
+def get_filename(groups, opdir):
+    fname_suggestion = text_to_dict(
+        txtfname=opdir / "Filename_suggestions.txt")[groups]
+    outfileprefix = input(
+        "Enter output filename prefix (default: {}) :".format(
+            fname_suggestion)
+    ) or fname_suggestion
+    return outfileprefix
 
 
 # Header functions
@@ -161,6 +170,19 @@ def read_txt_file(filename):
         for line in txtfile:
             txtline.append(line.strip().split(" "))
     return txtline
+
+
+def write_asciitable(content,
+                     fname,
+                     headers,
+                     format='basic',
+                     delimiter="|"):
+    ascii.write(list(zip(*content)),
+                fname,
+                names=headers,
+                format=format,
+                delimiter=delimiter,
+                overwrite=True)
 
 
 def combine_frames(files_list, op_dirname, sorting_function,

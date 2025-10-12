@@ -4,6 +4,7 @@ from pathlib import Path
 from astropy.io import ascii
 
 from .instrument import instruments
+from .utils import write_asciitable
 
 
 def extract_catalog_entries(fname, dictkw):
@@ -82,11 +83,10 @@ def create_catalog(dirname, config):
     catalog_headers_full = instrument['catalog_headers']
     catalog_headers_full.insert(0, 'FNAME')
     catalog_headers_full.append('FLAG')
-    ascii.write(list(zip(*filename_infos)),
-                file_path, names=catalog_headers_full,
-                format="basic",
-                delimiter="|",
-                overwrite=True)
+    write_asciitable(filename_infos,
+                     file_path,
+                     headers=catalog_headers_full
+                     )
 
 
 def read_catalog(dirname, config, showcatname=True):
