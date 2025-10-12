@@ -19,6 +19,7 @@ from .manual_inspection import manual_inspection_cals
 from .clean_frame import frame_correction
 from .utils import get_instrument_dir
 from .dithering import subtract_dithers
+from .dithering import combine_dithers
 from .spectral_reduction import spectral_reduction
 
 
@@ -131,7 +132,8 @@ def frame_dithercombine(config):
         if config['inits']['TODO'] == "S":
             subtract_dithers(config, datadir)
         elif config['inits']['TODO'] == "P":
-            print("Function to combine dither frames")
+            # print("Function to combine dither frames")
+            combine_dithers(config, datadir)
 
 
 def data_extraction(config):

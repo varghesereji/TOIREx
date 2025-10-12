@@ -9,9 +9,12 @@ import shutil
 from ariastrotools import operate_process
 
 from .utils import read_fits_data
+from .utils import text_to_dict
 from .utils import extract_number_from_fname
 from .utils import read_txt_file
-from .utils import read_filename_suggestion
+from .utils import get_filename
+
+from .plottings import imageplot
 
 # ----------------#
 # Identify dither #
@@ -138,7 +141,7 @@ def dithers_and_groups(groups_dithers_list):
     return groups_dithers_dict
 
 
-def get_dithers(opdir):
+def get_dithers(opdir, mode="S"):
     """
     Retrieve groups and their associated dithers from the output directory.
 
@@ -159,17 +162,28 @@ def get_dithers(opdir):
         numbers from filenames and `dithers_and_groups` to organize the
         mappings.
     """
-    dithertxt_fname = "Clean_frame_group*_d*.txt"
+    if mode == "P":
+        dithertxt_fname = "Clean_frame_group*_dFull.txt"
+    elif mode == "S":
+        dithertxt_fname = "Clean_frame_group*_d*.txt"
     dither_txtfiles = list(opdir.glob(dithertxt_fname))
     groups_dithers = []
+    print(dither_txtfiles)
     for group in dither_txtfiles:
         # The text file name have two integers. So, the
         # function will return two numners. first one
         # will be the group number, and second one
-        # will be dither number
+        # will be dither number.
+        # For phtometry, there will be only group number.
         numbers = extract_number_from_fname(group.name)
-        groups_dithers.append(numbers)
-    return dithers_and_groups(groups_dithers)
+        if mode == "P":
+            groups_dithers.append(numbers[0])
+        elif mode == "S":
+            groups_dithers.append(numbers)
+    if mode == "P":
+        return groups_dithers
+    elif mode == "S":
+        return dithers_and_groups(groups_dithers)
 
 
 # ----------------------------- #
@@ -369,11 +383,7 @@ def subtract_dithers(config, datadir):
     print("\n")
     for groups, dithers in groups_dithers.items():
         print("Running for group", groups)
-        fname_suggestion = read_filename_suggestion(groups, opdir)
-        outfileprefix = input(
-            "Enter output filename prefix (default: {}) :".format(
-                fname_suggestion)
-        ) or fname_suggestion
+        outfileprefix = get_filename(groups, opdir)
         dithers.sort()  # Just making them to be ascending order
         writeto = open(opdir / "ReadyToReduce_group{}.txt".format(groups), 'w')
 
@@ -400,5 +410,45 @@ def subtract_dithers(config, datadir):
             elif len(instr) == 2:
                 pairsubtraction(instr, groups, opdir, outfileprefix, writeto)
         writeto.close()
+
+# -----------------------------
+# Imaging dithers
+# -----------------------------
+
+
+def select_reference_positions(dither_dict, opdir):
+    print("Frames of each dither position will be displayed")
+    print("Select at least two targes in each frame")
+    print("Follow same order to select the target in all frames")
+    selected_positions = {}
+    for dither, fname in dither_dict.items():
+        print(dither, fname)
+        centroid = imageplot(opdir / fname,
+                             title="{}:{}".format(dither, fname),
+                             line_profile='aperture')
+        selected_positions[dither] = centroid
+    return selected_positions
+
+
+def combine_dithers(config, datadir):
+    opdir = Path(config['outputs']['OP_DIR']) / datadir
+    groups_dithers = get_dithers(opdir, mode="P")
+    # print(groups_dithers)
+    print("\n")
+    print("-" * 30)
+    for groups in groups_dithers:
+        print("Running for group", groups)
+        outfileprefix = get_filename(groups, opdir)
+        print(groups, outfileprefix)
+        dither_dict = text_to_dict(
+            txtfname=opdir / "Clean_frame_group{}_dFull.txt".format(groups)
+        )
+        if len(list(dither_dict.keys())) == 1:
+            print("Single image. Nothing to combine")
+        else:
+            select_reference_positions(dither_dict, opdir)
+            
+
+
 
 # End
