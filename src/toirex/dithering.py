@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
+import numpy as np
 from pathlib import Path
 from collections import defaultdict
 from scipy.ndimage import median_filter
+
 from skimage import registration
 import shutil
-
 from ariastrotools import operate_process
+from ariastrotools import combine_process
+from ariastrotools import shifting_frame
+
 
 from .utils import read_fits_data
 from .utils import text_to_dict
@@ -91,9 +95,11 @@ def find_shift(frame_1, frame_2, config):
     >>> print(shift_info)
     (array([dy, dx]), error_value, diffphase_value)
     """
+    if isinstance(frame_1, str) or isinstance(frame_1, Path):
+        frame_1 = read_fits_data(frame_1)
+    if isinstance(frame_2, str) or isinstance(frame_2, Path):
+        frame_2 = read_fits_data(frame_2)
 
-    frame_1 = read_fits_data(frame_1)
-    frame_2 = read_fits_data(frame_2)
     crop = config['dither']['CROP']
     upsample_factor = int(config['dither']['UPSAMPLE'])
     crop = [int(x) for x in crop.strip().split(" ")]
@@ -432,15 +438,32 @@ def select_reference_positions(dither_dict, opdir):
 
 def get_dither_shift_auto(dither_dict, opdir, config):
     ref_image = None
+    shift_dict = {}
     for dither, fname in dither_dict.items():
         print(dither, fname)
         if ref_image is None:
             ref_image = opdir / fname
+            shift_dict[dither] = np.array([0., 0.,])
         else:
             shifts = find_shift(ref_image, opdir / fname,
                                 config)
-            print(shifts)
+            shift_dict[dither] = shifts[0]
+    return shift_dict
 
+
+def align_frames(dither_dict, shift_dict, opdir, config):
+    alighed_fnames = []
+    for dither, fname in dither_dict.items():
+        opfname = "Shifted_" + fname
+        opfname = opdir / opfname
+        alighed_fnames.append(opfname)
+        shifting_pos = shift_dict[dither]
+        shifting_frame(opdir / fname,
+                       opfname,
+                       shifttoapply=shifting_pos,
+                       fluxext=list(config['inputs']['FLUXEXT']),
+                       varext=list(config['inputs']['VAREXT']))
+    return alighed_fnames
 
 
 def combine_dithers(config, datadir):
@@ -452,7 +475,7 @@ def combine_dithers(config, datadir):
     for groups in groups_dithers:
         print("Running for group", groups)
         outfileprefix = get_filename(groups, opdir)
-        print(groups, outfileprefix)
+        # print(groups, outfileprefix)
         dither_dict = text_to_dict(
             txtfname=opdir / "Clean_frame_group{}_dFull.txt".format(groups)
         )
@@ -462,9 +485,17 @@ def combine_dithers(config, datadir):
             if config['dither']['AUTODITHER'] == 'N':
                 select_reference_positions(dither_dict, opdir)
             else:
-                get_dither_shift_auto(dither_dict, opdir, config)
-
-
+                shift_dict = get_dither_shift_auto(dither_dict, opdir, config)
+                aligned_fnames = align_frames(
+                    dither_dict, shift_dict, opdir,
+                    config)
+                outfilename = "AlignComb_" + outfileprefix + ".fits"
+                combine_process(aligned_fnames,
+                                opdir / outfilename,
+                                method='mean',
+                                fluxext=list(config['inputs']['FLUXEXT']),
+                                varext=list(config['inputs']['VAREXT'])
+                                )
 
 
 # End
