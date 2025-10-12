@@ -327,9 +327,8 @@ def mediancomb_sky_subtr(frames_list, opdir, config, group):
         operate_process(dframe, combkg_fname,
                         dframe, operation='-',
                         fluxext=list(config['inputs']['FLUXEXT']),
-                        varext=list(config['inputs']['VAREXT']))
-
-
+                        varext=list(config['inputs']['VAREXT'])
+                        )
 
 
 def frame_correction(config, dirname):
