@@ -33,7 +33,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline', **kwargs):
         axs.set_title(title, loc="left")
         centroid_list = select_aperture(fig, axs, data)
     plt.show()
-    return centroid_list
+    return np.array(centroid_list)
 
 
 def enable_line_profile(fig, ax, image):
@@ -106,8 +106,8 @@ def select_aperture(fig, ax, image):
         centroid = select_source(sel_reg)
         x_center = centroid[1] + xdata-10
         y_center = centroid[0] + ydata-10
-        centroids_list.append([x_center,
-                               y_center])
+        centroids_list.append([y_center,
+                               x_center])
         radius = 10
         circle = Circle((x_center, y_center), radius,
                         edgecolor='red', facecolor='none', linewidth=2)
