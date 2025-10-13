@@ -424,16 +424,26 @@ def subtract_dithers(config, datadir):
 
 def select_reference_positions(dither_dict, opdir):
     print("Frames of each dither position will be displayed")
-    print("Select at least two targes in each frame")
+    # print("Select at least two targes in each frame")
     print("Follow same order to select the target in all frames")
-    selected_positions = {}
+    difference_positions = {}
+    reference = None
     for dither, fname in dither_dict.items():
         print(dither, fname)
         centroid = imageplot(opdir / fname,
                              title="{}:{}".format(dither, fname),
                              line_profile='aperture')
-        selected_positions[dither] = centroid
-    return selected_positions
+        if reference is None:
+            reference = centroid
+            difference_positions[dither] = np.array([0, 0])
+        else:
+            diff = centroid - reference
+            if diff.shape[0] > 1:
+                diff = np.mean(diff, axis=0)
+
+            difference_positions[dither] = diff
+
+    return difference_positions
 
 
 def get_dither_shift_auto(dither_dict, opdir, config):
@@ -483,19 +493,19 @@ def combine_dithers(config, datadir):
             print("Single image. Nothing to combine")
         else:
             if config['dither']['AUTODITHER'] == 'N':
-                select_reference_positions(dither_dict, opdir)
+                shift_dict = select_reference_positions(dither_dict, opdir)
             else:
                 shift_dict = get_dither_shift_auto(dither_dict, opdir, config)
-                aligned_fnames = align_frames(
-                    dither_dict, shift_dict, opdir,
-                    config)
-                outfilename = "AlignComb_" + outfileprefix + ".fits"
-                combine_process(aligned_fnames,
-                                opdir / outfilename,
-                                method='mean',
-                                fluxext=list(config['inputs']['FLUXEXT']),
-                                varext=list(config['inputs']['VAREXT'])
-                                )
+            aligned_fnames = align_frames(
+                dither_dict, shift_dict, opdir,
+                config)
+            outfilename = "AlignComb_" + outfileprefix + ".fits"
+            combine_process(aligned_fnames,
+                            opdir / outfilename,
+                            method='mean',
+                            fluxext=list(config['inputs']['FLUXEXT']),
+                            varext=list(config['inputs']['VAREXT'])
+                            )
 
 
 # End
