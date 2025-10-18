@@ -17,6 +17,8 @@ dependencies = [
     "numpy>=1.21",
     "pyfiglet",
     "colorama",
+    "astroquery",
+    "astropy",
     "AriAstroTools @ git+https://github.com/varghesereji/AriAstroTools@main",
     "SpectrumExtractor @ git+https://github.com/varghesereji/SpectrumExtractor.git@master",
     "WavelengthCalibrationTool @ git+https://github.com/indiajoe/WavelengthCalibrationTool.git@master"

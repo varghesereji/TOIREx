@@ -159,7 +159,7 @@ def main():
     config = read_config(configfilename)
     config = add_dict_keywords(config)
     instrument = config['inits']['INSTRUMENT']
-    
+
     logger = setup_logger_from_config(config)
     logger.info("Pipline started")
 

@@ -89,12 +89,19 @@ def create_catalog(dirname, config):
                      )
 
 
-def read_catalog(dirname, config, showcatname=True):
-    catalog_name = config['outputs']['CATALOGUE_NAME']
-    catalog_path = Path(config['outputs']['OP_DIR']) / dirname
-    file_path = catalog_path / catalog_name
+def read_catalog(dirname, config=None, showcatname=True):
+    """
+    if config is not None, the main catalog will be read.
+    Otherwise, give the required text editor ffor dirname.
+    """
+    if config is not None:
+        catalog_name = config['outputs']['CATALOGUE_NAME']
+        catalog_path = Path(config['outputs']['OP_DIR']) / dirname
+        file_path = catalog_path / catalog_name
+    else:
+        file_path = dirname
     if showcatname:
-        print("Catalogue", file_path)
+        print("Reading catalogue", file_path)
     catalogue_dict = ascii.read(file_path,
                                 delimiter="|", header_start=0,
                                 data_start=1)

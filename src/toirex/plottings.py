@@ -1,14 +1,17 @@
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
 from matplotlib.patches import Circle
 
 from .utils import read_fits_data
 from .utils import fit_gaussian_profile
 from .image_utils import select_source
+from .io_utils import launch_simbad_gui
 
 
-def imageplot(fname, ext=0, title=None, line_profile='drawline', **kwargs):
+def imageplot(fname, ext=0, title=None, line_profile='drawline',
+              get_target=False, **kwargs):
     data = read_fits_data(fname, ext=ext)
 
     if "vmin" not in kwargs:
@@ -29,9 +32,11 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline', **kwargs):
     if line_profile == 'drawline':
         enable_line_profile(fig, axs, data)
     elif line_profile == 'aperture':
+        if isinstance(title, Path):
+            title = title.name
         title = title + "\n Press Ctrl and click on apertures to select them"
         axs.set_title(title, loc="left")
-        centroid_list = select_aperture(fig, axs, data)
+        centroid_list = select_aperture(fig, axs, data, get_target)
     plt.show()
     return np.array(centroid_list)
 
@@ -86,7 +91,7 @@ def enable_line_profile(fig, ax, image):
     fig.canvas.mpl_connect("button_press_event", onclick)
 
 
-def select_aperture(fig, ax, image):
+def select_aperture(fig, ax, image, get_target=False):
     centroids_list = []
     # plt.show()
     # annotation = None
@@ -106,14 +111,27 @@ def select_aperture(fig, ax, image):
         centroid = select_source(sel_reg)
         x_center = centroid[1] + xdata-10
         y_center = centroid[0] + ydata-10
-        centroids_list.append([y_center,
-                               x_center])
+        if not get_target:
+            centroids_list.append([y_center,
+                                   x_center])
         radius = 10
         circle = Circle((x_center, y_center), radius,
                         edgecolor='red', facecolor='none', linewidth=2)
         ax.add_patch(circle)
         fig.canvas.draw()
-
+        # target_name = input("Enter target name")
+        # query_object((xdata, ydata))
+        if get_target:
+            coords = launch_simbad_gui()
+            target_coords = [int(y_center), int(x_center)]
+            target_coords.append(coords['name'])
+            target_coords.append(coords['ra'])
+            target_coords.append(coords['dec'])
+            target_coords.append(coords['pmra'])
+            target_coords.append(coords['pmdec'])
+            centroids_list.append(target_coords)
+        # print(coords)
+        # print(centroids_list)
     fig.canvas.mpl_connect("button_press_event", onclick)
     return centroids_list
 
