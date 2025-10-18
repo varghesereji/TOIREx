@@ -17,6 +17,9 @@ from .utils import text_to_dict
 from .utils import extract_number_from_fname
 from .utils import read_txt_file
 from .utils import get_filename
+from .utils import write_asciitable
+from .utils import open_in_editor
+from .image_utils import wcs_correction
 
 from .plottings import imageplot
 
@@ -492,20 +495,45 @@ def combine_dithers(config, datadir):
         if len(list(dither_dict.keys())) == 1:
             print("Single image. Nothing to combine")
         else:
-            if config['dither']['AUTODITHER'] == 'N':
-                shift_dict = select_reference_positions(dither_dict, opdir)
-            else:
-                shift_dict = get_dither_shift_auto(dither_dict, opdir, config)
-            aligned_fnames = align_frames(
-                dither_dict, shift_dict, opdir,
-                config)
             outfilename = "AlignComb_" + outfileprefix + ".fits"
-            combine_process(aligned_fnames,
-                            opdir / outfilename,
-                            method='mean',
-                            fluxext=list(config['inputs']['FLUXEXT']),
-                            varext=list(config['inputs']['VAREXT'])
-                            )
+            outfilename = opdir / outfilename
+            if outfilename.exists:
+                print(outfilename.name, "already exists")
+            else:
+                if config['dither']['AUTODITHER'] == 'N':
+                    shift_dict = select_reference_positions(dither_dict, opdir)
+                else:
+                    shift_dict = get_dither_shift_auto(dither_dict, opdir,
+                                                       config)
+                aligned_fnames = align_frames(
+                    dither_dict, shift_dict, opdir,
+                    config)
+                combine_process(aligned_fnames,
+                                outfilename,
+                                method='mean',
+                                fluxext=list(config['inputs']['FLUXEXT']),
+                                varext=list(config['inputs']['VAREXT'])
+                                )
+        tar_wcs_fname = outfilename.stem + "_wcstargets.txt"
+        tar_wcs_fname = opdir / tar_wcs_fname
+        if tar_wcs_fname.exists():
+            print(tar_wcs_fname, "already exists")
+        else:
+            centroids_list = imageplot(outfilename,
+                                       title=outfilename,
+                                       line_profile='aperture',
+                                       get_target=True)
+            headers = ['Y', 'X', 'Target', 'RA', 'Dec', 'pmRA', 'pmDec']
+            # print(centroids_list)
+            write_asciitable(centroids_list,
+                             tar_wcs_fname,
+                             headers=headers)
+        print("Opening the text editor with centroid of targets")
+        print("and its wcs informations")
+        print("You can make changes in this if any")
+        print(tar_wcs_fname)
+        open_in_editor(tar_wcs_fname, config)
+        wcs_correction(outfilename, tar_wcs_fname, config)
 
 
 # End
