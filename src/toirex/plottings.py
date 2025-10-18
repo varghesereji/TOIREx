@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 from matplotlib.patches import Circle
+from astropy.wcs import WCS
 
 from matplotlib.widgets import Slider, RadioButtons
 from astropy.visualization import ImageNormalize
@@ -13,6 +14,7 @@ from astropy.visualization import SqrtStretch
 
 
 from .utils import read_fits_data
+from .utils import read_fits_header
 from .utils import fit_gaussian_profile
 from .image_utils import select_source
 from .io_utils import launch_simbad_gui
@@ -22,6 +24,13 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
               get_target=False, **kwargs):
     data = read_fits_data(fname, ext=ext)
 
+    header = read_fits_header(fname, ext=ext)
+    wcs = WCS(header)
+    if wcs.is_celestial:
+        use_wcs = True
+    else:
+        use_wcs = False
+        
     if "vmin" not in kwargs:
         kwargs["vmin"] = np.mean(data) - 2.0 * (np.std(data))
     if "vmax" not in kwargs:
@@ -35,8 +44,14 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
     interval = ZScaleInterval()
     stretch = LinearStretch()
     norm = ImageNormalize(data, interval=interval, stretch=stretch)
-
-    fig, axs = plt.subplots(figsize=(8, 8))
+    fig = plt.figure(figsize=(8,8))
+    if use_wcs:
+        axs = fig.add_subplot(111, projection=wcs)
+        axs.coords[0].set_axislabel('RA')
+        axs.coords[1].set_axislabel('Dec')
+    else:
+        # fig, axs = plt.subplots(figsize=(8, 8))
+        axs = fig.add_subplot(111)
     plt.subplots_adjust(left=0.55, bottom=0.05)
     im = axs.imshow(data, **kwargs)
 
