@@ -4,6 +4,14 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from matplotlib.patches import Circle
 
+from matplotlib.widgets import Slider, RadioButtons
+from astropy.visualization import ImageNormalize
+from astropy.visualization import ZScaleInterval
+from astropy.visualization import LinearStretch
+from astropy.visualization import LogStretch
+from astropy.visualization import SqrtStretch
+
+
 from .utils import read_fits_data
 from .utils import fit_gaussian_profile
 from .image_utils import select_source
@@ -15,17 +23,72 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
     data = read_fits_data(fname, ext=ext)
 
     if "vmin" not in kwargs:
-        kwargs["vmin"] = np.mean(data) - 1.0 * (np.std(data))
+        kwargs["vmin"] = np.mean(data) - 2.0 * (np.std(data))
     if "vmax" not in kwargs:
-        kwargs["vmax"] = np.mean(data) + 1.0 * (np.std(data))
+        kwargs["vmax"] = np.mean(data) + 2.0 * (np.std(data))
     if "origin" not in kwargs:
         kwargs["origin"] = "lower"
     if "cmap" not in kwargs:
         kwargs["cmap"] = "gray"
-    fig, axs = plt.subplots(figsize=(9, 9))
+
+    # --- Initial normalization ---
+    interval = ZScaleInterval()
+    stretch = LinearStretch()
+    norm = ImageNormalize(data, interval=interval, stretch=stretch)
+
+    fig, axs = plt.subplots(figsize=(8, 8))
+    plt.subplots_adjust(left=0.55, bottom=0.05)
     im = axs.imshow(data, **kwargs)
+
     if title is not None:
         axs.set_title(title, loc="left")
+    # --- Sliders for vmin/vmax ---
+    ax_vmin = plt.axes([0.15, 0.05, 0.65, 0.03])
+    ax_vmax = plt.axes([0.15, 0.0, 0.65, 0.03])
+    s_vmin = Slider(ax_vmin, 'vmin', np.nanmin(data), np.nanmax(data),
+                    valinit=np.nanmin(data))
+    # s_vmax = Slider(ax_vmax, 'vmax', np.nanmin(data), np.nanmax(data),
+    #                 valinit=np.nanmax(data))
+    s_vmin = Slider(ax_vmin, 'vmin', kwargs['vmin'], kwargs['vmax'],
+                    valinit=kwargs['vmin'])
+    s_vmax = Slider(ax_vmax, 'vmax', kwargs['vmin'], kwargs['vmax'],
+                    valinit=kwargs['vmax'])
+
+    fig.canvas.draw_idle()
+    # --- Radio buttons for stretch ---
+    ax_stretch = plt.axes([0.005, 0.55, 0.10, 0.25])
+    stretch_buttons = RadioButtons(ax_stretch, ('linear', 'sqrt', 'log'))
+
+    # --- Radio buttons for colormap ---
+    ax_cmap = plt.axes([0.005, 0.25, 0.10, 0.20])
+    cmap_buttons = RadioButtons(ax_cmap, ('gray', 'viridis', 'inferno'))
+
+    # --- Update function ---
+    def update(_):
+        # Stretch type
+        stretch_type = stretch_buttons.value_selected
+        stretch = {
+            'linear': LinearStretch(),
+            'sqrt': SqrtStretch(),
+            'log': LogStretch()
+        }[stretch_type]
+
+        # Colormap
+        cmap = cmap_buttons.value_selected
+
+        # Apply normalization and redraw
+        norm = ImageNormalize(data, interval=interval, stretch=stretch,
+                              vmin=s_vmin.val, vmax=s_vmax.val)
+        im.set_norm(norm)
+        im.set_cmap(cmap)
+    # --- Connect the widgets ---
+    for w in (s_vmin, s_vmax):
+        w.on_changed(update)
+    for w in (stretch_buttons, cmap_buttons):
+        w.on_clicked(update)
+    # stretch_buttons.on_clicked(update)
+    # cmap_buttons.on_clicked(update)
+
     plt.tight_layout()
     fig.colorbar(im, ax=axs, label="Counts")
     centroid_list = None
