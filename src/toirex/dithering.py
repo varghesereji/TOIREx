@@ -485,7 +485,12 @@ def combine_dithers(config, datadir):
     # print(groups_dithers)
     print("\n")
     print("-" * 30)
+
     for groups in groups_dithers:
+        finalframes = open(
+            opdir / "Readytoextract_group{}.txt".format(groups),
+            'w'
+        )
         print("Running for group", groups)
         outfileprefix = get_filename(groups, opdir)
         # print(groups, outfileprefix)
@@ -494,6 +499,8 @@ def combine_dithers(config, datadir):
         )
         if len(list(dither_dict.keys())) == 1:
             print("Single image. Nothing to combine")
+            ditherkey = list(dither_dict.keys())[0]
+            outfilename = opdir / dither_dict[ditherkey]
         else:
             outfilename = "AlignComb_" + outfileprefix + ".fits"
             outfilename = opdir / outfilename
@@ -534,6 +541,7 @@ def combine_dithers(config, datadir):
         print(tar_wcs_fname)
         open_in_editor(tar_wcs_fname, config)
         wcs_correction(outfilename, tar_wcs_fname, config)
-
+        finalframes.write(outfilename.name)
+        finalframes.close()
 
 # End
