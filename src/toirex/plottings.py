@@ -44,7 +44,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
     interval = ZScaleInterval()
     stretch = LinearStretch()
     norm = ImageNormalize(data, interval=interval, stretch=stretch)
-    fig = plt.figure(figsize=(8,8))
+    fig = plt.figure(figsize=(9, 9))
     if use_wcs:
         axs = fig.add_subplot(111, projection=wcs)
         axs.coords[0].set_axislabel('RA')
@@ -58,12 +58,10 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
     if title is not None:
         axs.set_title(title, loc="left")
     # --- Sliders for vmin/vmax ---
-    ax_vmin = plt.axes([0.15, 0.05, 0.65, 0.03])
-    ax_vmax = plt.axes([0.15, 0.0, 0.65, 0.03])
+    ax_vmin = plt.axes([0.15, 0.05, 0.55, 0.03])
+    ax_vmax = plt.axes([0.15, 0.0, 0.55, 0.03])
     s_vmin = Slider(ax_vmin, 'vmin', np.nanmin(data), np.nanmax(data),
                     valinit=np.nanmin(data))
-    # s_vmax = Slider(ax_vmax, 'vmax', np.nanmin(data), np.nanmax(data),
-    #                 valinit=np.nanmax(data))
     s_vmin = Slider(ax_vmin, 'vmin', kwargs['vmin'], kwargs['vmax'],
                     valinit=kwargs['vmin'])
     s_vmax = Slider(ax_vmax, 'vmax', kwargs['vmin'], kwargs['vmax'],
@@ -71,7 +69,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
 
     fig.canvas.draw_idle()
     # --- Radio buttons for stretch ---
-    ax_stretch = plt.axes([0.005, 0.55, 0.10, 0.25])
+    ax_stretch = plt.axes([0.005, 0.55, 0.10, 0.20])
     stretch_buttons = RadioButtons(ax_stretch, ('linear', 'sqrt', 'log'))
 
     # --- Radio buttons for colormap ---
