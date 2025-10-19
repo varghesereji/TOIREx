@@ -21,6 +21,7 @@ from .utils import get_instrument_dir
 from .dithering import subtract_dithers
 from .dithering import combine_dithers
 from .spectral_reduction import spectral_reduction
+from .photometry import photometry_extraction
 
 
 def get_directories(config, required='list'):
@@ -149,7 +150,7 @@ def data_extraction(config):
         if config['inits']['TODO'] == "S":
             spectral_reduction(config, datadir)
         elif config['inits']['TODO'] == "P":
-            print("In prepration")
+            photometry_extraction(config, datadir)
 
 
 def main():
