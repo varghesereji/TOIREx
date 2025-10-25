@@ -30,7 +30,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
         use_wcs = True
     else:
         use_wcs = False
-        
+
     if "vmin" not in kwargs:
         kwargs["vmin"] = np.mean(data) - 2.0 * (np.std(data))
     if "vmax" not in kwargs:
@@ -42,8 +42,8 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
 
     # --- Initial normalization ---
     interval = ZScaleInterval()
-    stretch = LinearStretch()
-    norm = ImageNormalize(data, interval=interval, stretch=stretch)
+    # stretch = LinearStretch()
+    # norm = ImageNormalize(data, interval=interval, stretch=stretch)
     fig = plt.figure(figsize=(9, 9))
     if use_wcs:
         axs = fig.add_subplot(111, projection=wcs)

@@ -3,8 +3,12 @@
 from pathlib import Path
 
 from astropy.io import fits
+from astropy.table import Table
 from astropy.stats import sigma_clipped_stats
+
 from photutils.detection import DAOStarFinder
+from photutils.psf import CircularGaussianPRF
+from photutils.psf import PSFPhotometry
 
 import matplotlib.pyplot as plt
 from .utils import read_txt_file
@@ -33,7 +37,21 @@ def targetfind_auto(fname):
 def targetfind_manual(fname):
     centroids = imageplot(fname, ext=0, title="Select sources",
                           line_profile="aperture", get_target=False)
-    print(centroids)
+    positions = Table()
+    positions['x_0'] = centroids[:, 1]
+    positions['y_0'] = centroids[:, 0]
+    return positions
+
+
+def psf_photometry(config, fname, positions):
+    psf_model = CircularGaussianPRF(flux=1, fwhm=2.7)
+    fit_shape = (5, 5)
+    psfphot = PSFPhotometry(psf_model, fit_shape,
+                            aperture_radius=4)
+    data = fits.getdata(fname, ext=0)
+    phot = psfphot(data, error=data, init_params=positions)
+    print(phot)
+    # print(fname)
 
 
 def photometry_extraction(config, dirname):
@@ -49,4 +67,8 @@ def photometry_extraction(config, dirname):
             if config['photometry']['FINDSOURCE'] == 'AUTO':
                 targetfind_auto(frametoextract)
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
-                targetfind_manual(frametoextract)
+                centroids = targetfind_manual(frametoextract)
+            print(centroids)
+            # Doing photometry
+            if config['photometry']['METHOD'] == 'PSF':
+                psf_photometry(config, frametoextract, positions=centroids)
