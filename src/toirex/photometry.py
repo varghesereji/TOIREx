@@ -52,8 +52,16 @@ def psf_photometry(config, fname, positions):
     fit_shape = (5, 5)
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             aperture_radius=4)
-    data = fits.getdata(fname, ext=0)
-    var = fits.getdata(fname, ext=1)
+    flext = int(config['inputs']['FLUXEXT'])
+    varext = config['inputs']['VAREXT']
+    try:
+        varext = int(varext)
+    except ValueError:
+        print("Using flux array as variance")
+        varext = flext
+
+    data = fits.getdata(fname, ext=flext)
+    var = fits.getdata(fname, ext=varext)
     error = np.sqrt(var)
     phot = psfphot(data, error=error, init_params=positions)
     print(phot)
@@ -74,7 +82,6 @@ def photometry_extraction(config, dirname):
                 centroids = targetfind_auto(frametoextract)
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
                 centroids = targetfind_manual(frametoextract)
-            print(centroids)
             # Doing photometry
             if config['photometry']['METHOD'] == 'PSF':
                 psf_photometry(config, frametoextract, positions=centroids)
