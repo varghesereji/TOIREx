@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
-
+import numpy as np
 from astropy.io import fits
 from astropy.table import Table
 from astropy.stats import sigma_clipped_stats
@@ -32,6 +32,10 @@ def targetfind_auto(fname):
     for i, index in enumerate(id_no):
         plt.text(x_pos[i], y_pos[i], index)
     plt.show()
+    positions = Table()
+    positions['x_0'] = x_pos
+    positions['y_0'] = y_pos
+    return positions
 
 
 def targetfind_manual(fname):
@@ -49,7 +53,9 @@ def psf_photometry(config, fname, positions):
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             aperture_radius=4)
     data = fits.getdata(fname, ext=0)
-    phot = psfphot(data, error=data, init_params=positions)
+    var = fits.getdata(fname, ext=1)
+    error = np.sqrt(var)
+    phot = psfphot(data, error=error, init_params=positions)
     print(phot)
     # print(fname)
 
@@ -65,7 +71,7 @@ def photometry_extraction(config, dirname):
             frametoextract = txtline[0]
             frametoextract = opdir / frametoextract
             if config['photometry']['FINDSOURCE'] == 'AUTO':
-                targetfind_auto(frametoextract)
+                centroids = targetfind_auto(frametoextract)
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
                 centroids = targetfind_manual(frametoextract)
             print(centroids)
