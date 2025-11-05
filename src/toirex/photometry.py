@@ -2,12 +2,15 @@
 
 from pathlib import Path
 import numpy as np
+import ast
 from astropy.io import fits
 from astropy.table import Table
 from astropy.stats import sigma_clipped_stats
+from astropy.wcs import WCS
 
 from photutils.detection import DAOStarFinder
-from photutils.psf import CircularGaussianPRF
+from photutils.psf import CircularGaussianPSF
+from photutils.psf import GaussianPSF
 from photutils.psf import PSFPhotometry
 
 import matplotlib.pyplot as plt
@@ -20,7 +23,7 @@ def targetfind_auto(fname):
     mean, median, std = sigma_clipped_stats(data)
     daofind = DAOStarFinder(fwhm=6.0, threshold=50,
                             brightest=None, exclude_border=True)
-    cl_data = data # - median
+    cl_data = data - median
     plt.figure()
     plt.imshow(cl_data, origin='lower', vmin=0, vmax=mean+std)
 
@@ -48,8 +51,19 @@ def targetfind_manual(fname):
 
 
 def psf_photometry(config, fname, positions):
-    psf_model = CircularGaussianPRF(flux=1, fwhm=2.7)
-    fit_shape = (5, 5)
+    if config['photometry']['MODEL'] == 'CircularGaussianPSF':
+        fwhm = config['photometry']['FWHM']
+        psf_model = CircularGaussianPSF(flux=1, fwhm=fwhm)
+    elif config['photometry']['MODEL'] == 'GaussianPSF':
+        psf_fwhm = config['photometry']['PSF_FWHM']
+        psf_fwhm = list(float(x) for x in ast.literal_eval(psf_fwhm))
+        psf_angle = float(config['photometry']['PSF_ANGLE'])
+        psf_model = GaussianPSF(flux=1,
+                                x_fwhm=psf_fwhm[0],
+                                y_fwhm=psf_fwhm[1],
+                                theta=psf_angle)
+
+    fit_shape = (15, 15)
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             aperture_radius=4)
     flext = int(config['inputs']['FLUXEXT'])
@@ -64,8 +78,30 @@ def psf_photometry(config, fname, positions):
     var = fits.getdata(fname, ext=varext)
     error = np.sqrt(var)
     phot = psfphot(data, error=error, init_params=positions)
-    print(phot)
-    # print(fname)
+    table_hdu = fits.BinTableHDU(phot, name="PHOTOMETRY")
+    table_hdu.header.add_history('PSF photometry table added on file update.')
+    primary_hdu = fits.PrimaryHDU(
+        header=fits.getheader(fname, ext=flext)
+    )
+    hdul = fits.HDUList([primary_hdu, table_hdu])
+    opdir = Path(fname.parent)
+    opfname = fname.stem + ".phot.fits"
+    opfname = opdir / opfname
+    hdul.writeto(opfname, overwrite=True)
+    # with fits.open(fname, mode='update') as hdul:
+    #     hdul.append(table_hdu)
+    #     hdul.flush()
+    print(fname)
+
+
+def save_to_wcs(final_fname):
+    opdir = Path(final_fname.stem)
+    print(opdir)
+    with fits.open(final_fname) as hdul:
+        w = WCS(hdul[0].header)
+        phot_table = hdul['PHOTOMETRY']
+        print(phot_table)
+        # x = phot_table['x']
 
 
 def photometry_extraction(config, dirname):
@@ -85,3 +121,6 @@ def photometry_extraction(config, dirname):
             # Doing photometry
             if config['photometry']['METHOD'] == 'PSF':
                 psf_photometry(config, frametoextract, positions=centroids)
+            elif config['photometry']['METHOD'] == 'Aperture':
+                print("Will be added soon")
+            save_to_wcs(frametoextract)
