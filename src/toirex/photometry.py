@@ -16,6 +16,7 @@ from photutils.psf import PSFPhotometry
 import matplotlib.pyplot as plt
 from .utils import read_txt_file
 from .plottings import imageplot
+from .io_utils import convert_radec
 
 
 def targetfind_auto(fname):
@@ -88,20 +89,39 @@ def psf_photometry(config, fname, positions):
     opfname = fname.stem + ".phot.fits"
     opfname = opdir / opfname
     hdul.writeto(opfname, overwrite=True)
-    # with fits.open(fname, mode='update') as hdul:
-    #     hdul.append(table_hdu)
-    #     hdul.flush()
-    print(fname)
+    return opfname
 
 
 def save_to_wcs(final_fname):
-    opdir = Path(final_fname.stem)
+    opdir = Path(final_fname.parent)
     print(opdir)
     with fits.open(final_fname) as hdul:
-        w = WCS(hdul[0].header)
-        phot_table = hdul['PHOTOMETRY']
-        print(phot_table)
-        # x = phot_table['x']
+        primary_header = hdul[0].header
+        w = WCS(primary_header)
+        phot_table = Table(hdul['PHOTOMETRY'].data)
+        # print(phot_table)
+        x = phot_table['x_fit']
+        y = phot_table['y_fit']
+        # print(x)
+        ra, dec = w.wcs_pix2world(x, y, 0)
+        ra, dec = convert_radec(ra, dec)
+        # print(ra, dec)
+        colnames = phot_table.colnames
+        reordered = Table()
+        reordered[colnames[0]] = phot_table[colnames[0]]
+        reordered['RA'] = ra
+        reordered['Dec'] = dec
+        for name in colnames[1:]:
+            reordered[name] = phot_table[name]
+        # print(reordered)
+        out_table_name = final_fname.stem + ".wcs.fits"
+        # out_table_path = final_fname.parent
+        out_table_name = opdir / out_table_name
+        hdu = fits.BinTableHDU(data=reordered, header=primary_header,
+                               name='PHOTOMETRY')
+        hdul_out = fits.HDUList([fits.PrimaryHDU(header=primary_header), hdu])
+        hdul_out.writeto(out_table_name, overwrite=True)
+        print("{} saved with WCS coordinates".format(out_table_name))
 
 
 def photometry_extraction(config, dirname):
@@ -120,7 +140,9 @@ def photometry_extraction(config, dirname):
                 centroids = targetfind_manual(frametoextract)
             # Doing photometry
             if config['photometry']['METHOD'] == 'PSF':
-                psf_photometry(config, frametoextract, positions=centroids)
+                withphot = psf_photometry(config, frametoextract,
+                                          positions=centroids)
             elif config['photometry']['METHOD'] == 'Aperture':
                 print("Will be added soon")
-            save_to_wcs(frametoextract)
+            print("Photometry data saved to {}".format(withphot))
+            save_to_wcs(withphot)

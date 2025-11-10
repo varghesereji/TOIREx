@@ -151,5 +151,15 @@ def launch_simbad_gui():
 
     return results
 
+
+def convert_radec(ra_deg, dec_deg):
+    """
+    convert ra and dec in degrees to hh:mm:ss and dd:mm:ss
+    """
+    coords = SkyCoord(ra=ra_deg*u.deg, dec=dec_deg*u.deg)
+    ra_str = coords.ra.to_string(unit=u.hour, sep=":", precision=6, pad=True)
+    dec_str = coords.ra.to_string(unit=u.deg, sep=":", precision=6, pad=True)
+    return ra_str, dec_str
+
 # result = launch_simbad_gui()
 # print(result)
