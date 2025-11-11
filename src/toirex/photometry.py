@@ -14,6 +14,7 @@ from photutils.psf import GaussianPSF
 from photutils.psf import PSFPhotometry
 
 from photutils.aperture import CircularAperture
+from photutils.aperture import CircularAnnulus
 from photutils.aperture import aperture_photometry
 
 import matplotlib.pyplot as plt
@@ -59,7 +60,21 @@ def targetfind_manual(fname):
 def aperture_photometry_subrot(config, fname, positions):
     positions = np.array([positions['x_0'],
                           positions['y_0']]).T
-    apertures = CircularAperture(positions, r=4)
+    radius = float(config['photometry']['RADIUS'])
+    # Aperture
+    apertures = CircularAperture(positions, r=radius)
+    
+    # Annulus
+    annulus = list(float(x)
+                   for x in ast.literal_eval(
+                           config['photometry']['BKGWINDOWS']
+                   )
+                   )
+    r_in = annulus[0]
+    r_out = annulus[1]
+    annulus_apertures = CircularAnnulus(positions, r_in=r_in, r_out=r_out)
+    annulus_masks = annulus_apertures.to_mask()
+    
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
     try:
@@ -70,9 +85,31 @@ def aperture_photometry_subrot(config, fname, positions):
 
     data = fits.getdata(fname, ext=flext)
     var = fits.getdata(fname, ext=varext)
+
+    # Aperture
     phot = aperture_photometry(data, apertures,
                                error=np.sqrt(var))
-    print(phot)
+    # Background
+    bkg_median = []
+    bkg_var = []
+    for mask in annulus_masks:
+        annulus_data = mask.multiply(data)
+        annulus_var = mask.multiply(var)
+        annulus_data_1d = annulus_data[mask.data > 0]
+        annulus_var_1d = annulus_var[mask.data > 0]
+        median_sigclip = np.median(annulus_data_1d)
+        var_clip = np.sum(annulus_var_1d) / np.size(annulus_var_1d) ** 2
+        bkg_median.append(median_sigclip)
+        bkg_var.append(var_clip)
+    bkg_median = np.array(bkg_median)
+    bkg_var = np.array(bkg_var)
+    phot['bkg'] = bkg_median
+    phot['bkg_var'] = bkg_var
+    phot['bkg_sum'] = bkg_median * apertures.area
+    phot['bkg_var_sum'] = bkg_var * apertures.area
+    phot['flux_net'] = phot['aperture_sum'] - phot['bkg_sum']
+    phot['var_net'] = phot['aperture_sum_err'] ** 2 + phot['bkg_var_sum']
+    # print(phot)
     opfname = save_photometry(
         fname, phot,
         history="Aperture photometry table added on file update.",
