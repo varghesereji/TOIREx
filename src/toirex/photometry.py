@@ -109,6 +109,8 @@ def aperture_photometry_subrot(config, fname, positions):
     phot['bkg_var_sum'] = bkg_var * apertures.area
     phot['flux_net'] = phot['aperture_sum'] - phot['bkg_sum']
     phot['var_net'] = phot['aperture_sum_err'] ** 2 + phot['bkg_var_sum']
+    phot.rename_column('xcenter', 'x_fit')
+    phot.rename_column('ycenter', 'y_fit')
     # print(phot)
     opfname = save_photometry(
         fname, phot,
