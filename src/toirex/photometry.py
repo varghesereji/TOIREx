@@ -14,7 +14,9 @@ from photutils.psf import GaussianPSF
 from photutils.psf import PSFPhotometry
 
 from photutils.aperture import CircularAperture
+from photutils.aperture import EllipticalAperture
 from photutils.aperture import CircularAnnulus
+from photutils.aperture import EllipticalAnnulus
 from photutils.aperture import aperture_photometry
 
 import matplotlib.pyplot as plt
@@ -60,21 +62,48 @@ def targetfind_manual(fname):
 def aperture_photometry_subrot(config, fname, positions):
     positions = np.array([positions['x_0'],
                           positions['y_0']]).T
-    radius = float(config['photometry']['RADIUS'])
-    # Aperture
-    apertures = CircularAperture(positions, r=radius)
     
+    # Aperture
+    if config['photometry']['APERTURE'] == 'CircularAperture':
+        radius = float(config['photometry']['RADIUS'])
+        apertures = CircularAperture(positions, r=radius)
+    elif config['photometry']['APERTURE'] == 'EllipticalAperture':
+        aper_qtys = list(float(x)
+                         for x in ast.literal_eval(
+                                 config['photometry']['RADIUS']
+                         )
+                         )
+        if len(aper_qtys) == 2:
+            print("Taking default value for angle, 0")
+            theta = 0
+            a, b = aper_qtys
+        else:
+            a, b, theta = aper_qtys
+        apertures = EllipticalAperture(positions, a=a, b=b, theta=theta)
     # Annulus
     annulus = list(float(x)
                    for x in ast.literal_eval(
                            config['photometry']['BKGWINDOWS']
                    )
                    )
-    r_in = annulus[0]
-    r_out = annulus[1]
-    annulus_apertures = CircularAnnulus(positions, r_in=r_in, r_out=r_out)
+    if config['photometry']['ANNULUS'] == 'CircularAnnulus':
+        r_in = annulus[0]
+        r_out = annulus[1]
+        annulus_apertures = CircularAnnulus(positions, r_in=r_in, r_out=r_out)
+    elif config['photometry']['ANNUSUS'] == 'EllipticalAnnulus':
+        if len(annulus) == 4:
+            theta = 0
+            a_in, b_in, a_out, b_out = annulus
+        else:
+            a_in, b_in, a_out, b_out, theta = annulus
+        annulus_apertures = EllipticalAnnulus(positions,
+                                              a_in=a_in,
+                                              a_out=a_out,
+                                              b_in=b_in,
+                                              b_out=b_out,
+                                              theta=theta)
     annulus_masks = annulus_apertures.to_mask()
-    
+
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
     try:
