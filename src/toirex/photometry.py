@@ -13,6 +13,9 @@ from photutils.psf import CircularGaussianPSF
 from photutils.psf import GaussianPSF
 from photutils.psf import PSFPhotometry
 
+from photutils.aperture import CircularAperture
+from photutils.aperture import aperture_photometry
+
 import matplotlib.pyplot as plt
 from .utils import read_txt_file
 from .plottings import imageplot
@@ -50,8 +53,38 @@ def targetfind_manual(fname):
     positions['y_0'] = centroids[:, 0]
     return positions
 
+# Aperture photometry
 
-def psf_photometry(config, fname, positions):
+
+def aperture_photometry_subrot(config, fname, positions):
+    positions = np.array([positions['x_0'],
+                          positions['y_0']]).T
+    apertures = CircularAperture(positions, r=4)
+    flext = int(config['inputs']['FLUXEXT'])
+    varext = config['inputs']['VAREXT']
+    try:
+        varext = int(varext)
+    except ValueError:
+        print("Using flux array as variance")
+        varext = flext
+
+    data = fits.getdata(fname, ext=flext)
+    var = fits.getdata(fname, ext=varext)
+    phot = aperture_photometry(data, apertures,
+                               error=np.sqrt(var))
+    print(phot)
+    opfname = save_photometry(
+        fname, phot,
+        history="Aperture photometry table added on file update.",
+        flext=flext
+        )
+
+    return opfname
+
+# PSF photometry
+
+
+def psf_photometry_subrot(config, fname, positions):
     if config['photometry']['MODEL'] == 'CircularGaussianPSF':
         fwhm = config['photometry']['FWHM']
         psf_model = CircularGaussianPSF(flux=1, fwhm=fwhm)
@@ -79,17 +112,15 @@ def psf_photometry(config, fname, positions):
     var = fits.getdata(fname, ext=varext)
     error = np.sqrt(var)
     phot = psfphot(data, error=error, init_params=positions)
-    table_hdu = fits.BinTableHDU(phot, name="PHOTOMETRY")
-    table_hdu.header.add_history('PSF photometry table added on file update.')
-    primary_hdu = fits.PrimaryHDU(
-        header=fits.getheader(fname, ext=flext)
+    opfname = save_photometry(
+        fname, phot,
+        history='PSF photometry table added on file update.',
+        flext=flext
     )
-    hdul = fits.HDUList([primary_hdu, table_hdu])
-    opdir = Path(fname.parent)
-    opfname = fname.stem + ".phot.fits"
-    opfname = opdir / opfname
-    hdul.writeto(opfname, overwrite=True)
     return opfname
+
+
+# WCS conversion
 
 
 def save_to_wcs(final_fname):
@@ -124,6 +155,24 @@ def save_to_wcs(final_fname):
         print("{} saved with WCS coordinates".format(out_table_name))
 
 
+# File Saving
+
+def save_photometry(fname, phot_table, history="Photometry table added",
+                    flext=0):
+    table_hdu = fits.BinTableHDU(phot_table, name="PHOTOMETRY")
+    primary_hdu = fits.PrimaryHDU(
+        header=fits.getheader(fname, ext=flext)
+        )
+    hdul = fits.HDUList([primary_hdu, table_hdu])
+    opdir = Path(fname.parent)
+    opfname = fname.stem + ".phot.fits"
+    opfname = opdir / opfname
+    hdul.writeto(opfname, overwrite=True)
+    return opfname
+
+# Extraction
+
+
 def photometry_extraction(config, dirname):
     # dictkw = config['inits']['DICTKW']
     opdir = Path(config['outputs']['OP_DIR']) / dirname
@@ -140,9 +189,10 @@ def photometry_extraction(config, dirname):
                 centroids = targetfind_manual(frametoextract)
             # Doing photometry
             if config['photometry']['METHOD'] == 'PSF':
-                withphot = psf_photometry(config, frametoextract,
-                                          positions=centroids)
+                withphot = psf_photometry_subrot(config, frametoextract,
+                                                 positions=centroids)
             elif config['photometry']['METHOD'] == 'Aperture':
-                print("Will be added soon")
+                withphot = aperture_photometry_subrot(config, frametoextract,
+                                                      positions=centroids)
             print("Photometry data saved to {}".format(withphot))
             save_to_wcs(withphot)
