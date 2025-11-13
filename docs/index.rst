@@ -3,17 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-TOIREx documentation
+TOIREx
 ====================
-Hello.
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+TIFR Optical to Infrared Extractor is a python package to extract photometry and spectrscopy data from optical and infrared instruments. It will select the frames to combine, combine them, undergo flat correction, sky subtraction and data extraction.
 
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   toirex
+   
+   installation
 
