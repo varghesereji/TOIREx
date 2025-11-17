@@ -14,4 +14,5 @@ TIFR Optical to Infrared Extractor is a python package to extract photometry and
 
    
    installation
+   setup
 

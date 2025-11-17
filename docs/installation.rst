@@ -1,6 +1,6 @@
 Installation
 ==============
-Install AriAstroTools via pip:
+Install TOIREx via pip:
 
 .. code-block:: bash
 
