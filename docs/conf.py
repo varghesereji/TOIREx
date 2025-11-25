@@ -37,4 +37,5 @@ extensions = [
     "sphinx.ext.autodoc",      # auto-generate docs from docstrings
     "sphinx.ext.napoleon",     # support NumPy/Google style docstrings
     "sphinx.ext.viewcode",     # link to source code
+    "sphinxcontrib.mermaid",  # Mermaid diagrams support
 ]
