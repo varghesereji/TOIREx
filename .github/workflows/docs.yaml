@@ -3,7 +3,7 @@ name: Build and Deploy TOIREx Docs
 on:
   push:
     branches:
-      - main  # triggers on push to main branch
+      - main
 
 permissions:
   contents: write
@@ -13,11 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the repo
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Set up Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -29,23 +27,19 @@ jobs:
       - name: Remove old builds
         run: rm -rf docs/_build
 
-      # 3. Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install sphinx furo sphinx-rtd-theme sphinxcontrib-mermaid
-          # Install TOIREx package in editable mode
           pip install -e .
 
-      # 4. Build Sphinx HTML
       - name: Build docs
         run: make -C docs html
 
-      # 5. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: docs/_build/html
-		  publish_branch: gh-pages
+          publish_branch: gh-pages
           force_orphan: true
