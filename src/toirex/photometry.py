@@ -7,11 +7,16 @@ from astropy.io import fits
 from astropy.table import Table
 from astropy.stats import sigma_clipped_stats
 from astropy.wcs import WCS
+from astropy.nddata import Cutout2D
+from astropy.nddata import NDData, StdDevUncertainty
 
 from photutils.detection import DAOStarFinder
 from photutils.psf import CircularGaussianPSF
 from photutils.psf import GaussianPSF
 from photutils.psf import PSFPhotometry
+from photutils.psf import IntegratedGaussianPRF
+from photutils.psf import extract_stars
+from photutils.psf.epsf import EPSFBuilder
 
 from photutils.aperture import CircularAperture
 from photutils.aperture import EllipticalAperture
@@ -62,7 +67,6 @@ def targetfind_manual(fname):
 def aperture_photometry_subrot(config, fname, positions):
     positions = np.array([positions['x_0'],
                           positions['y_0']]).T
-    
     # Aperture
     if config['photometry']['APERTURE'] == 'CircularAperture':
         radius = float(config['photometry']['RADIUS'])
@@ -152,22 +156,70 @@ def aperture_photometry_subrot(config, fname, positions):
 # PSF photometry
 
 
-def psf_photometry_subrot(config, fname, positions):
-    if config['photometry']['MODEL'] == 'CircularGaussianPSF':
-        fwhm = config['photometry']['FWHM']
-        psf_model = CircularGaussianPSF(flux=1, fwhm=fwhm)
-    elif config['photometry']['MODEL'] == 'GaussianPSF':
-        psf_fwhm = config['photometry']['PSF_FWHM']
-        psf_fwhm = list(float(x) for x in ast.literal_eval(psf_fwhm))
-        psf_angle = float(config['photometry']['PSF_ANGLE'])
-        psf_model = GaussianPSF(flux=1,
-                                x_fwhm=psf_fwhm[0],
-                                y_fwhm=psf_fwhm[1],
-                                theta=psf_angle)
+def make_epsf(
+        frame,
+        err=None,
+        star_positions=None,
+        cutout_size=25,
+        oversample=4,
+        normalize=True
+):
+    """
+    Build an effective PSF (ePSF) from a single image frame.
 
+    Parameters
+    ----------
+    frame : 2D numpy array
+        Image containing stars.
+    star_positions : list of tuples
+        List of (x, y) pixel positions of manually selected stars.
+    cutout_size : int
+        Size of square cutout (in pixels).
+    oversample : int
+        Oversampling factor for the ePSF grid.
+    normalize : bool
+        Normalize each star to unit flux.
+
+    Returns
+    -------
+    epsf : 2D numpy array
+        Oversampled effective PSF.
+    """
+    psf_model = IntegratedGaussianPRF(flux=200,
+                                      sigma=10)
+    # print("Select bright targets to generate Effective PSF")
+    finder = DAOStarFinder(200,
+                           10,
+                           xycoords=star_positions,
+                           min_separation=30)
     fit_shape = (15, 15)
     psfphot = PSFPhotometry(psf_model, fit_shape,
+                            finder=finder,
                             aperture_radius=4)
+    phot = psfphot(frame)
+    init_flux = np.array(phot['flux_init'])
+    x = phot['x_fit']
+    y = phot['y_fit']
+    mask = init_flux > np.percentile(init_flux, 70)
+
+    epsf_stars_tbl = Table()
+    epsf_stars_tbl['x'] = x[mask]
+    epsf_stars_tbl['y'] = y[mask]
+    nddata = NDData(data=frame,
+                    uncertainty=StdDevUncertainty(err))
+    epsf_stars = extract_stars(nddata, epsf_stars_tbl, size=25)
+
+    epsf_builder = EPSFBuilder(oversampling=2,
+                               smoothing_kernel='quadratic',
+                               recentering_maxiters=10,
+                               maxiters=10,
+                               progress_bar=True)
+    epsf, fitted_stars = epsf_builder(epsf_stars)
+    return epsf
+
+
+def psf_photometry_subrot(config, fname, positions):
+    fit_shape = (15, 15)
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
     try:
@@ -179,6 +231,24 @@ def psf_photometry_subrot(config, fname, positions):
     data = fits.getdata(fname, ext=flext)
     var = fits.getdata(fname, ext=varext)
     error = np.sqrt(var)
+
+    if config['photometry']['MODEL'] == 'CircularGaussianPSF':
+        fwhm = config['photometry']['FWHM']
+        psf_model = CircularGaussianPSF(flux=1, fwhm=fwhm)
+    elif config['photometry']['MODEL'] == 'GaussianPSF':
+        psf_fwhm = config['photometry']['PSF_FWHM']
+        psf_fwhm = list(float(x) for x in ast.literal_eval(psf_fwhm))
+        psf_angle = float(config['photometry']['PSF_ANGLE'])
+        psf_model = GaussianPSF(flux=1,
+                                x_fwhm=psf_fwhm[0],
+                                y_fwhm=psf_fwhm[1],
+                                theta=psf_angle)
+    elif config['photometry']['MODEL'] == 'EPSF':
+        psf_model = make_epsf(data, err=error)
+
+    psfphot = PSFPhotometry(psf_model, fit_shape,
+                            aperture_radius=4)
+
     phot = psfphot(data, error=error, init_params=positions)
     opfname = save_photometry(
         fname, phot,
