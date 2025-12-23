@@ -1,19 +1,24 @@
-.. TOIREx documentation master file, created by
-   sphinx-quickstart on Mon Sep  8 20:45:14 2025.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-TOIREx
+TOIREx documentation
 ====================
-TIFR Optical to Infrared Extractor is a python package to extract photometry and spectrscopy data from optical and infrared instruments. It will select the frames to combine, combine them, undergo flat correction, sky subtraction and data extraction.
 
+**TIFR Optical to Infrared Extractor (TOIREx)** is a Python package to extract
+photometry and spectroscopy data from optical and infrared instruments.
+
+TOIREx provides an automated pipeline to:
+
+- Select and group frames
+- Combine frames
+- Apply flat-field correction
+- Perform sky subtraction
+- Extract photometric and spectroscopic data
+
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
-   
    installation
    setup
    flowchart
-
+   toirex
