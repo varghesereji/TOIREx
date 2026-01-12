@@ -42,7 +42,7 @@ def get_instrument_dir(instrument_name: str):
     instrument : str
         Name of the instrument directory (e.g., "TANSPEC", "TIRSPEC").
     """
-    data_for = ['TANSPEC']
+    data_for = ['TANSPEC', 'TIRSPEC']
     if instrument_name not in data_for:
         print("No data for {}".format(instrument_name))
         return
@@ -189,7 +189,8 @@ def combine_frames(files_list, op_dirname, sorting_function,
                    method='median',
                    op_prefix="Comb_",
                    fluxext=0,
-                   varext=1):
+                   varext=1,
+                   mask=None):
     fnums = []
     if "".join(varext) == 'None':
         varext = None
@@ -207,7 +208,8 @@ def combine_frames(files_list, op_dirname, sorting_function,
                     comb_fname,
                     method='biweight',
                     fluxext=fluxext,
-                    varext=varext)
+                    varext=varext,
+                    mask=mask)
     return comb_fname.name
 
 

@@ -285,6 +285,8 @@ def catalog_flag_tirspec(flog_list: list, headers_list: list) -> list:
     return flog_list
 
 
+# def get_badpixelmask_tirspec()
+
 #################################
 #    Function dictionaries      #
 #################################
@@ -300,6 +302,7 @@ instruments = {
      'get_template': get_template_spectanspec,
      'pixel_offset': pixel_offset_spectanspec,
      'get_stdsky': get_stdsky_spectanspec,
+     'badpixelmask': None,
      'fname_regexp': r"^(.*?)-\d{5}\.Z\.fits$",
      'grouping_keys': ['GRATING', 'SLIT',
                        'A_TRGTRA', 'A_TRGTDE'],
@@ -323,6 +326,9 @@ instruments = {
      'select_trace': None,
      'pixel_offset': None,
      'get_stdsky': None,
+     'badpixelmask': ~np.load(
+         get_pkgpath() / 'data/TIRSPEC/mask/TIRSPECH1RG_badpixelmask.npy'
+     ),
      'fname_regexp': r"^(.*?)-\d{3}\.Z\.fits$",
      'grouping_keys': ['UPPER', 'LOWER', 'SLIT',
                        'TCSRA', 'TCSDEC'

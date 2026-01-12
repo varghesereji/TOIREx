@@ -170,7 +170,8 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
             method=config['inputs']['FRAMECOMBINE'].lower(),
             op_prefix=comb_prifix,
             fluxext=fluxexts,
-            varext=varexts)
+            varext=varexts,
+            mask=instruments[dictkw]['badpixelmask'])
         # Creating masterflat
         flats_cals_list = flats_cals.strip().split(" ")
         comb_flat_fname = flats_cals_list[0]
