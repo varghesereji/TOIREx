@@ -267,11 +267,18 @@ def frame_select_tirspec(fname: str) -> bool:
 def catalog_flag_tirspec(flog_list: list, headers_list: list) -> list:
     filename = flog_list[0]
     flats_kws = ["flat", "cont"]
+    arg_kws = ["ar", "arg"]
     flat_check = np.array([
         kw.lower() in filename.lower()
         for kw in flats_kws])
+    arg_check = np.array([
+        kw.lower() in filename.lower()
+        for kw in arg_kws
+        ])
     if np.sum(flat_check) > 0:
         flag = "FLAT"
+    elif np.sum(arg_check) > 0:
+        flag = "ARGON"
     else:
         flag = "OBJECT"
     flog_list.append(flag)
