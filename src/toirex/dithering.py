@@ -504,7 +504,8 @@ def combine_dithers(config, datadir):
         else:
             outfilename = "AlignComb_" + outfileprefix + ".fits"
             outfilename = opdir / outfilename
-            if outfilename.exists:
+            print("outfilename", outfilename)
+            if outfilename.exists():
                 print(outfilename.name, "already exists")
             else:
                 if config['dither']['AUTODITHER'] == 'N':
