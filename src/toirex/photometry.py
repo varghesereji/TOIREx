@@ -188,6 +188,7 @@ def make_epsf(
     psf_model = IntegratedGaussianPRF(flux=200,
                                       sigma=10)
     # print("Select bright targets to generate Effective PSF")
+    print("Building effective PSF")
     finder = DAOStarFinder(200,
                            10,
                            xycoords=star_positions,
@@ -219,6 +220,7 @@ def make_epsf(
 
 
 def psf_photometry_subrot(config, fname, positions):
+    print("Doing PSF Photometry")
     fit_shape = (15, 15)
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
@@ -234,16 +236,21 @@ def psf_photometry_subrot(config, fname, positions):
 
     if config['photometry']['MODEL'] == 'CircularGaussianPSF':
         fwhm = config['photometry']['FWHM']
+        print("With CircularGaussianPSF of FWHM", fwhm)
         psf_model = CircularGaussianPSF(flux=1, fwhm=fwhm)
+
     elif config['photometry']['MODEL'] == 'GaussianPSF':
         psf_fwhm = config['photometry']['PSF_FWHM']
         psf_fwhm = list(float(x) for x in ast.literal_eval(psf_fwhm))
         psf_angle = float(config['photometry']['PSF_ANGLE'])
+        print("With GaussianPSF of psf fwhm", psf_fwhm, "and psf angle",
+              psf_angle)
         psf_model = GaussianPSF(flux=1,
                                 x_fwhm=psf_fwhm[0],
                                 y_fwhm=psf_fwhm[1],
                                 theta=psf_angle)
     elif config['photometry']['MODEL'] == 'EPSF':
+        print("With effective PSF")
         psf_model = make_epsf(data, err=error)
 
     psfphot = PSFPhotometry(psf_model, fit_shape,
