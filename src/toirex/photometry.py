@@ -17,12 +17,14 @@ from photutils.psf import PSFPhotometry
 from photutils.psf import IntegratedGaussianPRF
 from photutils.psf import extract_stars
 from photutils.psf.epsf import EPSFBuilder
+from photutils.psf import ImagePSF
 
 from photutils.aperture import CircularAperture
 from photutils.aperture import EllipticalAperture
 from photutils.aperture import CircularAnnulus
 from photutils.aperture import EllipticalAnnulus
 from photutils.aperture import aperture_photometry
+
 
 import matplotlib.pyplot as plt
 from .utils import read_txt_file
@@ -40,7 +42,7 @@ def targetfind_auto(fname):
     plt.imshow(cl_data, origin='lower', vmin=0, vmax=mean+std)
 
     sources = daofind(cl_data)
-    print(sources)
+    # print(sources)
     id_no = sources['id']
     x_pos = sources['xcentroid']
     y_pos = sources['ycentroid']
@@ -53,9 +55,10 @@ def targetfind_auto(fname):
     return positions
 
 
-def targetfind_manual(fname):
+def targetfind_manual(fname, centroids_0):
     centroids = imageplot(fname, ext=0, title="Select sources",
-                          line_profile="aperture", get_target=False)
+                          line_profile="aperture", get_target=False,
+                          centroid_list=centroids_0)
     positions = Table()
     positions['x_0'] = centroids[:, 1]
     positions['y_0'] = centroids[:, 0]
@@ -253,6 +256,20 @@ def psf_photometry_subrot(config, fname, positions):
         print("With effective PSF")
         psf_model = make_epsf(data, err=error)
 
+    # print("Saving psf with data frame")
+    # size = 25
+    # center = (size - 1) / 2
+    # y, x = np.mgrid[0:size, 0:size]
+    # xg = x - center
+    # yg = y - center
+    # psf_image = psf_model(xg, yg)
+    # psf_image /= np.sum(psf_image)
+
+    # plt.figure()
+    # plt.imshow(psf_image)
+    # plt.title("PSF")
+    # plt.show()
+
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             aperture_radius=4)
 
@@ -315,6 +332,37 @@ def save_photometry(fname, phot_table, history="Photometry table added",
     hdul.writeto(opfname, overwrite=True)
     return opfname
 
+
+def get_centroids(filename, purpose='read', new_centroids=None):
+    '''
+    if purpose == "read", new centroids will not be taken.
+    Otherwise, write the text file with new_centroids
+    '''
+    if purpose == 'read':
+        if not filename.exists():
+            return None
+        else:
+            centroids = read_txt_file(filename)
+            # convert y, x to float
+            for i, loc in enumerate(centroids):
+                centroids[i][0] = float(loc[0])
+                centroids[i][1] = float(loc[1])
+            # print(centroids)
+            if len(centroids) == 0:
+                return None
+            else:
+                return centroids
+    elif purpose == 'write':
+        targets_txt = open(filename, 'w')
+        new_centroids = [list(row)[::-1] for row in new_centroids]
+        # print(new_centroids)
+        for loc in new_centroids:
+            loc_line = " ".join(map(str, loc)) + "\n"
+            targets_txt.write(loc_line)
+        targets_txt.close()
+        print("Updated the selected sources list")
+
+
 # Extraction
 
 
@@ -328,10 +376,15 @@ def photometry_extraction(config, dirname):
         for txtline in txtfile_full:
             frametoextract = txtline[0]
             frametoextract = opdir / frametoextract
+            sources_txtfname = opdir / config['photometry']['SOURCELIST']
             if config['photometry']['FINDSOURCE'] == 'AUTO':
                 centroids = targetfind_auto(frametoextract)
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
-                centroids = targetfind_manual(frametoextract)
+                centroids_0 = get_centroids(sources_txtfname, purpose='read')
+                centroids = targetfind_manual(frametoextract,
+                                              centroids_0=centroids_0)
+            get_centroids(sources_txtfname, purpose='write',
+                          new_centroids=centroids)
             # Doing photometry
             if config['photometry']['METHOD'] == 'PSF':
                 withphot = psf_photometry_subrot(config, frametoextract,

@@ -21,7 +21,7 @@ from .io_utils import launch_simbad_gui
 
 
 def imageplot(fname, ext=0, title=None, line_profile='drawline',
-              get_target=False, **kwargs):
+              get_target=False, centroid_list=None, **kwargs):
     data = read_fits_data(fname, ext=ext)
 
     header = read_fits_header(fname, ext=ext)
@@ -104,7 +104,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
 
     plt.tight_layout()
     fig.colorbar(im, ax=axs, label="Counts")
-    centroid_list = None
+    # centroid_list = None
     if line_profile == 'drawline':
         enable_line_profile(fig, axs, data)
     elif line_profile == 'aperture':
@@ -112,7 +112,8 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
             title = title.name
         title = title + "\n Press Ctrl and click on apertures to select them"
         axs.set_title(title, loc="left")
-        centroid_list = select_aperture(fig, axs, data, get_target)
+        centroid_list = select_aperture(fig, axs, data, get_target,
+                                        centroids_list=centroid_list)
     plt.show()
     return np.array(centroid_list)
 
@@ -167,8 +168,21 @@ def enable_line_profile(fig, ax, image):
     fig.canvas.mpl_connect("button_press_event", onclick)
 
 
-def select_aperture(fig, ax, image, get_target=False):
-    centroids_list = []
+def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
+    if centroids_list is None:
+        centroids_list = []
+    circles_list = []
+
+    for c in centroids_list:
+        y_center, x_center = c[:2]
+        print(y_center, x_center)
+        circle = Circle((x_center, y_center), 10,
+                        edgecolor='red',
+                        facecolor='none',
+                        linewidth=2)
+        ax.add_patch(circle)
+        circles_list.append(circle)
+    fig.canvas.draw_idle()
     # plt.show()
     # annotation = None
 
@@ -176,36 +190,49 @@ def select_aperture(fig, ax, image, get_target=False):
         # nonlocal line_coords
         if event.inaxes != ax:
             return
-        if not (event.key == 'control'):
+        if event.key not in ['control', 'shift']:
             return  # quietly ignore other clicks
 
         xdata, ydata = event.xdata, event.ydata
-        # ax.plot(xdata, ydata, 'o', color='red')
-        # print(xdata, ydata)
-        sel_reg = image[int(ydata)-10:int(ydata)+10,
-                        int(xdata)-10:int(xdata)+10]
-        centroid = select_source(sel_reg)
-        x_center = centroid[1] + xdata-10
-        y_center = centroid[0] + ydata-10
-        if not get_target:
-            centroids_list.append([y_center,
-                                   x_center])
-        radius = 10
-        circle = Circle((x_center, y_center), radius,
-                        edgecolor='red', facecolor='none', linewidth=2)
-        ax.add_patch(circle)
-        fig.canvas.draw()
-        # target_name = input("Enter target name")
-        # query_object((xdata, ydata))
-        if get_target:
-            coords = launch_simbad_gui()
-            target_coords = [int(y_center), int(x_center)]
-            target_coords.append(coords['name'])
-            target_coords.append(coords['ra'])
-            target_coords.append(coords['dec'])
-            target_coords.append(coords['pmra'])
-            target_coords.append(coords['pmdec'])
-            centroids_list.append(target_coords)
+        if event.key == 'control':
+            sel_reg = image[int(ydata)-10:int(ydata)+10,
+                            int(xdata)-10:int(xdata)+10]
+            centroid = select_source(sel_reg)
+            x_center = centroid[1] + xdata-10
+            y_center = centroid[0] + ydata-10
+            if not get_target:
+                centroids_list.append([y_center,
+                                       x_center])
+
+            radius = 10
+            circle = Circle((x_center, y_center), radius,
+                            edgecolor='red', facecolor='none', linewidth=2)
+            ax.add_patch(circle)
+            circles_list.append(circle)
+            # fig.canvas.draw()
+            # target_name = input("Enter target name")
+            # query_object((xdata, ydata))
+            if get_target:
+                coords = launch_simbad_gui()
+                target_coords = [int(y_center), int(x_center)]
+                target_coords.append(coords['name'])
+                target_coords.append(coords['ra'])
+                target_coords.append(coords['dec'])
+                target_coords.append(coords['pmra'])
+                target_coords.append(coords['pmdec'])
+                centroids_list.append(target_coords)
+        elif event.key == 'shift':
+            if not centroids_list:
+                return
+            points = np.array(centroids_list)[:, :2]
+            distances = np.sqrt(
+                (points[:, 0] - ydata)**2 +
+                (points[:, 1] - xdata)**2
+                )
+            idx = np.argmin(distances)
+            centroids_list.pop(idx)
+            circles_list.pop(idx).remove()
+        fig.canvas.draw_idle()
         # print(coords)
         # print(centroids_list)
     fig.canvas.mpl_connect("button_press_event", onclick)
