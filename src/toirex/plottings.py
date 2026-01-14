@@ -6,6 +6,7 @@ from matplotlib.patches import Circle
 from astropy.wcs import WCS
 
 from matplotlib.widgets import Slider, RadioButtons
+from matplotlib.widgets import RangeSlider
 from astropy.visualization import ImageNormalize
 from astropy.visualization import ZScaleInterval
 from astropy.visualization import LinearStretch
@@ -58,15 +59,22 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
     if title is not None:
         axs.set_title(title, loc="left")
     # --- Sliders for vmin/vmax ---
-    ax_vmin = plt.axes([0.15, 0.05, 0.55, 0.03])
-    ax_vmax = plt.axes([0.15, 0.0, 0.55, 0.03])
-    s_vmin = Slider(ax_vmin, 'vmin', np.nanmin(data), np.nanmax(data),
-                    valinit=np.nanmin(data))
-    s_vmin = Slider(ax_vmin, 'vmin', kwargs['vmin'], kwargs['vmax'],
-                    valinit=kwargs['vmin'])
-    s_vmax = Slider(ax_vmax, 'vmax', kwargs['vmin'], kwargs['vmax'],
-                    valinit=kwargs['vmax'])
-
+    # ax_vmin = plt.axes([0.15, 0.05, 0.55, 0.03])
+    # ax_vmax = plt.axes([0.15, 0.0, 0.55, 0.03])
+    # s_vmin = Slider(ax_vmin, 'vmin', np.nanmin(data), np.nanmax(data),
+    #                 valinit=np.nanmin(data))
+    # s_vmin = Slider(ax_vmin, 'vmin', kwargs['vmin'], kwargs['vmax'],
+    #                 valinit=kwargs['vmin'])
+    # s_vmax = Slider(ax_vmax, 'vmax', kwargs['vmin'], kwargs['vmax'],
+    #                 valinit=kwargs['vmax'])
+    ax_range = plt.axes([0.15, 0.02, 0.55, 0.04])
+    s_range = RangeSlider(
+        ax=ax_range,
+        label='vmin/vmax',
+        valmin=np.percentile(data, 1),
+        valmax=np.percentile(data, 99.9),
+        valinit=(kwargs['vmin'], kwargs['vmax']),
+        )
     fig.canvas.draw_idle()
     # --- Radio buttons for stretch ---
     ax_stretch = plt.axes([0.005, 0.55, 0.10, 0.20])
@@ -88,17 +96,19 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
 
         # Colormap
         cmap = cmap_buttons.value_selected
-
+        vmin, vmax = s_range.val
         # Apply normalization and redraw
         norm = ImageNormalize(data, interval=interval, stretch=stretch,
-                              vmin=s_vmin.val, vmax=s_vmax.val)
+                              vmin=vmin, vmax=vmax)
         im.set_norm(norm)
         im.set_cmap(cmap)
     # --- Connect the widgets ---
-    for w in (s_vmin, s_vmax):
-        w.on_changed(update)
-    for w in (stretch_buttons, cmap_buttons):
-        w.on_clicked(update)
+    # vmin, vmax = s_range.val
+    s_range.on_changed(update)
+    # for w in (vmin, vmax):
+    #     w.on_changed(update)
+    # for w in (stretch_buttons, cmap_buttons):
+    #     w.on_clicked(update)
     # stretch_buttons.on_clicked(update)
     # cmap_buttons.on_clicked(update)
 
@@ -111,6 +121,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
         if isinstance(title, Path):
             title = title.name
         title = title + "\n Press Ctrl and click on apertures to select them"
+        title += "\n Press Shift and click to remove selected apertures"
         axs.set_title(title, loc="left")
         centroid_list = select_aperture(fig, axs, data, get_target,
                                         centroids_list=centroid_list)
