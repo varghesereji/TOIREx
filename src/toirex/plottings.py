@@ -186,7 +186,6 @@ def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
 
     for c in centroids_list:
         y_center, x_center = c[:2]
-        print(y_center, x_center)
         circle = Circle((x_center, y_center), 10,
                         edgecolor='red',
                         facecolor='none',
