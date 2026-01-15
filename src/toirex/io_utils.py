@@ -158,7 +158,7 @@ def convert_radec(ra_deg, dec_deg):
     """
     coords = SkyCoord(ra=ra_deg*u.deg, dec=dec_deg*u.deg)
     ra_str = coords.ra.to_string(unit=u.hour, sep=":", precision=6, pad=True)
-    dec_str = coords.ra.to_string(unit=u.deg, sep=":", precision=6, pad=True)
+    dec_str = coords.dec.to_string(unit=u.deg, sep=":", precision=6, pad=True)
     return ra_str, dec_str
 
 # result = launch_simbad_gui()
