@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 from pathlib import Path
 from matplotlib.patches import Circle
 from astropy.wcs import WCS
@@ -46,14 +47,21 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
     # stretch = LinearStretch()
     # norm = ImageNormalize(data, interval=interval, stretch=stretch)
     fig = plt.figure(figsize=(9, 9))
+    gs = GridSpec(
+        nrows=1,
+        ncols=3,
+        width_ratios=[1.2, 6, 0.25],  # controls | image | colorbar
+        wspace=0.05,
+        figure=fig
+        )
     if use_wcs:
-        axs = fig.add_subplot(111, projection=wcs)
+        axs = fig.add_subplot(gs[0, 1], projection=wcs)
         axs.coords[0].set_axislabel('RA')
         axs.coords[1].set_axislabel('Dec')
     else:
         # fig, axs = plt.subplots(figsize=(8, 8))
-        axs = fig.add_subplot(111)
-    plt.subplots_adjust(left=0.55, bottom=0.05)
+        axs = fig.add_subplot(gs[0, 1])
+    # plt.subplots_adjust(left=0.55, bottom=0.05)
     im = axs.imshow(data, **kwargs)
 
     if title is not None:
@@ -67,7 +75,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
     #                 valinit=kwargs['vmin'])
     # s_vmax = Slider(ax_vmax, 'vmax', kwargs['vmin'], kwargs['vmax'],
     #                 valinit=kwargs['vmax'])
-    ax_range = plt.axes([0.15, 0.02, 0.55, 0.04])
+    ax_range = plt.axes([0.25, 0.05, 0.5, 0.035])
     s_range = RangeSlider(
         ax=ax_range,
         label='vmin/vmax',
@@ -77,11 +85,11 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
         )
     fig.canvas.draw_idle()
     # --- Radio buttons for stretch ---
-    ax_stretch = plt.axes([0.005, 0.55, 0.10, 0.20])
+    ax_stretch = fig.add_axes([0.005, 0.55, 0.12, 0.25])
     stretch_buttons = RadioButtons(ax_stretch, ('linear', 'sqrt', 'log'))
 
     # --- Radio buttons for colormap ---
-    ax_cmap = plt.axes([0.005, 0.25, 0.10, 0.20])
+    ax_cmap = fig.add_axes([0.005, 0.25, 0.12, 0.25])
     cmap_buttons = RadioButtons(ax_cmap, ('gray', 'viridis', 'inferno'))
 
     # --- Update function ---
@@ -105,15 +113,16 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
     # --- Connect the widgets ---
     # vmin, vmax = s_range.val
     s_range.on_changed(update)
-    # for w in (vmin, vmax):
-    #     w.on_changed(update)
-    # for w in (stretch_buttons, cmap_buttons):
-    #     w.on_clicked(update)
-    # stretch_buttons.on_clicked(update)
-    # cmap_buttons.on_clicked(update)
 
     plt.tight_layout()
-    fig.colorbar(im, ax=axs, label="Counts")
+    # fig.colorbar(im, ax=axs, label="Counts",
+    #              fraction=0.035,  # thickness
+    #              pad=0.02,        # gap from image
+    #              shrink=1      # length)
+    #              )
+    cax = fig.add_subplot(gs[0, 2])
+    cbar = fig.colorbar(im, cax=cax)
+    cbar.set_label("Counts")
     # centroid_list = None
     if line_profile == 'drawline':
         enable_line_profile(fig, axs, data)
