@@ -450,7 +450,9 @@ def select_reference_positions(dither_dict, opdir):
 
 
 def get_dither_shift_auto(dither_dict, opdir, config):
-    ref_image = None
+    ref_image = opdir / config['dither']['REF_FRAME']
+    if not ref_image.exists():
+        ref_image = None
     shift_dict = {}
     for dither, fname in dither_dict.items():
         print(dither, fname)
@@ -506,7 +508,8 @@ def combine_dithers(config, datadir):
             outfilename = opdir / outfilename
             print("outfilename", outfilename)
             if outfilename.exists():
-                print(outfilename.name, "already exists")
+                print(outfilename.name, "already exists. Skipping")
+                continue
             else:
                 if config['dither']['AUTODITHER'] == 'N':
                     shift_dict = select_reference_positions(dither_dict, opdir)
@@ -522,10 +525,17 @@ def combine_dithers(config, datadir):
                                 fluxext=list(config['inputs']['FLUXEXT']),
                                 varext=list(config['inputs']['VAREXT'])
                                 )
-        tar_wcs_fname = outfilename.stem + "_wcstargets.txt"
+        print("Running WCS correction")
+        tar_wcs_fname_suggestion = outfilename.stem + "_wcstargets.txt"
+        print("If you have a list of WCS targets created in previous trial,")
+        print("enter that filename here. Otherwise, press enter.")
+        tar_wcs_fname = input(
+            "Enter the WCS list filename here:"
+            ) or tar_wcs_fname_suggestion
         tar_wcs_fname = opdir / tar_wcs_fname
         if tar_wcs_fname.exists():
-            print(tar_wcs_fname, "already exists")
+            print(tar_wcs_fname, "already exists.")
+            print("Using that for WCS correction")
         else:
             centroids_list = imageplot(outfilename,
                                        title=outfilename,
