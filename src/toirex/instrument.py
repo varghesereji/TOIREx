@@ -285,6 +285,11 @@ def catalog_flag_tirspec(flog_list: list, headers_list: list) -> list:
     return flog_list
 
 
+def load_badpixelmask_tirspec():
+    path = get_pkgpath() / 'data/TIRSPEC/mask/TIRSPECH1RG_badpixelmask.npy'
+    mask = ~np.load(path)
+    return mask
+
 # def get_badpixelmask_tirspec()
 
 #################################
@@ -326,9 +331,7 @@ instruments = {
      'select_trace': None,
      'pixel_offset': None,
      'get_stdsky': None,
-     'badpixelmask': ~np.load(
-         get_pkgpath() / 'data/TIRSPEC/mask/TIRSPECH1RG_badpixelmask.npy'
-     ),
+     'badpixelmask': load_badpixelmask_tirspec,
      'fname_regexp': r"^(.*?)-\d{3}\.Z\.fits$",
      'grouping_keys': ['UPPER', 'LOWER', 'SLIT',
                        'TCSRA', 'TCSDEC'
