@@ -32,23 +32,30 @@ from .plottings import imageplot
 from .io_utils import convert_radec
 
 
-def targetfind_auto(fname):
+def targetfind_auto(fname,
+                    fwhm=7.0,
+                    threshold=50):
     data = fits.getdata(fname, ext=0)
     mean, median, std = sigma_clipped_stats(data)
-    daofind = DAOStarFinder(fwhm=6.0, threshold=50,
+    daofind = DAOStarFinder(fwhm=fwhm, threshold=threshold,
                             brightest=None, exclude_border=True)
     cl_data = data - median
-    plt.figure()
-    plt.imshow(cl_data, origin='lower', vmin=0, vmax=mean+std)
+    # plt.figure()
+    # plt.imshow(cl_data, origin='lower', vmin=0, vmax=mean+std)
 
     sources = daofind(cl_data)
     # print(sources)
-    id_no = sources['id']
+    # id_no = sources['id']
     x_pos = sources['xcentroid']
     y_pos = sources['ycentroid']
-    for i, index in enumerate(id_no):
-        plt.text(x_pos[i], y_pos[i], index)
-    plt.show()
+    # for i, index in enumerate(id_no):
+    #     plt.text(x_pos[i], y_pos[i], index)
+    # plt.show()
+
+    centroids = list(np.array([y_pos, x_pos]).T)
+    imageplot(fname, ext=0, title="Sources found",
+              line_profile="aperture", get_target=False,
+              centroid_list=centroids)
     positions = Table()
     positions['x_0'] = x_pos
     positions['y_0'] = y_pos
@@ -379,7 +386,11 @@ def photometry_extraction(config, dirname):
             frametoextract = opdir / frametoextract
             sources_txtfname = opdir / config['photometry']['SOURCELIST']
             if config['photometry']['FINDSOURCE'] == 'AUTO':
-                centroids = targetfind_auto(frametoextract)
+                fwhm = float(config['photometry']['FWHM'])
+                threshold = float(config['photometry']['THRESHOLD'])
+                centroids = targetfind_auto(frametoextract,
+                                            fwhm=fwhm,
+                                            threshold=threshold)
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
                 centroids_0 = get_centroids(sources_txtfname, purpose='read')
                 centroids = targetfind_manual(frametoextract,
