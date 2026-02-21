@@ -260,7 +260,7 @@ def copy_nopair_frames(dither, group, opdir,
     txtlines_full = read_dither_txtfile(dither,
                                         group,
                                         opdir)
-
+    print("txtlines_full", txtlines_full)
     for n, line in enumerate(txtlines_full):
         scfname = line[0]
         if len(txtlines_full) > 1:
@@ -395,29 +395,42 @@ def subtract_dithers(config, datadir):
         outfileprefix = get_filename(groups, opdir)
         dithers.sort()  # Just making them to be ascending order
         writeto = open(opdir / "ReadyToReduce_group{}.txt".format(groups), 'w')
-
-        if len(dithers) == 1:
-            opfname = outfileprefix
-            print("No dithers to subtract in this group")
-            copy_nopair_frames(0, groups,
-                               opdir,
-                               opfname,
-                               writeto)
-            continue
-        print("Doing for Group {}".format(groups))
-        subpairs = input("Pairs to process:")
-        subpairs = subpairs.split()
-
-        for instr in subpairs:
-            if len(instr) == 1:
-                opfname = outfileprefix + "_" + instr
+        if config['inits']['TIMESERIES'] == 'Y':
+            print("Timeseries data")
+            for dith in dithers:
+                instr = int(dith)
+                opfname = outfileprefix + "_" + str(instr)
                 copy_nopair_frames(instr,
                                    groups,
                                    opdir,
                                    opfname,
                                    writeto)
-            elif len(instr) == 2:
-                pairsubtraction(instr, groups, opdir, outfileprefix, writeto)
+
+        else:
+            # print("dithers", dithers)
+            if len(dithers) == 1:
+                opfname = outfileprefix
+                print("No dithers to subtract in this group")
+                copy_nopair_frames(0, groups,
+                                   opdir,
+                                   opfname,
+                                   writeto)
+                continue
+            print("Doing for Group {}".format(groups))
+            subpairs = input("Pairs to process:")
+            subpairs = subpairs.split()
+
+            for instr in subpairs:
+                if len(instr) == 1:
+                    opfname = outfileprefix + "_" + instr
+                    copy_nopair_frames(instr,
+                                       groups,
+                                       opdir,
+                                       opfname,
+                                       writeto)
+                elif len(instr) == 2:
+                    pairsubtraction(instr, groups, opdir, outfileprefix,
+                                    writeto)
         writeto.close()
 
 # -----------------------------

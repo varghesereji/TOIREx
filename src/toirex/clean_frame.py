@@ -156,7 +156,7 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
     logger = get_logger("flat_corr")
     dictkw = config['inits']['DICTKW']
     print("Write to", write_txtfname)
-    writetotxt = open(write_txtfname, 'w')
+    writetotxt = open(write_txtfname, 'a')
     fluxexts = list(config['inputs']['FLUXEXT'])
     varexts = list(config['inputs']['VAREXT'])
     logger.info("Flux extensions: {}".format(fluxexts))
@@ -261,7 +261,6 @@ def frame_operation(dithergroup_txtfname,
         If processing fails in `operate_process` or `remove_cosmic_rays`.
     """
     dithergroups = read_txt_file(dithergroup_txtfname)
-    # print(dithergroups)
     # Going through each dither group
     fluxexts = list(config['inputs']['FLUXEXT'])
     varexts = list(config['inputs']['VAREXT'])
@@ -281,7 +280,10 @@ def frame_operation(dithergroup_txtfname,
             operation = "-"
             secondframe_fname = op_path / dgroup[-1]
         op_fname = op_path / op_fname
-        # print(sci_fname, flat_fname, op_fname)
+        print(sci_fname.name, operation,
+              secondframe_fname.name, "=",
+              op_fname.name)
+
         operate_process(sci_fname, secondframe_fname,
                         op_fname, operation=operation,
                         fluxext=fluxexts,
@@ -316,7 +318,7 @@ def frame_operation(dithergroup_txtfname,
 
 def mediancomb_sky_subtr(frames_list, opdir, config, group):
     frames_list = [opdir / i for i in frames_list]
-    print(frames_list)
+    # print(frames_list)
     combkg_fname = opdir / "mediancomb_bkg{}.fits".format(group)
     combine_process(frames_list,
                     combkg_fname,
@@ -422,14 +424,22 @@ def frame_correction(config, dirname):
         dither_groups = read_files_group(f)
         for n, samepos in dither_groups.items():
             logger.info("Dither pos {}: {}".format(n, samepos))
-            print("Dither group", n)
+            print("Dither group", n, samepos)
             flatcorr_group = group_files_for_flatsandcals(samepos,
                                                           finalflat_list,
                                                           finalcal_list,
                                                           finalsky_list)
+            # For timeseries extraction, there is no dithering.
+            # Therefore, no separate text file is required.
+            # Here, we are defining text file for each dither positon.
+            # Each group of dithers will be in same text file.
+            # Timeseries consider each frame as dithers.
             combobj_flat_txtfname = "Combobj_flat_group{}_d{}.txt".format(
                 number[0], n)
             combobj_flat_txtfname = op_path / combobj_flat_txtfname
+            txtfname = open(combobj_flat_txtfname, 'w')
+            txtfname.close()
+
             join_frames_create_masterflat(flatcorr_group, op_path,
                                           combobj_flat_txtfname,
                                           config)
@@ -456,14 +466,14 @@ def frame_correction(config, dirname):
             txtfile_line = frame_operation(combobj_flat_txtfname,
                                            config, op_path
                                            )
-
+            # print("##############txtfile line", txtfile_line)
             if config['inits']['TODO'] == 'P':
                 # Combine all flat-corrected frames in
                 # same dither positions.
                 if len(txtfile_line) > 1:
                     fname_stems = [Path(i).stem for i in txtfile_line]
                     comb_dither_fname = "+".join(fname_stems) + ".fits"
-                     # adding path to each frame name
+                    # adding path to each frame name
                     fnames_path = [op_path / i for i in txtfile_line]
                     combine_process(fnames_path,
                                     op_path / comb_dither_fname,
