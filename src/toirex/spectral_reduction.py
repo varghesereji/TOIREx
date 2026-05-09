@@ -269,7 +269,7 @@ def extraction(fname, extraction_config,
     if op_fname is None:
         op_fname = fname.stem + ".ms.fits"
         op_fname = opdir / op_fname
-
+    print("Extracting spectrum from", fname)
     outputobjspec, avg_xd_shift, pixdomain = specextractor.main(
         [str(fname),
          str(extraction_config),
