@@ -34,9 +34,9 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
         use_wcs = False
 
     if "vmin" not in kwargs:
-        kwargs["vmin"] = np.mean(data) - 2.0 * (np.std(data))
+        kwargs["vmin"] = np.nanmean(data) - 2.0 * (np.nanstd(data))
     if "vmax" not in kwargs:
-        kwargs["vmax"] = np.mean(data) + 2.0 * (np.std(data))
+        kwargs["vmax"] = np.nanmean(data) + 2.0 * (np.nanstd(data))
     if "origin" not in kwargs:
         kwargs["origin"] = "lower"
     if "cmap" not in kwargs:
@@ -79,8 +79,8 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
     s_range = RangeSlider(
         ax=ax_range,
         label='vmin/vmax',
-        valmin=np.percentile(data, 1),
-        valmax=np.percentile(data, 99.9),
+        valmin=np.nanpercentile(data, 1),
+        valmax=np.nanpercentile(data, 99.9),
         valinit=(kwargs['vmin'], kwargs['vmax']),
         )
     fig.canvas.draw_idle()
