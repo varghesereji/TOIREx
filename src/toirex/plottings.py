@@ -145,6 +145,12 @@ def enable_line_profile(fig, ax, image):
 
     def onclick(event):
         nonlocal line_coords
+
+        toolbar = fig.canvas.toolbar
+
+        if toolbar.mode != '':
+            return
+
         if event.inaxes != ax:
             return
         xdata, ydata = event.xdata, event.ydata
