@@ -213,6 +213,11 @@ def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
 
     def onclick(event):
         # nonlocal line_coords
+        toolbar = fig.canvas.toolbar
+
+        if toolbar.mode != '':
+            return
+
         if event.inaxes != ax:
             return
         if event.key not in ['control', 'shift']:
