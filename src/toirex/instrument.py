@@ -290,6 +290,28 @@ def load_badpixelmask_tirspec():
     mask = ~np.load(path)
     return mask
 
+
+def select_trace_tirspec(
+        dataframe,
+        instrument_config="config/instrument_templates.config"):
+    header = read_fits_header(dataframe)
+    pkgpath = get_pkgpath()
+    instconfig = pkgpath / instrument_config
+    instrument_configs = read_config(instconfig)
+    spec_filter = header["UPPER"]
+    grating_items = instrument_configs['TIRSPEC']
+    star_trace = grating_items['ContinuumFile'].format(spec_filter,
+                                                       spec_filter)
+    aperture_label = grating_items['ApertureLabel'].format(spec_filter,
+                                                           spec_filter)
+    aperturetrace = grating_items['ApertureTraceFilename'].format(spec_filter,
+                                                                  spec_filter)
+
+    star_trace = pkgpath / star_trace
+    aperture_label = pkgpath / aperture_label
+    aperturetrace = pkgpath / aperturetrace
+    return star_trace, aperture_label, aperturetrace
+
 # def get_badpixelmask_tirspec()
 
 #################################
@@ -328,7 +350,7 @@ instruments = {
      'frame_select': frame_select_tirspec,
      'catalog_flag': catalog_flag_tirspec,
      'masterflat': None,
-     'select_trace': None,
+     'select_trace': select_trace_tirspec,
      'pixel_offset': None,
      'get_stdsky': None,
      'badpixelmask': load_badpixelmask_tirspec,
