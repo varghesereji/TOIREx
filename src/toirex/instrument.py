@@ -285,10 +285,19 @@ def catalog_flag_tirspec(flog_list: list, headers_list: list) -> list:
     return flog_list
 
 
-def load_badpixelmask_tirspec():
-    path = get_pkgpath() / 'data/TIRSPEC/mask/TIRSPECH1RG_badpixelmask.npy'
-    mask = ~np.load(path)
-    return mask
+def load_badpixelmask_tirspec(
+        instrument_config="config/instrument_templates.config"
+):
+    path = read_config(
+        get_pkgpath() / instrument_config
+    )[
+        'TIRSPEC'
+    ][
+        'BadPixelMask'
+        ]
+
+    mask_path = get_pkgpath() / path
+    return mask_path
 
 
 def select_trace_tirspec(
