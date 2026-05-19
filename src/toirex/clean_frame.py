@@ -164,6 +164,12 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
     for flats_cals, objects in dithergroup_dict.items():
         common_fname_prifix = common_prefix(objects)
         comb_prifix = "{}_".format(common_fname_prifix)
+        if isinstance(config['inputs']['BADPIXMASK'], str):
+            mask = config['inputs']['BADPIXMASK']
+        elif config['inputs']['BADPIXMASK'] == 'Y':
+            mask = instruments[dictkw]['badpixelmask']()
+        else:
+            mask = False
         comb_filename = combine_frames(
             objects, op_path,
             instruments[dictkw]['sort_filename_key'],
@@ -171,7 +177,7 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
             op_prefix=comb_prifix,
             fluxext=fluxexts,
             varext=varexts,
-            mask=instruments[dictkw]['badpixelmask'])
+            mask=mask)
         # Creating masterflat
         flats_cals_list = flats_cals.strip().split(" ")
         comb_flat_fname = flats_cals_list[0]
