@@ -112,10 +112,15 @@ def find_shift(frame_1, frame_2, config):
     crop_xr = crop[3]
     filt_img1 = filter_image(frame_1[crop_yb:crop_yt, crop_xl:crop_xr])
     filt_img2 = filter_image(frame_2[crop_yb:crop_yt, crop_xl:crop_xr])
+    img1_mask = ~np.isnan(filt_img1)
+    img2_mask = ~np.isnan(filt_img2)
     difference = registration.phase_cross_correlation(
         reference_image=filt_img1,
         moving_image=filt_img2,
-        upsample_factor=upsample_factor)
+        upsample_factor=upsample_factor,
+        reference_mask=img1_mask,
+        moving_mask=img2_mask
+    )
     return difference
 
 # ---------------------------- #
