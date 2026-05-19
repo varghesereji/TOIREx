@@ -164,10 +164,13 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
     for flats_cals, objects in dithergroup_dict.items():
         common_fname_prifix = common_prefix(objects)
         comb_prifix = "{}_".format(common_fname_prifix)
-        if isinstance(config['inputs']['BADPIXMASK'], str):
-            mask = config['inputs']['BADPIXMASK']
+        if config['inputs']['BADPIXMASK'] != 'Y':
+            if isinstance(config['inputs']['BADPIXMASK'], str):
+                mask = config['inputs']['BADPIXMASK']
         elif config['inputs']['BADPIXMASK'] == 'Y':
-            mask = instruments[dictkw]['badpixelmask']()
+            mask = instruments[dictkw]['badpixelmask']
+            if mask is not None:
+                mask = mask()
         else:
             mask = False
         comb_filename = combine_frames(
