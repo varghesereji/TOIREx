@@ -7,6 +7,7 @@ import ast
 
 from ariastrotools import combine_process
 from ariastrotools import combine_spectra
+from ariastrotools import operate_process
 import SpectrumExtractor.spectrum_extractor as specextractor
 from WavelengthCalibrationTool import recalibrate
 
@@ -222,6 +223,28 @@ def wavelength_calibration(txtline, config,
     op_hdul.writeto(soln_fname)
     return soln_fname.name
 
+# ---------------------------
+# Flux calibration
+# ---------------------------
+
+
+def flux_calibration(fname, config,
+                     instrument):
+    response_name = instrument['inst_response'](fname)
+    print(
+        "Doing flux calibration with response curves: {}".format(
+            response_name)
+    )
+    opname = fname.stem + ".flc.fits"
+    opname = Path(fname.parent) / opname
+    operate_process(str(fname), str(response_name),
+                    opfilename=opname,
+                    operation = '/',
+                    fluxext=[config['inputs']['FLUXEXT']],
+                    varext=[config['inputs']['VAREXT']])
+    print("Flux calibrated spectra: {}".format(opname))
+    return opname
+
 
 # Plot sky
 
@@ -342,6 +365,8 @@ def spectral_reduction(config, dirname):
             reduced_spectra.append(wlsolved_fname)
             if config['spectral_extraction']['SUBTRACT_BKG'] == 'Y':
                 subtract_background(opdir / wlsolved_fname, config)
+            if config['spectral_extraction']['FLUX_CALIB'] == 'Y':
+                flux_calibration(opdir / wlsolved_fname, config, instrument)
         if (len(reduced_spectra) > 1) & (
                 config['spectral_extraction']['SCOMBINE'] == 'Y'):
             opfilename = Path(reduced_spectra[0]).stem + '.avg.fits'
