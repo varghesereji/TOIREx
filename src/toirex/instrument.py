@@ -229,6 +229,25 @@ def get_template_spectanspec(
     return template
 
 
+def get_response_spectanspec(
+        fname,
+        instrument_config="config/instrument_templates.config"
+):
+    header = read_fits_header(fname)
+    pkgpath = get_pkgpath()
+    instconfig = pkgpath / instrument_config
+    instrument_configs = read_config(instconfig)
+    if header["GRATING"] == 'grating1':
+        # grating_items = instrument_configs['TANSPEC_XD']
+        mode = "XD"
+    elif header["GRATING"] == 'grating2':
+        # grating_items = instrument_configs['TANSPEC_LR']
+        mode = "LR"
+    instrument_specs = instrument_configs['TANSPEC_'+mode]
+    temp_path = pkgpath / instrument_specs['Response']
+    return temp_path
+
+
 def get_stdsky_spectanspec(
         fname,
         instrument_config="config/instrument_templates.config"
@@ -338,6 +357,7 @@ instruments = {
      'get_template': get_template_spectanspec,
      'pixel_offset': pixel_offset_spectanspec,
      'get_stdsky': get_stdsky_spectanspec,
+     'inst_response': get_response_spectanspec,
      'badpixelmask': None,
      'fname_regexp': r"^(.*?)-\d{5}\.Z\.fits$",
      'grouping_keys': ['GRATING', 'SLIT',
@@ -362,6 +382,7 @@ instruments = {
      'select_trace': select_trace_tirspec,
      'pixel_offset': None,
      'get_stdsky': None,
+     'inst_response': None,
      'badpixelmask': load_badpixelmask_tirspec,
      'fname_regexp': r"^(.*?)-\d{3}\.Z\.fits$",
      'grouping_keys': ['UPPER', 'LOWER', 'SLIT',
