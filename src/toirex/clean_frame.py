@@ -293,7 +293,7 @@ def frame_operation(dithergroup_txtfname,
               secondframe_fname.name, "=",
               op_fname.name)
 
-        operate_process(sci_fname, secondframe_fname,
+        operate_process(str(sci_fname), str(secondframe_fname),
                         op_fname, operation=operation,
                         fluxext=fluxexts,
                         varext=varexts)
@@ -336,7 +336,7 @@ def mediancomb_sky_subtr(frames_list, opdir, config, group):
                     varext=list(config['inputs']['VAREXT'])
                     )
     for dframe in frames_list:
-        operate_process(dframe, combkg_fname,
+        operate_process(str(dframe), str(combkg_fname),
                         dframe, operation='-',
                         fluxext=list(config['inputs']['FLUXEXT']),
                         varext=list(config['inputs']['VAREXT'])
