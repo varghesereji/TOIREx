@@ -50,7 +50,7 @@ def read_files_group(fname):
             if line == "\n":
                 dither_index += 1
                 continue
-            dither_groups[dither_index].append(line.strip())
+            dither_groups[dither_index].append(line.strip().split(" ")[0])
     return dither_groups
 
 
