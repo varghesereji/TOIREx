@@ -100,6 +100,8 @@ def manual_inspection_obj(config, dirname):
                         distance = np.sqrt(np.sum(shift**2))
                         line_to_txt += " "
                         line_to_txt += " ".join(map(str, shift))
+                        if np.isnan(shift_err):
+                            shift_err = 2
                         if distance > 3 * shift_err:
                             reference_frame = target_fname
                             Obj2Comb_txt.write("\n")
