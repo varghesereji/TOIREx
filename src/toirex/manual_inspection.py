@@ -90,6 +90,7 @@ def manual_inspection_obj(config, dirname):
                 if config['dither']['DITHERING'] == 'Y':
                     if reference_frame is None:
                         reference_frame = target_fname
+                        line_to_txt += " 0 0"
                     else:
                         img_shift = find_shift(reference_frame, target_fname,
                                                config)
@@ -97,8 +98,8 @@ def manual_inspection_obj(config, dirname):
                         shift = np.rint(shift).astype(int)
                         shift_err = img_shift[1]
                         distance = np.sqrt(np.sum(shift**2))
-                        # line_to_txt += " "
-                        # line_to_txt += " ".join(map(str, shift))
+                        line_to_txt += " "
+                        line_to_txt += " ".join(map(str, shift))
                         if distance > 3 * shift_err:
                             reference_frame = target_fname
                             Obj2Comb_txt.write("\n")
