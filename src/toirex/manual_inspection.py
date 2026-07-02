@@ -41,6 +41,53 @@ def making_title_for_frame(fname, dirname, config):
 
 
 def manual_inspection_obj(config, dirname):
+    """
+    Interactively inspect science frames, select frames for combination,
+    and generate grouping files for subsequent spectral extraction.
+
+    This function reads object lists (`Objects_flats_group*.txt`) from the
+    specified output directory and creates corresponding
+    `ObjectsToCombine_group*.txt` files. Depending on the pipeline
+    configuration, the user may manually accept or reject each science
+    frame, or all frames may be accepted automatically (e.g., in AUTO mode
+    or for time-series observations).
+
+    When dithering is enabled, image shifts are computed relative to a
+    reference frame using ``find_shift()``. The calculated integer pixel
+    shifts are written alongside each filename. If the measured shift
+    exceeds three times the estimated uncertainty, a blank line is inserted
+    into the output file to indicate the start of a new combination group,
+    and the current frame becomes the new reference frame.
+
+    After the initial grouping file is created, it is opened in the user's
+    preferred editor for manual modification. Blank lines separate groups of
+    frames that should **not** be combined.
+
+    Parameters
+    ----------
+    config : dict
+        Pipeline configuration dictionary containing initialization,
+        visualization, dithering, and output settings.
+    dirname : str or pathlib.Path
+        Name of the directory containing the grouped object lists relative
+        to ``config['outputs']['OP_DIR']``.
+
+    Notes
+    -----
+    - Input files must follow the naming convention
+      ``Objects_flats_group*.txt``.
+    - Output files are written as
+      ``ObjectsToCombine_group<group_number>.txt``.
+    - In time-series mode (``config['inits']['TIMESERIES'] == 'Y'``),
+      all frames are accepted automatically and separated by blank lines.
+    - In AUTO mode, all frames are accepted automatically without user
+      interaction.
+    - When dithering is enabled, each output line contains::
+
+          filename x_shift y_shift
+
+      where the shifts are rounded to the nearest integer pixel.
+    """
     logger = get_logger("manual_inspect")
     txtfile_re = "Objects_flats_group*.txt"
     txt_path = Path(config['outputs']['OP_DIR']) / \
