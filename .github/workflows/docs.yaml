@@ -37,7 +37,7 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           python -m pip install sphinx furo sphinx-rtd-theme sphinxcontrib-mermaid
           python -m pip install numpy
-          python -m pip install -e .
+          python -m pip install --no-build-isolation -e .
 
       - name: Build docs
         run: make -C docs html
