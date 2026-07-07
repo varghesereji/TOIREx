@@ -316,7 +316,14 @@ def extract_obj_lamp(txtline, config,
     optxtfile_line = [op_fname.name]
     outputobjspec, avg_xd_shift, pixdomain = extraction(data_fname,
                                                         extraction_config)
-    refitapertureinxd = [tuple(avg_xd_shift), tuple(pixdomain)]
+    refitapertureinxd = (
+        tuple(
+            x.item() if isinstance(x, np.generic) else x for x in avg_xd_shift
+        ),
+        tuple(
+            x.item() if isinstance(x, np.generic) else x for x in pixdomain
+        ),
+    )
 
     # Extracting lamps
     # We want to extract the lamp spectra from the same place where
