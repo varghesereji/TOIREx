@@ -12,9 +12,10 @@ from astropy.nddata import NDData, StdDevUncertainty
 
 from photutils.detection import DAOStarFinder
 from photutils.psf import CircularGaussianPSF
+from photutils.psf import CircularGaussianSigmaPRF
 from photutils.psf import GaussianPSF
 from photutils.psf import PSFPhotometry
-from photutils.psf import IntegratedGaussianPRF
+# from photutils.psf import IntegratedGaussianPRF
 from photutils.psf import extract_stars
 from photutils.psf.epsf import EPSFBuilder
 from photutils.psf import ImagePSF
@@ -195,8 +196,8 @@ def make_epsf(
     epsf : 2D numpy array
         Oversampled effective PSF.
     """
-    psf_model = IntegratedGaussianPRF(flux=200,
-                                      sigma=10)
+    psf_model = CircularGaussianSigmaPRF(flux=200,
+                                         sigma=10)
     # print("Select bright targets to generate Effective PSF")
     print("Building effective PSF")
     finder = DAOStarFinder(200,
