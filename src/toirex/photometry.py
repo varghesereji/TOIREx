@@ -18,6 +18,7 @@ from photutils.psf import PSFPhotometry
 # from photutils.psf import IntegratedGaussianPRF
 from photutils.psf import extract_stars
 try:
+    # Support with new versions of photutils (>=2.0.0)
     from photutils.psf import EPSFBuilder
 except ModuleNotFoundError:
     from photutils.psf.epsf import EPSFBuilder
