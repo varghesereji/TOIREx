@@ -17,7 +17,10 @@ from photutils.psf import GaussianPSF
 from photutils.psf import PSFPhotometry
 # from photutils.psf import IntegratedGaussianPRF
 from photutils.psf import extract_stars
-from photutils.psf.epsf import EPSFBuilder
+try:
+    from photutils.psf import EPSFBuilder
+except ModuleNotFoundError:
+    from photutils.psf.epsf import EPSFBuilder
 from photutils.psf import ImagePSF
 
 from photutils.aperture import CircularAperture
