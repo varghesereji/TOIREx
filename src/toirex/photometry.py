@@ -40,6 +40,7 @@ from .io_utils import convert_radec
 def targetfind_auto(fname,
                     fwhm=7.0,
                     threshold=50,
+                    n_brightest=None,
                     showplot=True):
     data = fits.getdata(fname, ext=0)
     mean, median, std = sigma_clipped_stats(data)
