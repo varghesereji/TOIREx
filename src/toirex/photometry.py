@@ -94,7 +94,7 @@ def targetfind_auto(fname,
     -------
     astropy.table.Table
         Table containing the detected source positions with columns
-        ``'x_0'`` and ``'y_0'``.
+        ``'x_0'`` and ``'y_0'`` which are the x and y coordinates.
     """
 
     data = fits.getdata(fname, ext=0)
