@@ -79,12 +79,11 @@ def targetfind_auto(fname,
     cl_data = data - median
 
     sources = daofind(cl_data)
-    try:
-        x_pos = sources['x_centroid']
-        y_pos = sources['y_centroid']
-    except KeyError:
-        x_pos = sources['xcentroid']
-        y_pos = sources['ycentroid']
+    x_key = "x_centroid" if "x_centroid" in sources.colnames else "xcentroid"
+    y_key = "y_centroid" if "y_centroid" in sources.colnames else "ycentroid"
+
+    x_pos = sources[x_key]
+    y_pos = sources[y_key]
 
     centroids = list(np.array([y_pos, x_pos]).T)
     if showplot:
