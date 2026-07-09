@@ -30,11 +30,35 @@ from photutils.aperture import CircularAnnulus
 from photutils.aperture import EllipticalAnnulus
 from photutils.aperture import aperture_photometry
 
+import inspect
 
 import matplotlib.pyplot as plt
 from .utils import read_txt_file
 from .plottings import imageplot
 from .io_utils import convert_radec
+
+# Detect whether the installed Photutils version supports the
+# 'n_brightest' keyword (introduced in Photutils 3.0).
+_DAOSTARFINDER_SUPPORTS_N_BRIGHTEST = (
+    "n_brightest" in inspect.signature(DAOStarFinder).parameters
+)
+
+
+def _make_daostarfinder(fwhm, threshold, n_brightest, **kwargs):
+    if _DAOSTARFINDER_SUPPORTS_N_BRIGHTEST:
+        return DAOStarFinder(
+            fwhm=fwhm,
+            threshold=threshold,
+            n_brightest=n_brightest,
+            **kwargs,
+        )
+
+    return DAOStarFinder(
+        fwhm=fwhm,
+        threshold=threshold,
+        brightest=n_brightest,
+        **kwargs,
+    )
 
 
 def targetfind_auto(fname,
@@ -44,13 +68,12 @@ def targetfind_auto(fname,
                     showplot=True):
     data = fits.getdata(fname, ext=0)
     mean, median, std = sigma_clipped_stats(data)
-    try:
-        daofind = DAOStarFinder(fwhm=fwhm, threshold=threshold,
-                                n_brightest=n_brightest, exclude_border=True)
-    except TypeError:
-        # photutils older versions used 'brightest' instead of 'n_brightest'
-        daofind = DAOStarFinder(fwhm=fwhm, threshold=threshold,
-                                brightest=n_brightest, exclude_border=True)
+    daofind = _make_daostarfinder(
+        fwhm=fwhm,
+        threshold=threshold,
+        n_brightest=n_brightest,
+        exclude_border=True,
+    )
     cl_data = data - median
     # plt.figure()
     # plt.imshow(cl_data, origin='lower', vmin=0, vmax=mean+std)
