@@ -65,6 +65,7 @@ def targetfind_auto(fname,
                     fwhm=7.0,
                     threshold=50,
                     n_brightest=None,
+                    xycoords=None,
                     showplot=True):
     data = fits.getdata(fname, ext=0)
     mean, median, std = sigma_clipped_stats(data)
@@ -73,6 +74,7 @@ def targetfind_auto(fname,
         threshold=threshold,
         n_brightest=n_brightest,
         exclude_border=True,
+        xycoords=xycoords
     )
     cl_data = data - median
     # plt.figure()
