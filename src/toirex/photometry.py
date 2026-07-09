@@ -39,7 +39,8 @@ from .io_utils import convert_radec
 
 def targetfind_auto(fname,
                     fwhm=7.0,
-                    threshold=50):
+                    threshold=50,
+                    showplot=True):
     data = fits.getdata(fname, ext=0)
     mean, median, std = sigma_clipped_stats(data)
     daofind = DAOStarFinder(fwhm=fwhm, threshold=threshold,
@@ -58,9 +59,10 @@ def targetfind_auto(fname,
     # plt.show()
 
     centroids = list(np.array([y_pos, x_pos]).T)
-    imageplot(fname, ext=0, title="Sources found",
-              line_profile="aperture", get_target=False,
-              centroid_list=centroids)
+    if showplot:
+        imageplot(fname, ext=0, title="Sources found",
+                  line_profile="aperture", get_target=False,
+                  centroid_list=centroids)
     positions = Table()
     positions['x_0'] = x_pos
     positions['y_0'] = y_pos
