@@ -68,7 +68,7 @@ def targetfind_auto(fname,
                     xycoords=None,
                     showplot=True):
     data = fits.getdata(fname, ext=0)
-    mean, median, std = sigma_clipped_stats(data)
+    _, median, _ = sigma_clipped_stats(data)
     daofind = _make_daostarfinder(
         fwhm=fwhm,
         threshold=threshold,
