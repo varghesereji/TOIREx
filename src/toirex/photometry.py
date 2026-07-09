@@ -53,8 +53,8 @@ def targetfind_auto(fname,
     sources = daofind(cl_data)
     # print(sources)
     # id_no = sources['id']
-    x_pos = sources['xcentroid']
-    y_pos = sources['ycentroid']
+    x_pos = sources['x_centroid']
+    y_pos = sources['y_centroid']
     # for i, index in enumerate(id_no):
     #     plt.text(x_pos[i], y_pos[i], index)
     # plt.show()
