@@ -77,21 +77,14 @@ def targetfind_auto(fname,
         xycoords=xycoords
     )
     cl_data = data - median
-    # plt.figure()
-    # plt.imshow(cl_data, origin='lower', vmin=0, vmax=mean+std)
 
     sources = daofind(cl_data)
-    # print(sources)
-    # id_no = sources['id']
     try:
         x_pos = sources['x_centroid']
         y_pos = sources['y_centroid']
     except KeyError:
         x_pos = sources['xcentroid']
         y_pos = sources['ycentroid']
-    # for i, index in enumerate(id_no):
-    #     plt.text(x_pos[i], y_pos[i], index)
-    # plt.show()
 
     centroids = list(np.array([y_pos, x_pos]).T)
     if showplot:
