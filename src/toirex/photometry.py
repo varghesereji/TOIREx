@@ -44,8 +44,13 @@ def targetfind_auto(fname,
                     showplot=True):
     data = fits.getdata(fname, ext=0)
     mean, median, std = sigma_clipped_stats(data)
-    daofind = DAOStarFinder(fwhm=fwhm, threshold=threshold,
-                            n_brightest=n_brightest, exclude_border=True)
+    try:
+        daofind = DAOStarFinder(fwhm=fwhm, threshold=threshold,
+                                n_brightest=n_brightest, exclude_border=True)
+    except TypeError:
+        # photutils older versions used 'brightest' instead of 'n_brightest'
+        daofind = DAOStarFinder(fwhm=fwhm, threshold=threshold,
+                                brightest=n_brightest, exclude_border=True)
     cl_data = data - median
     # plt.figure()
     # plt.imshow(cl_data, origin='lower', vmin=0, vmax=mean+std)
