@@ -65,31 +65,55 @@ def targetfind_auto(fname,
                     fwhm=7.0,
                     threshold=50,
                     n_brightest=None,
+                    xycoords=None,
                     showplot=True):
+    """
+    Automatically detect point sources in an image using DAOStarFinder.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Path to the FITS image.
+    fwhm : float, optional
+        Full width at half maximum (FWHM) of the point sources in pixels.
+        Default is 7.0.
+    threshold : float, optional
+        Detection threshold above the background in image units.
+        Default is 50.
+    n_brightest : int or None, optional
+        Maximum number of brightest sources to return. If `None`, all
+        detected sources are returned.
+    xycoords : array-like or None, optional
+        Initial source coordinates to use for detection. If `None`,
+        sources are detected over the entire image.
+    showplot : bool, optional
+        If `True`, display the detected sources overlaid on the image.
+        Default is `True`.
+
+    Returns
+    -------
+    astropy.table.Table
+        Table containing the detected source positions with columns
+        ``'x_0'`` and ``'y_0'`` which are the x and y coordinates.
+    """
+
     data = fits.getdata(fname, ext=0)
-    mean, median, std = sigma_clipped_stats(data)
+    _, median, _ = sigma_clipped_stats(data)
     daofind = _make_daostarfinder(
         fwhm=fwhm,
         threshold=threshold,
         n_brightest=n_brightest,
         exclude_border=True,
+        xycoords=xycoords
     )
     cl_data = data - median
-    # plt.figure()
-    # plt.imshow(cl_data, origin='lower', vmin=0, vmax=mean+std)
 
     sources = daofind(cl_data)
-    # print(sources)
-    # id_no = sources['id']
-    try:
-        x_pos = sources['x_centroid']
-        y_pos = sources['y_centroid']
-    except KeyError:
-        x_pos = sources['xcentroid']
-        y_pos = sources['ycentroid']
-    # for i, index in enumerate(id_no):
-    #     plt.text(x_pos[i], y_pos[i], index)
-    # plt.show()
+    x_key = "x_centroid" if "x_centroid" in sources.colnames else "xcentroid"
+    y_key = "y_centroid" if "y_centroid" in sources.colnames else "ycentroid"
+
+    x_pos = sources[x_key]
+    y_pos = sources[y_key]
 
     centroids = list(np.array([y_pos, x_pos]).T)
     if showplot:
