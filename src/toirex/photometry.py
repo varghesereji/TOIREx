@@ -30,21 +30,50 @@ from photutils.aperture import CircularAnnulus
 from photutils.aperture import EllipticalAnnulus
 from photutils.aperture import aperture_photometry
 
+import inspect
 
 import matplotlib.pyplot as plt
 from .utils import read_txt_file
 from .plottings import imageplot
 from .io_utils import convert_radec
 
+# Detect whether the installed Photutils version supports the
+# 'n_brightest' keyword (introduced in Photutils 3.0).
+_DAOSTARFINDER_SUPPORTS_N_BRIGHTEST = (
+    "n_brightest" in inspect.signature(DAOStarFinder).parameters
+)
+
+
+def _make_daostarfinder(fwhm, threshold, n_brightest, **kwargs):
+    if _DAOSTARFINDER_SUPPORTS_N_BRIGHTEST:
+        return DAOStarFinder(
+            fwhm=fwhm,
+            threshold=threshold,
+            n_brightest=n_brightest,
+            **kwargs,
+        )
+
+    return DAOStarFinder(
+        fwhm=fwhm,
+        threshold=threshold,
+        brightest=n_brightest,
+        **kwargs,
+    )
+
 
 def targetfind_auto(fname,
                     fwhm=7.0,
                     threshold=50,
+                    n_brightest=None,
                     showplot=True):
     data = fits.getdata(fname, ext=0)
     mean, median, std = sigma_clipped_stats(data)
-    daofind = DAOStarFinder(fwhm=fwhm, threshold=threshold,
-                            brightest=None, exclude_border=True)
+    daofind = _make_daostarfinder(
+        fwhm=fwhm,
+        threshold=threshold,
+        n_brightest=n_brightest,
+        exclude_border=True,
+    )
     cl_data = data - median
     # plt.figure()
     # plt.imshow(cl_data, origin='lower', vmin=0, vmax=mean+std)
@@ -52,8 +81,12 @@ def targetfind_auto(fname,
     sources = daofind(cl_data)
     # print(sources)
     # id_no = sources['id']
-    x_pos = sources['xcentroid']
-    y_pos = sources['ycentroid']
+    try:
+        x_pos = sources['x_centroid']
+        y_pos = sources['y_centroid']
+    except KeyError:
+        x_pos = sources['xcentroid']
+        y_pos = sources['ycentroid']
     # for i, index in enumerate(id_no):
     #     plt.text(x_pos[i], y_pos[i], index)
     # plt.show()
