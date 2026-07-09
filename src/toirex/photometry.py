@@ -67,6 +67,36 @@ def targetfind_auto(fname,
                     n_brightest=None,
                     xycoords=None,
                     showplot=True):
+    """
+    Automatically detect point sources in an image using DAOStarFinder.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Path to the FITS image.
+    fwhm : float, optional
+        Full width at half maximum (FWHM) of the point sources in pixels.
+        Default is 7.0.
+    threshold : float, optional
+        Detection threshold above the background in image units.
+        Default is 50.
+    n_brightest : int or None, optional
+        Maximum number of brightest sources to return. If `None`, all
+        detected sources are returned.
+    xycoords : array-like or None, optional
+        Initial source coordinates to use for detection. If `None`,
+        sources are detected over the entire image.
+    showplot : bool, optional
+        If `True`, display the detected sources overlaid on the image.
+        Default is `True`.
+
+    Returns
+    -------
+    astropy.table.Table
+        Table containing the detected source positions with columns
+        ``'x_0'`` and ``'y_0'``.
+    """
+
     data = fits.getdata(fname, ext=0)
     _, median, _ = sigma_clipped_stats(data)
     daofind = _make_daostarfinder(
