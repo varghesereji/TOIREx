@@ -45,7 +45,7 @@ def targetfind_auto(fname,
     data = fits.getdata(fname, ext=0)
     mean, median, std = sigma_clipped_stats(data)
     daofind = DAOStarFinder(fwhm=fwhm, threshold=threshold,
-                            brightest=None, exclude_border=True)
+                            n_brightest=n_brightest, exclude_border=True)
     cl_data = data - median
     # plt.figure()
     # plt.imshow(cl_data, origin='lower', vmin=0, vmax=mean+std)
