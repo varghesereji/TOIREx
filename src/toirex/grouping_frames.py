@@ -247,63 +247,64 @@ def ordered_keys(catalog_dict, config, grouping_keys, flats_keys, flat_flag):
 def grouping_items(config, dirname, catalogue_dict=None,
                    open_editor=True):
     """
-    Group catalogue files by order and flag, excluding flats.
+    Group catalogue files by observing setup while excluding flat frames.
 
-    This function reads a catalogue for the specified directory, determines
-    groups of files based on instrument-specific `grouping_keys`, and
-    associates each file with its classification flag. The groups are written
-    to a text file for inspection and returned as a nested dictionary.
+    This function reads the catalogue for the specified directory, groups
+    frames according to the instrument-specific grouping keys, and associates
+    each frame with its classification flag. A human-readable summary of the
+    groups is written to ``Grouped_txtfile.txt``, and the grouped catalogue is
+    returned as a nested dictionary.
 
     Parameters
     ----------
     config : dict
-        Configuration dictionary containing:
-        - ``config['inits']['DICTKW']`` : str
-          Instrument keyword used to select the instrument from
-          ``instrument_class``.
-        - ``config['outputs']['OP_DIR']`` : str
-          Output directory where the grouped text file will be saved.
+        Configuration dictionary.
+
+        The following keys are required:
+
+        - ``config['inits']['DICTKW']``: Instrument identifier used to select
+          the appropriate grouping rules.
+        - ``config['outputs']['OP_DIR']``: Output directory where the grouping
+          summary is written.
 
     dirname : str or pathlib.Path
-        Subdirectory under the output directory corresponding to the dataset
-        being processed.
+        Subdirectory of the output directory corresponding to the dataset.
 
     Returns
     -------
-    groups_dict : dict
-        Nested dictionary where:
-        - keys are group indices (0, 1, 2, …) from `ordered_keys`.
-        - values are dictionaries mapping classification flags (e.g., SCIENCE,
-          ARC, FLAT) to lists of file names belonging to that group.
+    dict
+        Nested dictionary containing the grouped catalogue.
 
-    Side Effects
-    ------------
-    - Writes a text file ``Grouped_txtfile.txt`` to
-      ``<config['outputs']['OP_DIR']>/<dirname>`` with a human-readable
-      summary of groups and associated files.
+        The outer dictionary maps group numbers to dictionaries of frame types.
+        Each inner dictionary maps classification flags (e.g. ``OBJECT``,
+        ``ARGON``, ``FLAT``) to lists of filenames.
 
     Notes
     -----
-    - Flat frames are excluded internally via instrument-specific `flat_kw`.
-    - The grouping relies on:
-      - ``read_catalog`` to load the catalogue,
-      - ``instrument_class[dictkw].grouping_keys`` to define group membership,
-      - ``instrument_class[dictkw].flat_grouping_keys`` to associate flats,
-      - ``ordered_keys`` to construct the groups.
-    - A placeholder exists for adding continuum flats in the future.
+    Flat frames are excluded using the instrument-specific ``flat_kw`` keyword.
+
+    Grouping relies on the following components:
+
+    - ``read_catalog()`` to load the catalogue.
+    - ``instruments[dictkw]['grouping_keys']`` to define observing groups.
+    - ``instruments[dictkw]['flat_grouping_keys']`` to associate flat frames.
+    - ``ordered_keys()`` to construct the grouped catalogue.
+
+    The function also writes ``Grouped_txtfile.txt`` to
+    ``<config['outputs']['OP_DIR']>/<dirname>``.
+
+    A placeholder exists for automatically associating continuum flats in a
+    future version.
 
     Examples
     --------
     >>> config = {
     ...     "inits": {"DICTKW": "SpecTANSPEC"},
-    ...     "outputs": {"OP_DIR": "Reduced_data"}
+    ...     "outputs": {"OP_DIR": "Reduced_data"},
     ... }
-    >>> dirname = "20240908"
-    >>> groups = grouping_items(config, dirname)
-    >>> list(groups.keys())
+    >>> groups = grouping_items(config, "20240908")
+    >>> sorted(groups.keys())
     [0, 1, 2]
-    >>> groups[0].keys()
-    dict_keys(['OBJECT', 'ARGON', 'NEON', 'CONT1', 'CONT2'])
     """
     if catalogue_dict is None:
         catalogue_dict = read_catalog(dirname, config)
