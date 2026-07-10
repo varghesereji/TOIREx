@@ -340,6 +340,22 @@ def select_trace_tirspec(
     aperturetrace = pkgpath / aperturetrace
     return star_trace, aperture_label, aperturetrace
 
+
+def call_masterflat_tirspec(
+        method,
+        band,
+        instrument_config="config/instrument_templates.config"
+        ):
+    pkgpath = get_pkgpath()
+    instconfig = pkgpath / instrument_config
+    instrument_configs = read_config(instconfig)
+    instrument_items = instrument_configs['TIRSPEC']
+    if method == 'P':
+        masterflat = instrument_items['PhotFlats']
+    else:
+        masterflat = instrument_items['SpecFlats']
+    return masterflat
+
 # def get_badpixelmask_tirspec()
 
 #################################
