@@ -394,7 +394,7 @@ instruments = {
      'standardise_header': standardise_header_tirspec,
      'frame_select': frame_select_tirspec,
      'catalog_flag': catalog_flag_tirspec,
-     'masterflat': None,
+     'masterflat': call_masterflat_tirspec,
      'select_trace': select_trace_tirspec,
      'pixel_offset': None,
      'get_stdsky': None,
