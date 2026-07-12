@@ -342,8 +342,7 @@ def select_trace_tirspec(
 
 
 def call_masterflat_tirspec(
-        method,
-        band,
+        frame,
         instrument_config="config/instrument_templates.config"
         ):
     pkgpath = get_pkgpath()
