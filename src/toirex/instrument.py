@@ -361,7 +361,7 @@ def call_masterflat_tirspec(
         masterflat = instrument_items['SpecFlats']
     band = header['UPPER']
     masterflat_band = masterflat.format(band)
-    return masterflat_band
+    return pkgpath / masterflat_band
 
 # def get_badpixelmask_tirspec()
 
