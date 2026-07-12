@@ -184,12 +184,15 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
         # Creating masterflat
         flats_cals_list = flats_cals.strip().split(" ")
         comb_flat_fname = flats_cals_list[0]
-        comb_flat_path = Path(op_path) / comb_flat_fname
-        smooth_flat = create_smoothmasterflat(
-            comb_flat_path,
-            instruments[dictkw]['masterflat'],
-            fluxext=fluxexts, varext=varexts
-        )
+        if comb_flat_fname == 'MasterFlat':
+            print("Using master flat")
+        else:
+            comb_flat_path = Path(op_path) / comb_flat_fname
+            smooth_flat = create_smoothmasterflat(
+                comb_flat_path,
+                instruments[dictkw]['masterflat'],
+                fluxext=fluxexts, varext=varexts
+            )
         flats_cals_list[0] = smooth_flat
         updated_flats_cals = " ".join(flats_cals_list)
         writetotxt.write(comb_filename + " " + updated_flats_cals)
