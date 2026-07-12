@@ -186,6 +186,7 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
         comb_flat_fname = flats_cals_list[0]
         if comb_flat_fname == 'MasterFlat':
             print("Using master flat")
+            smooth_flat = instruments[dictkw]['masterflat']
         else:
             comb_flat_path = Path(op_path) / comb_flat_fname
             smooth_flat = create_smoothmasterflat(
