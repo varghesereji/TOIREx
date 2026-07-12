@@ -340,6 +340,29 @@ def select_trace_tirspec(
     aperturetrace = pkgpath / aperturetrace
     return star_trace, aperture_label, aperturetrace
 
+
+def call_masterflat_tirspec(
+        frame,
+        instrument_config="config/instrument_templates.config"
+        ):
+    pkgpath = get_pkgpath()
+    header = read_fits_header(frame)
+    slit = header['SLIT']
+    if slit == 'open':
+        method = 'P'  # Because if it is photometry, slit should be open always.
+    else:
+        method = 'S'  # There will be a slit if you are taking spectra.
+    instconfig = pkgpath / instrument_config
+    instrument_configs = read_config(instconfig)
+    instrument_items = instrument_configs['TIRSPEC']
+    if method == 'P':
+        masterflat = instrument_items['PhotFlats']
+    else:
+        masterflat = instrument_items['SpecFlats']
+    band = header['UPPER']
+    masterflat_band = masterflat.format(band)
+    return pkgpath / masterflat_band
+
 # def get_badpixelmask_tirspec()
 
 #################################
@@ -378,7 +401,7 @@ instruments = {
      'standardise_header': standardise_header_tirspec,
      'frame_select': frame_select_tirspec,
      'catalog_flag': catalog_flag_tirspec,
-     'masterflat': None,
+     'masterflat': call_masterflat_tirspec,
      'select_trace': select_trace_tirspec,
      'pixel_offset': None,
      'get_stdsky': None,

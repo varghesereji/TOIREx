@@ -184,12 +184,31 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
         # Creating masterflat
         flats_cals_list = flats_cals.strip().split(" ")
         comb_flat_fname = flats_cals_list[0]
-        comb_flat_path = Path(op_path) / comb_flat_fname
-        smooth_flat = create_smoothmasterflat(
-            comb_flat_path,
-            instruments[dictkw]['masterflat'],
-            fluxext=fluxexts, varext=varexts
-        )
+        if comb_flat_fname == 'MasterFlat':
+            smooth_flat_path = instruments[dictkw]['masterflat'](
+                Path(op_path) / comb_filename
+            )
+            print("Using master flat:", smooth_flat_path)
+            smooth_flat = Path(smooth_flat_path).name
+            target = Path(op_path) / smooth_flat
+            link = Path(smooth_flat_path)
+            if target.is_symlink() and target.resolve() == smooth_flat_path:
+                print(f"Symlink already exists: {target}")
+            else:
+                # Remove broken/wrong existing file or symlink
+                if target.exists() or target.is_symlink():
+                    target.unlink()
+
+                print(f"Creating symbolic link: {target} -> {smooth_flat_path}")
+                target.symlink_to(link)
+
+        else:
+            comb_flat_path = Path(op_path) / comb_flat_fname
+            smooth_flat = create_smoothmasterflat(
+                comb_flat_path,
+                instruments[dictkw]['masterflat'],
+                fluxext=fluxexts, varext=varexts
+            )
         flats_cals_list[0] = smooth_flat
         updated_flats_cals = " ".join(flats_cals_list)
         writetotxt.write(comb_filename + " " + updated_flats_cals)
