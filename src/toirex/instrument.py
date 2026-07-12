@@ -346,6 +346,12 @@ def call_masterflat_tirspec(
         instrument_config="config/instrument_templates.config"
         ):
     pkgpath = get_pkgpath()
+    header = read_fits_header(frame)
+    slit = header['SLIT']
+    if slit == 'open':
+        method = 'P'  # Because if it is photometry, slit should be open always.
+    else:
+        method = 'S'  # There will be a slit if you are taking spectra.
     instconfig = pkgpath / instrument_config
     instrument_configs = read_config(instconfig)
     instrument_items = instrument_configs['TIRSPEC']
@@ -353,7 +359,9 @@ def call_masterflat_tirspec(
         masterflat = instrument_items['PhotFlats']
     else:
         masterflat = instrument_items['SpecFlats']
-    return masterflat
+    band = header['UPPER']
+    masterflat_band = masterflat.format(band)
+    return masterflat_band
 
 # def get_badpixelmask_tirspec()
 
