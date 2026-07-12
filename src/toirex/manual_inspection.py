@@ -249,14 +249,19 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
             logger.info("Variance extensions: {}".format(varexts))
             # logger.info("Combining {} by biweight".format(targets_path))
             op_fname = framecat.lower()
-            comb_framename = combine_frames(
-                flats_list, op_path,
-                instruments[dictkw]['sort_filename_key'],
-                method='biweight',
-                op_prefix="Comb_{}_".format(op_fname),
-                fluxext=fluxexts,
-                varext=varexts)
-            object_frame_list = object_name + " " + comb_framename + "\n"
+            if len(flats_list) > 0:
+                comb_framename = combine_frames(
+                    flats_list, op_path,
+                    instruments[dictkw]['sort_filename_key'],
+                    method='biweight',
+                    op_prefix="Comb_{}_".format(op_fname),
+                    fluxext=fluxexts,
+                    varext=varexts)
+                object_frame_list = object_name + " " + comb_framename + "\n"
+            else:
+                print("No flats available in the night")
+                print("Using master flat insted")
+                object_frame_list = object_name + " MasterFlat\n"
             finalframe_txt.write(object_frame_list)
         finalframe_txt.close()
 
