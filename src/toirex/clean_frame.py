@@ -189,6 +189,11 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
                 Path(op_path) / comb_filename
             )
             print("Using master flat:", smooth_flat_path)
+            smooth_flat = Path(smooth_flat_path).name
+            target = Path(op_path) / smooth_flat
+            link = Path(smooth_flat_path)
+            target.symlink_to(link)
+
         else:
             comb_flat_path = Path(op_path) / comb_flat_fname
             smooth_flat = create_smoothmasterflat(
