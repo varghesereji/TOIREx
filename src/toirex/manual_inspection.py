@@ -260,7 +260,7 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
                 object_frame_list = object_name + " " + comb_framename + "\n"
             else:
                 print("No flats available in the night")
-                print("Using master flat insted")
+                print("Using master flat instead")
                 object_frame_list = object_name + " MasterFlat\n"
             finalframe_txt.write(object_frame_list)
         finalframe_txt.close()
