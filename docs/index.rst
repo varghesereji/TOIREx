@@ -22,3 +22,4 @@ Contents
    setup
    flowchart
    toirex
+   developers
