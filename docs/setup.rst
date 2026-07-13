@@ -1,5 +1,5 @@
 Configuration and Setup
-=============
+=======================
 
 TOIREx is controlled through an INI-style configuration file. The
 configuration file is divided into several sections, each controlling a
