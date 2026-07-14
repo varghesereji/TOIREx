@@ -54,6 +54,7 @@ def config_for_extraction(data_fname, config,
             star_trace = data_fname
             aperture_label = str(data_fname)[:-5] + ".npy"
             aperturetrace = str(data_fname)[:-5] + ".pkl"
+            tracing_settings['Mode'] = 'MANUAL'
         else:
             star_trace, aperture_label, aperturetrace = trace_selection(
                 data_fname
