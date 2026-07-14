@@ -51,6 +51,9 @@ def config_for_extraction(data_fname, config,
         # Taking trace saved with pipeline
         if extraction_mode == 'MANUAL':
             print("Manual selection of aperture trace")
+            star_trace = data_fname
+            aperture_label = str(data_fname)[:-5] + ".npy"
+            aperturetrace = str(data_fname)[:-5] + ".pkl"
         else:
             star_trace, aperture_label, aperturetrace = trace_selection(
                 data_fname
