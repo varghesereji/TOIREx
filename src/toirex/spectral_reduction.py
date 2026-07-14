@@ -46,6 +46,7 @@ def config_for_extraction(data_fname, config,
 
     extraction_config = read_config(extractorconfig_fname)
     tracing_settings = extraction_config['tracing_settings']
+    extraction_mode = config['spectral_extraction']['SELECT_APERTURE']
     if defaultconfig:
         # Taking trace saved with pipeline
         star_trace, aperture_label, aperturetrace = trace_selection(
