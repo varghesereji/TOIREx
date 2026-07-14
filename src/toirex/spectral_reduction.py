@@ -46,11 +46,19 @@ def config_for_extraction(data_fname, config,
 
     extraction_config = read_config(extractorconfig_fname)
     tracing_settings = extraction_config['tracing_settings']
+    extraction_mode = config['spectral_extraction']['SELECT_APERTURE']
     if defaultconfig:
         # Taking trace saved with pipeline
-        star_trace, aperture_label, aperturetrace = trace_selection(
-            data_fname
-        )
+        if extraction_mode == 'MANUAL':
+            print("Manual selection of aperture trace")
+            star_trace = data_fname
+            aperture_label = str(data_fname)[:-5] + ".npy"
+            aperturetrace = str(data_fname)[:-5] + ".pkl"
+            tracing_settings['Mode'] = 'MANUAL'
+        else:
+            star_trace, aperture_label, aperturetrace = trace_selection(
+                data_fname
+            )
         tracing_settings['ContinuumFile'] = str(star_trace)
         tracing_settings['ApertureLabel'] = str(aperture_label)
         tracing_settings['ApertureTraceFilename'] = str(aperturetrace)
