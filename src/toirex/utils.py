@@ -215,7 +215,41 @@ def combine_frames(files_list, op_dirname, sorting_function,
 
 def get_pixel_shift(spectra, template, medfilt=3, sigma=10, radius=20):
     """
-    Function to find pixel offset between two spectra.
+    Determine the pixel shift between an observed spectrum and a template.
+
+    The input spectrum is first median filtered to suppress impulsive
+    noise and then smoothed with a Gaussian filter. The pixel offset
+    between the processed spectrum and the template is computed using
+    phase cross-correlation.
+
+    Parameters
+    ----------
+    spectra : array-like
+        One-dimensional observed spectrum.
+    template : array-like
+        One-dimensional reference spectrum used as the template.
+    medfilt : int, optional
+        Kernel size for the median filter. Default is 3.
+    sigma : float, optional
+        Standard deviation of the Gaussian smoothing kernel. Default is 10.
+    radius : int, optional
+        Radius of the Gaussian kernel. Default is 20.
+
+    Returns
+    -------
+    pixelshift : float
+        Estimated pixel shift between the input spectrum and the template.
+        A positive value indicates that the observed spectrum is shifted
+        towards higher pixel indices relative to the template.
+
+    Notes
+    -----
+    The spectrum is preprocessed as follows before computing the shift:
+
+    1. Median filtering using :func:`scipy.signal.medfilt`.
+    2. Gaussian smoothing using :func:`scipy.ndimage.gaussian_filter`.
+    3. Phase cross-correlation using
+       :func:`recalibrate.calculate_pixshift_with_phase_cross_correlation`.
     """
     arc_filtered = ndimage.gaussian_filter(signal.medfilt(spectra, medfilt),
                                            sigma=10, radius=20)
