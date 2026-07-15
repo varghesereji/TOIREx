@@ -308,7 +308,9 @@ def get_filename(groups, opdir):
     return outfileprefix
 
 
-# Header functions
+# ============================================================================
+# FITS I/O utilities
+# ============================================================================
 def read_fits_header(filename, ext=0):
     """
     Read the header from a FITS file extension.
