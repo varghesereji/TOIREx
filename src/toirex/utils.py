@@ -399,6 +399,11 @@ def open_in_editor(path, config):
     -------
     None
 
+    Raises
+    ------
+    FileNotFoundError
+       If the configured editor executable cannot be found.
+
     Notes
     -----
     This function launches the configured editor as a subprocess and
