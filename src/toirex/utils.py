@@ -177,6 +177,37 @@ def write_asciitable(content,
                      headers,
                      format='basic',
                      delimiter="|"):
+    """
+    Write tabular data to an ASCII file.
+
+    This is a convenience wrapper around :func:`astropy.io.ascii.write`.
+    The input columns are transposed into row-oriented data before being
+    written to disk.
+
+    Parameters
+    ----------
+    content : sequence of array-like
+        Column-wise data to be written. Each element represents a column
+        in the output table and must have the same length.
+    fname : str or pathlib.Path
+        Name or path of the output ASCII table.
+    headers : sequence of str
+        Column names for the output table.
+    format : str, optional
+        Output table format understood by
+        :func:`astropy.io.ascii.write`. Default is ``'basic'``.
+    delimiter : str, optional
+        Column delimiter used in the output file. Default is ``"|"``.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    Existing files are overwritten by default by passing
+    ``overwrite=True`` to :func:`astropy.io.ascii.write`.
+    """
     ascii.write(list(zip(*content)),
                 fname,
                 names=headers,
