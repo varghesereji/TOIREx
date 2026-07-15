@@ -1,4 +1,21 @@
 #!/usr/bin/env python3
+"""
+Utility functions used throughout TOIREx.
+
+This module provides helper routines for
+
+- FITS file I/O,
+- filename parsing,
+- ASCII table handling,
+- frame combination,
+- Gaussian profile fitting,
+- wavelength calibration utilities,
+- package resource management, and
+- instrument data download.
+
+These functions are shared across multiple TOIREx modules and provide
+common functionality independent of a specific instrument.
+"""
 import re
 from pathlib import Path
 import numpy as np
@@ -322,7 +339,9 @@ def read_fits_header(filename, ext=0):
     return header
 
 
-def read_fits_data(filename, ext=0):
+def read_fits_data(filename: str | Path,
+                   ext: int | str = 0,
+                   ) -> np.ndarray:
     """
     Read data from a FITS file extension.
 
