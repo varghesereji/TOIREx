@@ -106,6 +106,33 @@ def text_to_dict(opdir='.',
 
 
 def get_filename(groups, opdir):
+    """
+    Prompt the user for an output filename prefix.
+
+    A default filename prefix is obtained from the
+    ``Filename_suggestions.txt`` file located in the output directory.
+    The user may either accept the suggested name by pressing Enter or
+    provide a custom prefix.
+
+    Parameters
+    ----------
+    groups : str
+        Key identifying the group for which a filename suggestion should
+        be retrieved.
+    opdir : str or pathlib.Path
+        Output directory containing the ``Filename_suggestions.txt``
+        file.
+
+    Returns
+    -------
+    outfileprefix : str
+        User-selected output filename prefix. If no input is provided,
+        the suggested prefix is returned.
+
+    Notes
+    -----
+    Filename suggestions are read using :func:`text_to_dict`.
+    """
     fname_suggestion = text_to_dict(
         txtfname=opdir / "Filename_suggestions.txt")[groups]
     outfileprefix = input(
