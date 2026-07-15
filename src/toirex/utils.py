@@ -94,6 +94,33 @@ def extract_fname_prefix(fname, regexp=r"^(.*?)-\d{5}\.Z\.fits$"):
 
 def text_to_dict(opdir='.',
                  txtfname="Filename_suggestions.txt"):
+    """
+    Read a key-value mapping from a text file.
+
+    Each non-empty line in the input file must contain a key and value
+    separated by the first colon (``:``). Leading and trailing
+    whitespace is removed from both the key and value before storing
+    them in the returned dictionary.
+
+    Parameters
+    ----------
+    opdir : str or pathlib.Path, optional
+        Directory containing the text file. Default is the current
+        directory (``"."``).
+    txtfname : str or pathlib.Path, optional
+        Name of the text file to read. Default is
+        ``"Filename_suggestions.txt"``.
+
+    Returns
+    -------
+    mapping : dict
+        Dictionary containing the parsed key-value pairs.
+
+    Notes
+    -----
+    Only the first colon in each line is treated as the separator,
+    allowing values to contain additional colons.
+    """
     if isinstance(opdir, str):
         opdir = Path(opdir)
     txtfile = opdir / txtfname
