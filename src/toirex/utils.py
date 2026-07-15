@@ -33,15 +33,31 @@ def get_pkgpath():
 
 def get_instrument_dir(instrument_name: str):
     """
-    Ensures the instrument directory exists inside package data.
+    Ensure that calibration data for an instrument are available.
 
-    If the directory does not exist, downloads it from the remote repository.
+    The function checks whether the requested instrument directory exists
+    within the package data. If it is not found, the corresponding data
+    are downloaded from the TOIREx data repository.
 
-    Parameters:
-    -----------
-    instrument : str
-        Name of the instrument directory (e.g., "TANSPEC", "TIRSPEC").
+    Parameters
+    ----------
+    instrument_name : str
+        Name of the instrument (e.g., ``"TANSPEC"`` or ``"TIRSPEC"``).
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    Only instruments with data available in the TOIREx data repository
+    are supported. If an unsupported instrument is requested, an
+    informational message is printed and no action is taken.
+
+    If the instrument data are not already present, the function invokes
+    :func:`download_instrument` to retrieve them.
     """
+
     data_for = ['TANSPEC', 'TIRSPEC']
     if instrument_name not in data_for:
         print("No data for {}".format(instrument_name))
