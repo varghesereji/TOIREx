@@ -225,6 +225,42 @@ def get_pixel_shift(spectra, template, medfilt=3, sigma=10, radius=20):
 
 
 def fit_gaussian_profile(counts):
+    """
+    Fit a one-dimensional Gaussian profile to a sequence of counts.
+
+    This function fits an `astropy.modeling.models.Gaussian1D` model to
+    the input data using a Levenberg-Marquardt least-squares optimizer.
+    Initial parameter estimates are derived from the input profile:
+
+    - Amplitude: ``max(counts) - min(counts)``
+    - Mean: Index of the maximum value
+    - Standard deviation: One-quarter of the profile length
+
+    Parameters
+    ----------
+    counts : array-like
+        One-dimensional array containing the profile values to be fitted.
+
+    Returns
+    -------
+    x : `numpy.ndarray`
+        Pixel indices corresponding to the input profile.
+    counts : array-like
+        The original input profile.
+    fitted_profile : `numpy.ndarray`
+        Gaussian model evaluated at ``x`` using the best-fit parameters.
+    g_fit : `astropy.modeling.functional_models.Gaussian1D`
+        Best-fit Gaussian model. The fitted parameters can be accessed
+        through attributes such as ``g_fit.amplitude``,
+        ``g_fit.mean``, and ``g_fit.stddev``.
+
+    Notes
+    -----
+    The fitting is performed using
+    `astropy.modeling.fitting.LevMarLSQFitter`, which minimizes the
+    least-squares residuals between the input profile and the Gaussian
+    model.
+    """
     x = np.arange(len(counts))
 
     # Initial guess: amplitude, mean, stddev
