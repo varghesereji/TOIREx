@@ -88,6 +88,36 @@ def extract_number_from_fname(fname):
 
 
 def extract_fname_prefix(fname, regexp=r"^(.*?)-\d{5}\.Z\.fits$"):
+    """
+    Extract the prefix from a FITS filename using a regular expression.
+
+    By default, the function extracts the portion of the filename
+    preceding a five-digit sequence and the ``.Z.fits`` suffix. If the
+    filename does not match the supplied pattern, ``"AAA"`` is returned.
+
+    Parameters
+    ----------
+    fname : str
+        Filename from which to extract the prefix.
+    regexp : str, optional
+        Regular expression used to match the filename. The first capture
+        group is returned as the prefix. Default is
+        ``r"^(.*?)-\\d{5}\\.Z\\.fits$"``.
+
+    Returns
+    -------
+    str
+        Extracted filename prefix if the pattern matches; otherwise
+        ``"AAA"``.
+
+    Examples
+    --------
+    >>> extract_fname_prefix("NGC7027-00001.Z.fits")
+    'NGC7027'
+
+    >>> extract_fname_prefix("invalid_filename.fits")
+    'AAA'
+    """
     match = re.match(regexp, fname)
     return match.group(1) if match else "AAA"
 
