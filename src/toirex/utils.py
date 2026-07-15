@@ -318,7 +318,9 @@ def get_filename(groups, opdir):
 # ============================================================================
 # FITS I/O utilities
 # ============================================================================
-def read_fits_header(filename, ext=0):
+def read_fits_header(filename: str | Path,
+                     ext: int | str = 0,
+                     ) -> fits.Header:
     """
     Read the header from a FITS file extension.
 
