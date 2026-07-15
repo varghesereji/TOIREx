@@ -135,7 +135,30 @@ def read_fits_data(filename, ext=0):
 
 def open_in_editor(path, config):
     """
-    Open a text file in the desired text editor.
+    Open a file in the user-configured text editor.
+
+    The editor executable is read from the ``EDITOR`` entry in the
+    ``inits`` section of the configuration dictionary and invoked using
+    :func:`subprocess.run`.
+
+    Parameters
+    ----------
+    path : str or pathlib.Path
+        Path to the file to be opened.
+    config : dict
+        Configuration dictionary containing the editor setting. The
+        editor executable is expected at::
+
+            config['inits']['EDITOR']
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    This function launches the configured editor as a subprocess and
+    waits for it to exit before returning.
     """
     editor = config['inits']['EDITOR']
     subprocess.run([editor, str(path)])
