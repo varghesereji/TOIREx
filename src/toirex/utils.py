@@ -24,8 +24,22 @@ from ariastrotools import combine_process
 
 def get_pkgpath():
     """
-    Function to get the path
-    to the package.
+    Return the path to the TOIREx package.
+
+    This function returns the root directory of the installed TOIREx
+    package using :mod:`importlib.resources`. The returned path can be
+    used to locate package resources bundled with the installation.
+
+    Returns
+    -------
+    importlib.abc.Traversable
+        Traversable object representing the root directory of the TOIREx
+        package.
+
+    See Also
+    --------
+    importlib.resources.files
+        Return a traversable object for accessing package resources.
     """
     pkgpath = resources.files("toirex").joinpath(".")
     return pkgpath
