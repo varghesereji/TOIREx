@@ -337,6 +337,11 @@ def read_fits_header(filename, ext=0):
     header : `astropy.io.fits.Header`
         Header associated with the specified FITS extension.
 
+    Raises
+    ------
+    OSError
+       If the FITS file cannot be opened.
+
     See Also
     --------
     astropy.io.fits.getheader
