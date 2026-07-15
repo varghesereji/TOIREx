@@ -322,29 +322,19 @@ def read_fits_header(filename: str | Path,
                      ext: int | str = 0,
                      ) -> fits.Header:
     """
-    Read the header from a FITS file extension.
-
-    This is a convenience wrapper around
-    :func:`astropy.io.fits.getheader` for reading the header of a
-    specified FITS extension.
+    Read the header from a FITS file.
 
     Parameters
     ----------
     filename : str or pathlib.Path
-        Path to the FITS file.
+        FITS file to read.
     ext : int or str, optional
-        FITS extension from which to read the header. This may be either
-        the extension number or the extension name. Default is 0.
+        FITS extension. Default is 0.
 
     Returns
     -------
-    header : `astropy.io.fits.Header`
-        Header associated with the specified FITS extension.
-
-    Raises
-    ------
-    OSError
-       If the FITS file cannot be opened.
+    astropy.io.fits.Header
+        FITS header.
 
     See Also
     --------
@@ -359,28 +349,23 @@ def read_fits_data(filename: str | Path,
                    ext: int | str = 0,
                    ) -> np.ndarray:
     """
-    Read data from a FITS file extension.
-
-    This is a convenience wrapper around :func:`astropy.io.fits.getdata`
-    for reading the data array from a specified FITS extension.
+    Read data from a FITS file.
 
     Parameters
     ----------
     filename : str or pathlib.Path
-        Path to the FITS file.
+        FITS file to read.
     ext : int or str, optional
-        FITS extension from which to read the data. This may be either
-        the extension number or the extension name. Default is 0.
+        FITS extension. Default is 0.
 
     Returns
     -------
-    data : `numpy.ndarray`
-        Data array stored in the specified FITS extension.
+    numpy.ndarray
+        Data array from the requested FITS extension.
 
     See Also
     --------
     astropy.io.fits.getdata
-        Read data from a FITS file.
     """
     data = fits.getdata(filename, ext=ext)
     return data
