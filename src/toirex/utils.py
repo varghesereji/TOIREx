@@ -254,7 +254,12 @@ def text_to_dict(opdir='.',
     -------
     mapping : dict
         Dictionary containing the parsed key-value pairs.
-
+    Raises
+    ------
+    FileNotFoundError
+        If the text file does not exist.
+    ValueError
+        If a line does not contain a colon separator.
     Notes
     -----
     Only the first colon in each line is treated as the separator,
