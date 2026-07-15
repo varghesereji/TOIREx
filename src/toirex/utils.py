@@ -83,6 +83,32 @@ def download_instrument(instrument: str, outdir: Path = Path("data")) -> Path:
 
 # Filename functions
 def extract_number_from_fname(fname):
+    """
+    Extract all numeric substrings from a filename.
+
+    The function searches the input string for one or more consecutive
+    digits and returns all matches in the order they appear.
+
+    Parameters
+    ----------
+    fname : str
+        Filename or string from which numeric substrings are to be
+        extracted.
+
+    Returns
+    -------
+    numbers : list of str
+        List of numeric substrings found in ``fname``. If no digits are
+        present, an empty list is returned.
+
+    Examples
+    --------
+    >>> extract_number_from_fname("NGC7027-00001.Z.fits")
+    ['7027', '00001']
+
+    >>> extract_number_from_fname("image.fits")
+    []
+    """
     numbers = re.findall(r"\d+", fname)
     return numbers
 
