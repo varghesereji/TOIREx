@@ -191,6 +191,59 @@ def combine_frames(files_list, op_dirname, sorting_function,
                    fluxext=0,
                    varext=1,
                    mask=None):
+    """
+    Combine multiple FITS frames into a single output frame.
+
+    The input filenames are first sorted into a descriptive output name
+    using the provided ``sorting_function``. If the combined frame already
+    exists, its filename is returned without recomputing the combination.
+    Otherwise, the input frames are combined using
+    :func:`combine_process`.
+
+    Parameters
+    ----------
+    files_list : list of str
+        List of FITS filenames to be combined.
+    op_dirname : pathlib.Path
+        Directory containing the input frames and where the combined
+        output frame will be written.
+    sorting_function : callable
+        Function that accepts a filename and returns a value (typically a
+        frame number) used to construct the output filename.
+    method : {'median', 'mean', 'biweight'}, optional
+        Combination method to use. Default is ``'median'``.
+
+        .. note::
+           The current implementation always calls
+           :func:`combine_process` with ``method='biweight'``,
+           regardless of the value supplied to this parameter.
+    op_prefix : str, optional
+        Prefix for the output filename. Default is ``"Comb_"``.
+    fluxext : int, optional
+        FITS extension containing the science (flux) data. Default is 0.
+    varext : int or None, optional
+        FITS extension containing the variance data. If ``None``, no
+        variance extension is used. Default is 1.
+    mask : array-like or None, optional
+        Boolean mask specifying pixels to ignore during the combination.
+        Default is ``None``.
+
+    Returns
+    -------
+    str
+        Filename of the combined FITS frame. If the combined file already
+        exists, the existing filename is returned.
+
+    Notes
+    -----
+    The output filename is constructed by concatenating the values
+    returned by ``sorting_function`` for each input file, separated by
+    underscores. For example::
+
+        Comb_001_002_003.fits
+
+    If the output file already exists, no combination is performed.
+    """
     fnums = []
     if "".join(varext) == 'None':
         varext = None
