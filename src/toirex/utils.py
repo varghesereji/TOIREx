@@ -129,6 +129,30 @@ def read_fits_header(filename, ext=0):
 
 
 def read_fits_data(filename, ext=0):
+    """
+    Read data from a FITS file extension.
+
+    This is a convenience wrapper around :func:`astropy.io.fits.getdata`
+    for reading the data array from a specified FITS extension.
+
+    Parameters
+    ----------
+    filename : str or pathlib.Path
+        Path to the FITS file.
+    ext : int or str, optional
+        FITS extension from which to read the data. This may be either
+        the extension number or the extension name. Default is 0.
+
+    Returns
+    -------
+    data : `numpy.ndarray`
+        Data array stored in the specified FITS extension.
+
+    See Also
+    --------
+    astropy.io.fits.getdata
+        Read data from a FITS file.
+    """
     data = fits.getdata(filename, ext=ext)
     return data
 
