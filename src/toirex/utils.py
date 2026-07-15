@@ -117,13 +117,31 @@ def get_filename(groups, opdir):
 
 # Header functions
 def read_fits_header(filename, ext=0):
-    '''
-    Function to read the header of the fits file.
-    Input
-    -----
-    filename: Name of the fits file to read.
-    ext: Extension of the fits file. Default 0
-    '''
+    """
+    Read the header from a FITS file extension.
+
+    This is a convenience wrapper around
+    :func:`astropy.io.fits.getheader` for reading the header of a
+    specified FITS extension.
+
+    Parameters
+    ----------
+    filename : str or pathlib.Path
+        Path to the FITS file.
+    ext : int or str, optional
+        FITS extension from which to read the header. This may be either
+        the extension number or the extension name. Default is 0.
+
+    Returns
+    -------
+    header : `astropy.io.fits.Header`
+        Header associated with the specified FITS extension.
+
+    See Also
+    --------
+    astropy.io.fits.getheader
+        Read the header from a FITS file.
+    """
     header = fits.getheader(filename, ext=ext)
     return header
 
