@@ -62,7 +62,43 @@ def get_instrument_dir(instrument_name: str):
 
 def download_instrument(instrument: str, outdir: Path = Path("data")) -> Path:
     """
-    Download a whole instrument directory (e.g., TANSPEC) from GitLab repo.
+    Download calibration data for a supported instrument.
+
+    The function downloads the TOIREx calibration data archive from the
+    project GitLab repository, extracts only the directory corresponding
+    to the requested instrument, and places it in the specified output
+    directory.
+
+    Parameters
+    ----------
+    instrument : str
+        Name of the instrument to download (e.g., ``"TANSPEC"``).
+    outdir : pathlib.Path, optional
+        Directory where the instrument data will be extracted. If the
+        directory does not exist, it should be created beforehand.
+        Default is ``Path("data")``.
+
+    Returns
+    -------
+    pathlib.Path
+        Path to the extracted instrument directory.
+
+    Raises
+    ------
+    requests.HTTPError
+        If the data archive cannot be downloaded successfully.
+
+    Notes
+    -----
+    The complete TOIREx data archive is downloaded as a ZIP file, but
+    only the requested instrument directory is extracted. The extracted
+    directory is then moved from the archive's top-level folder to the
+    output directory.
+
+    Examples
+    --------
+    >>> download_instrument("TANSPEC")
+    PosixPath('data/TANSPEC')
     """
     url = "https://gitlab.com/varghesereji/toirex-data/-/archive/\
     main/toirex-data-main.zip"
