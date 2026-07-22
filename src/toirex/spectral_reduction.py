@@ -783,8 +783,10 @@ def spectral_reduction(
                 subtract_background(opdir / wlsolved_fname, config)
             if config['spectral_extraction']['FLUX_CALIB'] == 'Y':
                 flux_calibration(opdir / wlsolved_fname, config, instrument)
-        if (len(reduced_spectra) > 1) & (
-                config['spectral_extraction']['SCOMBINE'] == 'Y'):
+        if (
+                len(reduced_spectra) > 1
+                and config['spectral_extraction']['SCOMBINE'] == 'Y'
+        ):
             opfilename = Path(reduced_spectra[0]).stem + '.avg.fits'
             opfilename = opdir / opfilename
             reduced_spectra = [opdir / i for i in reduced_spectra]
