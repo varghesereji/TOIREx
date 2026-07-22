@@ -14,6 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ast
 from collections.abs import Callable
+from typing import Any
 
 from ariastrotools import combine_process
 from ariastrotools import combine_spectra
@@ -31,8 +32,11 @@ from .setups import create_config
 from .plottings import plot_arrays
 
 
-def config_for_extraction(data_fname, config,
-                          trace_selection, for_lamp=None):
+def config_for_extraction(
+        data_fname: str | Path,
+        config: dict[str, Any],
+        trace_selection: Callable[[Path], tuple[Path, Path, Path]],
+        for_lamp: dict[str, Any] | None = None):
     """
     Create a SpectrumExtractor configuration file for a science or lamp frame.
 
@@ -174,7 +178,9 @@ def config_for_extraction(data_fname, config,
 # Background subtraction
 # ---------------------------
 
-def subtract_background(fname, config):
+def subtract_background(
+        fname: str | Path,
+        config: dict[str, Any]):
     """
     Subtract the estimated background from an extracted spectrum.
 
@@ -270,8 +276,12 @@ def subtract_background(fname, config):
 # ---------------------------
 
 
-def wavelength_calibration(txtline, config,
-                           opdir, instrument):
+def wavelength_calibration(
+        txtline: list[str],
+        config: dict[str, Any],
+        opdir: Path,
+        instrument: dict[str, Callable[..., Any] | None],
+) -> str:
     """
     Derive and save the wavelength solution for an extracted spectrum.
 
@@ -400,8 +410,11 @@ def wavelength_calibration(txtline, config,
 # ---------------------------
 
 
-def flux_calibration(fname, config,
-                     instrument):
+def flux_calibration(
+        fname: str | Path,
+        config: dict[str, Any],
+        instrument: dict[str, Callable[..., Any] | None]
+) -> Path:
     """
     Apply instrumental response correction to an extracted spectrum.
 
@@ -461,7 +474,11 @@ def flux_calibration(fname, config,
 
 # Plot sky
 
-def plot_sky(fname, opdir, getsky_fn):
+def plot_sky(
+        fname: str | Path,
+        opdir: Path,
+        getsky_fn: Callable[[Path], Path] | None,
+) -> None:
     """
     Plot the extracted sky background together with a reference sky spectrum.
 
