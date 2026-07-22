@@ -91,6 +91,7 @@ def config_for_extraction(
     create_config : Write a SpectrumExtractor configuration file.
     get_pkgpath : Return the installation path of the package.
     """
+    data_fname = Path(data_fname)
     dirname = Path(data_fname.parent)
     # opdir = Path(config['outputs']['OP_DIR']) / dirname
     extractorconfig_fname = config['spectral_extraction']['EXTRACTORCONFIG']
