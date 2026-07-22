@@ -452,6 +452,47 @@ def flux_calibration(fname, config,
 # Plot sky
 
 def plot_sky(fname, opdir, getsky_fn):
+    """
+    Plot the extracted sky background together with a reference sky spectrum.
+
+    This function plots the two extracted background spectra from an
+    observation and, if available, overlays a standard sky spectrum for
+    comparison. All spectra are normalized by their median values before
+    plotting. The resulting figure is saved as a PDF in the output directory.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Filename of the extracted FITS spectrum.
+    opdir : pathlib.Path
+        Directory containing the extracted spectrum and where the output plot
+        will be saved.
+    getsky_fn : callable or None
+        Function that accepts the extracted spectrum filename and returns the
+        path to the corresponding standard sky spectrum. If ``None``, the
+        function returns without producing any plot.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    - The extracted background spectra are read from the ``"BKG FLUX 0"`` and
+      ``"BKG FLUX 1"`` FITS extensions.
+    - The wavelength scale is read from the ``"WAVELENGTH"`` extension.
+    - All spectra are normalized by their median values to facilitate
+      comparison of their spectral shapes.
+    - If the standard sky spectrum cannot be found, only the extracted
+      background spectra are plotted and no output file is written.
+    - When available, the comparison plot is saved as
+      ``<filename>_stdsky.pdf`` in the output directory.
+
+    See Also
+    --------
+    plot_arrays
+        Plot one or more spectra on a common set of axes.
+    """
     if getsky_fn is None:
         return
     fname = opdir / fname
