@@ -165,6 +165,48 @@ def config_for_extraction(data_fname, config,
 # ---------------------------
 
 def subtract_background(fname, config):
+    """
+    Subtract the estimated background from an extracted spectrum.
+
+    This function computes the average background per pixel using the two
+    background regions defined in the pipeline configuration and subtracts
+    the corresponding background contribution from the extracted flux. If a
+    variance extension is present, the variance is propagated assuming the
+    background estimates are independent.
+
+    The input FITS file is modified in place.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Path to the extracted FITS file. The primary HDU must contain the
+        extracted flux, while extensions 1 and 2 must contain the summed
+        background values from the two background windows.
+    config : dict
+        Pipeline configuration dictionary containing the spectral extraction
+        parameters, including ``APERTUREWINDOW`` and ``BKGWINDOWS``.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    - The average background per pixel is computed independently for the two
+      background windows and then averaged.
+    - The total background within the extraction aperture is obtained by
+      scaling the average background by the aperture width before subtraction.
+    - If the FITS file contains a ``VARIANCE`` extension, the corresponding
+      background variance extensions (``BKG VARIANCE 0`` and
+      ``BKG VARIANCE 1``) are used to propagate the uncertainties.
+    - A HISTORY entry describing the aperture and background windows used for
+      the subtraction is added to the primary FITS header.
+    - The FITS file is updated in place.
+
+    See Also
+    --------
+    astropy.io.fits.open : Open a FITS file for reading or updating.
+    """
     hdul = fits.open(fname, mode='update')
     flux = hdul[0].data
     bkg1 = hdul[1].data
