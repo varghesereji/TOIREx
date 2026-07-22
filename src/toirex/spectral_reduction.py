@@ -670,7 +670,7 @@ def extract_obj_lamp(
     optxtfile_line = [op_fname.name]
     _, avg_xd_shift, pixdomain = extraction(data_fname,
                                             extraction_config)
-    refitapertureinxd = (
+    refit_aperture_in_xd = (
         tuple(
             x.item() if isinstance(x, np.generic) else x for x in avg_xd_shift
         ),
@@ -682,7 +682,7 @@ def extract_obj_lamp(
     # Extracting lamps
     # We want to extract the lamp spectra from the same place where
     # science spectra was extracted.
-    lamp_entries = {"ReFitApertureInXD": refitapertureinxd}
+    lamp_entries = {"ReFitApertureInXD": refit_aperture_in_xd}
     config['spectral_extraction']['EXTRACTORCONFIG'] = str(extraction_config)
     lamp_config = config_for_extraction(data_fname,
                                         config,
