@@ -164,7 +164,7 @@ def launch_simbad_gui():
     entry_name.focus_set()
 
     tk.Label(
-        gui, text="RA (deg):",
+        gui, text="RA (dd:mm:ss):",
         font=("Arial", 11)).grid(row=1, column=0,
                                  sticky="e", padx=padx, pady=pady)
     entry_ra = tk.Entry(gui, width=28, font=("Arial", 11))
