@@ -586,8 +586,8 @@ def extraction(
     -------
     outputobjspec : numpy.ndarray
         Extracted one-dimensional spectrum returned by SpectrumExtractor.
-    avg_xd_shift : float
-        Average cross-dispersion shift measured during extraction.
+    avg_xd_shift : numpy.ndarray
+        Cross-dispersion shift(s) measured during extraction.
     pixdomain : numpy.ndarray
         Pixel coordinates corresponding to the extracted spectrum.
 
