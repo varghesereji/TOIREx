@@ -661,8 +661,8 @@ def extract_obj_lamp(txtline, config,
     op_fname = Path(data_fname).stem + ".ms.fits"
     op_fname = Path(opdir) / op_fname
     optxtfile_line = [op_fname.name]
-    outputobjspec, avg_xd_shift, pixdomain = extraction(data_fname,
-                                                        extraction_config)
+    _, avg_xd_shift, pixdomain = extraction(data_fname,
+                                            extraction_config)
     refitapertureinxd = (
         tuple(
             x.item() if isinstance(x, np.generic) else x for x in avg_xd_shift
@@ -689,9 +689,9 @@ def extract_obj_lamp(txtline, config,
         outlamp_fname = Path(op_fname).stem + "_arc{}.fits".format(n+1)
         optxtfile_line.append(outlamp_fname)
         outlamp_fname = opdir / outlamp_fname
-        outputlampspec, avgxdshift, pixdomain = extraction(lampfile,
-                                                           lamp_config,
-                                                           outlamp_fname)
+        _, _, _ = extraction(lampfile,
+                             lamp_config,
+                             outlamp_fname)
     return optxtfile_line
 
 
