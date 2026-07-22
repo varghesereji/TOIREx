@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+"""
+Spectral extraction and calibration routines.
+
+This module provides the high-level spectral reduction workflow for TOIREx.
+It interfaces with SpectrumExtractor to extract one-dimensional spectra,
+performs wavelength calibration using arc-lamp spectra, optionally subtracts
+the sky background, applies instrument response correction, and combines
+multiple reduced spectra when requested.
+"""
 
 from pathlib import Path
 import numpy as np
