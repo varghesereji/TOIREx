@@ -392,6 +392,47 @@ def wavelength_calibration(txtline, config,
 
 def flux_calibration(fname, config,
                      instrument):
+    """
+    Apply instrumental response correction to an extracted spectrum.
+
+    This function performs flux calibration by dividing the extracted spectrum
+    by the instrument response curve. The appropriate response file is obtained
+    using the instrument-specific response function, and both the flux and
+    variance extensions are calibrated accordingly.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Path to the extracted FITS spectrum to be flux calibrated.
+    config : dict
+        Pipeline configuration dictionary. The ``inputs`` section must define
+        the FITS extensions corresponding to the flux and variance data
+        (``FLUXEXT`` and ``VAREXT``).
+    instrument : dict
+        Instrument-specific configuration dictionary. It must contain the key
+        ``'inst_response'``, which is a callable that accepts ``fname`` and
+        returns the path to the corresponding instrument response file.
+
+    Returns
+    -------
+    pathlib.Path
+        Path to the flux-calibrated FITS file.
+
+    Notes
+    -----
+    - Flux calibration is performed by dividing the extracted spectrum by the
+      instrument response curve.
+    - The same operation is applied to the specified variance extension so
+      that the propagated uncertainties remain consistent.
+    - The output file is written to the same directory as the input spectrum
+      with the suffix ``.flc.fits``.
+
+    See Also
+    --------
+    operate_process
+        Perform arithmetic operations between FITS files while propagating
+        variances.
+    """
     response_name = instrument['inst_response'](fname)
     print(
         "Doing flux calibration with response curves: {}".format(
