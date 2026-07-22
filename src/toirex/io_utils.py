@@ -82,7 +82,9 @@ def launch_simbad_gui():
     def check_simbad(event=None):
         name = entry_name.get().strip()
         if not name:
-            messagebox.showwarning("Input Error", "Please enter a target name.")
+            messagebox.showwarning(
+                "Input Error", "Please enter a target name."
+            )
             return
 
         btn_check.config(state="disabled")
@@ -92,7 +94,9 @@ def launch_simbad_gui():
             result = Simbad.query_object(name)
             if result is None or len(result) == 0:
                 clear_fields()
-                messagebox.showinfo("Not found", f"'{name}' not found in SIMBAD.")
+                messagebox.showinfo(
+                    "Not found", f"'{name}' not found in SIMBAD."
+                )
                 return
 
             row = result[0]
@@ -125,7 +129,9 @@ def launch_simbad_gui():
             fill(entry_pmra, str(pmra) if pmra is not None else "")
             fill(entry_pmdec, str(pmdec) if pmdec is not None else "")
 
-            # messagebox.showinfo("Success", f"'{name}' found in SIMBAD. Fields filled.")
+            # messagebox.showinfo(
+            # "Success", f"'{name}' found in SIMBAD. Fields filled."
+            # )
 
         except Exception as e:
             messagebox.showerror("Error", f"Query failed:\n{e}")
@@ -149,37 +155,59 @@ def launch_simbad_gui():
 
     padx, pady = 8, 6
 
-    tk.Label(gui, text="Target Name:", font=("Arial", 11)).grid(row=0, column=0, sticky="e", padx=padx, pady=pady)
+    tk.Label(
+        gui, text="Target Name:",
+        font=("Arial", 11)).grid(row=0, column=0,
+                                 sticky="e", padx=padx, pady=pady)
     entry_name = tk.Entry(gui, width=30, font=("Arial", 11))
     entry_name.grid(row=0, column=1, padx=padx, pady=pady)
     entry_name.focus_set()
 
-    tk.Label(gui, text="RA (deg):", font=("Arial", 11)).grid(row=1, column=0, sticky="e", padx=padx, pady=pady)
+    tk.Label(
+        gui, text="RA (deg):",
+        font=("Arial", 11)).grid(row=1, column=0,
+                                 sticky="e", padx=padx, pady=pady)
     entry_ra = tk.Entry(gui, width=28, font=("Arial", 11))
     entry_ra.grid(row=1, column=1, padx=padx, pady=pady)
 
-    tk.Label(gui, text="Dec (deg):", font=("Arial", 11)).grid(row=2, column=0, sticky="e", padx=padx, pady=pady)
+    tk.Label(
+        gui, text="Dec (deg):",
+        font=("Arial", 11)).grid(row=2, column=0,
+                                 sticky="e", padx=padx, pady=pady)
     entry_dec = tk.Entry(gui, width=28, font=("Arial", 11))
     entry_dec.grid(row=2, column=1, padx=padx, pady=pady)
 
-    tk.Label(gui, text="PMRA (mas/yr):", font=("Arial", 11)).grid(row=3, column=0, sticky="e", padx=padx, pady=pady)
+    tk.Label(
+        gui, text="PMRA (mas/yr):",
+        font=("Arial", 11)).grid(row=3, column=0,
+                                 sticky="e", padx=padx, pady=pady)
     entry_pmra = tk.Entry(gui, width=28, font=("Arial", 11))
     entry_pmra.grid(row=3, column=1, padx=padx, pady=pady)
 
-    tk.Label(gui, text="PMDEC (mas/yr):", font=("Arial", 11)).grid(row=4, column=0, sticky="e", padx=padx, pady=pady)
+    tk.Label(
+        gui, text="PMDEC (mas/yr):",
+        font=("Arial", 11)).grid(row=4, column=0,
+                                 sticky="e", padx=padx, pady=pady)
     entry_pmdec = tk.Entry(gui, width=28, font=("Arial", 11))
     entry_pmdec.grid(row=4, column=1, padx=padx, pady=pady)
 
     btn_frame = tk.Frame(gui)
     btn_frame.grid(row=5, column=0, columnspan=2, pady=(12, 8))
 
-    btn_check = tk.Button(btn_frame, text="Check SIMBAD", width=14, font=("Arial", 11, "bold"), command=check_simbad)
+    btn_check = tk.Button(btn_frame,
+                          text="Check SIMBAD",
+                          width=14, font=("Arial", 11, "bold"),
+                          command=check_simbad)
     btn_check.pack(side="left", padx=6)
 
-    btn_clear = tk.Button(btn_frame, text="Clear Fields", width=12, font=("Arial", 11), command=clear_fields)
+    btn_clear = tk.Button(btn_frame,
+                          text="Clear Fields",
+                          width=12, font=("Arial", 11), command=clear_fields)
     btn_clear.pack(side="left", padx=6)
 
-    btn_done = tk.Button(btn_frame, text="Done", width=10, font=("Arial", 11), command=on_done)
+    btn_done = tk.Button(
+        btn_frame, text="Done", width=10, font=("Arial", 11),
+        command=on_done)
     btn_done.pack(side="left", padx=6)
 
     entry_name.bind("<Return>", check_simbad)
