@@ -262,6 +262,68 @@ def subtract_background(fname, config):
 
 def wavelength_calibration(txtline, config,
                            opdir, instrument):
+    """
+    Derive and save the wavelength solution for an extracted spectrum.
+
+    This function calibrates the wavelength solution for each extracted
+    aperture by matching the observed arc-lamp spectrum to an instrument-
+    specific template. If multiple lamp exposures are provided, they are
+    first combined into a single reference lamp frame. The resulting
+    wavelength solution is appended as a new FITS extension and written to
+    a new output file.
+
+    Diagnostic plots showing the template match for each aperture are also
+    generated.
+
+    Parameters
+    ----------
+    txtline : list of str
+        List containing the science spectrum filename followed by one or more
+        arc-lamp filenames. The first element is the extracted science FITS
+        file, while the remaining elements are the associated calibration
+        lamp frames.
+    config : dict
+        Pipeline configuration dictionary. Currently included for interface
+        consistency and reserved for future use.
+    opdir : pathlib.Path
+        Directory containing the extracted science and lamp files. Output
+        files are also written to this directory.
+    instrument : dict
+        Instrument-specific configuration dictionary. It must contain:
+
+        - ``'pixel_offset'`` : callable or ``None``
+          Function that estimates the detector pixel offset from a lamp frame.
+        - ``'get_template'`` : callable
+          Function returning the reference wavelength template for a given
+          aperture.
+
+    Returns
+    -------
+    str
+        Filename of the generated wavelength-calibrated FITS file.
+
+    Notes
+    -----
+    - When multiple lamp frames are supplied, they are combined using a mean
+      before wavelength calibration.
+    - The wavelength solution for each aperture is determined using
+      ``recalibrate.ReCalibrateDispersionSolution`` with a third-order
+      polynomial model (``method='p3'``).
+    - One diagnostic PDF,
+      ``template_match_aperture<N>.pdf``, is generated for each aperture,
+      showing the observed lamp spectrum and the matched template.
+    - The computed wavelength solution is stored as a new FITS extension
+      named ``"Wavelength"``.
+    - The output file is written with the suffix ``.wlc.fits``.
+
+    See Also
+    --------
+    combine_process : Combine multiple lamp exposures.
+    recalibrate.ReCalibrateDispersionSolution
+        Fit the wavelength solution using a reference template.
+    instrument['get_template']
+        Return the reference wavelength template for an aperture.
+    """
     op_fname = opdir / txtline[0]
     arclamp1 = opdir / txtline[1]
     calculate_pixel_offset = instrument['pixel_offset']
