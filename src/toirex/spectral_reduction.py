@@ -560,7 +560,7 @@ def extraction(
         fname: str | Path,
         extraction_config: str | Path,
         op_fname: str | Path | None = None
-) -> tuple[np.ndarray, float, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Extract a spectrum from a reduced two-dimensional image.
 
