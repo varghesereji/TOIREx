@@ -349,9 +349,11 @@ def call_masterflat_tirspec(
     header = read_fits_header(frame)
     slit = header['SLIT']
     if slit == 'open':
-        method = 'P'  # Because if it is photometry, slit should be open always.
+        # Because if it is photometry, slit should be open always.
+        method = 'P'
     else:
-        method = 'S'  # There will be a slit if you are taking spectra.
+        # There will be a slit if you are taking spectra.
+        method = 'S'
     instconfig = pkgpath / instrument_config
     instrument_configs = read_config(instconfig)
     instrument_items = instrument_configs['TIRSPEC']
@@ -368,6 +370,7 @@ def call_masterflat_tirspec(
 #################################
 #    Function dictionaries      #
 #################################
+
 
 instruments = {
     'SpecTANSPEC':
