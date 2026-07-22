@@ -7,7 +7,42 @@ import numpy as np
 
 
 def launch_simbad_gui():
-    """Launch a SIMBAD GUI and return user-entered or queried results as a dictionary."""
+    """
+    Launch a graphical interface for querying target coordinates from SIMBAD.
+
+    A Tkinter-based dialog is opened that allows the user to enter the name of
+    an astronomical target. The target is queried using the SIMBAD database via
+    `astroquery.simbad.Simbad`. If the object is found, the right ascension,
+    declination, and proper motions are displayed in the corresponding input
+    fields. The user can then confirm or edit the values before closing the
+    dialog.
+
+    The returned dictionary contains the final values entered in the GUI,
+    regardless of whether they were obtained from SIMBAD or entered manually.
+
+    Returns
+    -------
+    dict
+        Dictionary containing the target information with the following keys:
+
+        - ``"name"`` (`str`)
+            Target name.
+        - ``"ra"`` (`str` or `None`)
+            Right ascension in sexagesimal format (HH:MM:SS.ss).
+        - ``"dec"`` (`str` or `None`)
+            Declination in sexagesimal format (±DD:MM:SS.ss).
+        - ``"pmra"`` (`float` or `None`)
+            Proper motion in right ascension (mas yr⁻¹).
+        - ``"pmdec"`` (`float` or `None`)
+            Proper motion in declination (mas yr⁻¹).
+
+    Notes
+    -----
+    If a Tkinter root window does not already exist, one is created
+    temporarily and hidden from the user. The function automatically requests
+    the ``ra``, ``dec``, ``pmra``, and ``pmdec`` fields from SIMBAD before
+    performing any queries.
+    """
 
     # Use the updated field names
     Simbad.add_votable_fields("ra", "dec", "pmra", "pmdec")
