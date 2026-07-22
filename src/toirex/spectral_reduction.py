@@ -701,7 +701,10 @@ def extract_obj_lamp(txtline, config,
 # --------------------------------------- #
 # Reduction with wavelength calibration   #
 # --------------------------------------- #
-def spectral_reduction(config, dirname):
+def spectral_reduction(
+        config: dict,
+        dirname: str | Path
+) -> None:
     """
     Perform spectral extraction and calibration for a group of observations.
 
