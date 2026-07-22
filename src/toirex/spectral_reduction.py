@@ -590,7 +590,59 @@ def extraction(fname, extraction_config,
 def extract_obj_lamp(txtline, config,
                      opdir, instrument):
     """
-    Extracting lamp and star spectra.
+    Extract spectra from a science frame and its associated arc-lamp frames.
+
+    This function extracts the spectrum from a science exposure and then
+    extracts the spectra from one or more associated arc-lamp exposures using
+    the same aperture traces. The measured cross-dispersion shifts from the
+    science extraction are reused to refit the aperture positions for the lamp
+    frames, ensuring that the wavelength calibration is performed using
+    consistent extraction apertures.
+
+    Parameters
+    ----------
+    txtline : list of str
+        List containing the science filename followed by one or more
+        associated arc-lamp filenames. The first element is treated as the
+        science frame, while the remaining elements are extracted as lamp
+        spectra.
+    config : dict
+        Pipeline configuration dictionary containing the spectral extraction
+        parameters.
+    opdir : pathlib.Path
+        Directory containing the input files and where the extracted spectra
+        will be written.
+    instrument : dict
+        Instrument-specific configuration passed to
+        `config_for_extraction` for selecting the appropriate aperture
+        traces and extraction settings.
+
+    Returns
+    -------
+    list of str
+        List of output filenames. The first element is the extracted science
+        spectrum, followed by the extracted lamp spectra in the same order as
+        the input lamp filenames.
+
+    Notes
+    -----
+    - The science spectrum is extracted first using the configured tracing
+      settings.
+    - The average cross-dispersion shifts and pixel domains measured during
+      the science extraction are reused when generating the extraction
+      configuration for the lamp frames.
+    - Each lamp spectrum is extracted using the same aperture geometry as the
+      science spectrum.
+    - By default, the science spectrum is written as
+      ``<science>.ms.fits`` and the lamp spectra as
+      ``<science>.ms_arc<N>.fits``, where ``<N>`` is the lamp index.
+
+    See Also
+    --------
+    config_for_extraction
+        Generate the SpectrumExtractor configuration file.
+    extraction
+        Extract a one-dimensional spectrum from a two-dimensional image.
     """
     data_fname = opdir / txtline[0]
 
@@ -639,7 +691,63 @@ def extract_obj_lamp(txtline, config,
 # --------------------------------------- #
 def spectral_reduction(config, dirname):
     """
-    Spectral reduction for each frame.
+    Perform spectral extraction and calibration for a group of observations.
+
+    This function executes the complete spectral reduction workflow for all
+    observation groups in a reduced data directory. For each science frame, it
+    extracts the science and arc-lamp spectra, performs wavelength
+    calibration, optionally subtracts the background and applies flux
+    calibration, and generates diagnostic sky plots. If multiple spectra are
+    available within a group, they can optionally be combined into a single
+    averaged spectrum.
+
+    Parameters
+    ----------
+    config : dict
+        Pipeline configuration dictionary containing the reduction,
+        extraction, calibration, and output parameters.
+    dirname : str or pathlib.Path
+        Relative directory containing the reduced observations. The full
+        output directory is constructed using
+        ``config['outputs']['OP_DIR']``.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    The reduction workflow for each observation group consists of:
+
+    1. Extract the science spectrum and associated arc-lamp spectra.
+    2. Derive the wavelength solution using the extracted lamp spectra.
+    3. Generate a diagnostic comparison between the extracted sky background
+       and a reference sky spectrum (if available).
+    4. Optionally subtract the estimated background when
+       ``SUBTRACT_BKG == 'Y'``.
+    5. Optionally perform flux calibration when
+       ``FLUX_CALIB == 'Y'``.
+    6. Optionally combine all reduced spectra within the group when
+       ``SCOMBINE == 'Y'``.
+
+    The function processes every ``ReadyToReduce_group*.txt`` file found in
+    the output directory, where each file defines a group of science and
+    calibration frames to be reduced.
+
+    See Also
+    --------
+    extract_obj_lamp
+        Extract science and lamp spectra.
+    wavelength_calibration
+        Derive the wavelength solution from arc-lamp spectra.
+    plot_sky
+        Generate diagnostic sky comparison plots.
+    subtract_background
+        Remove the estimated sky background from the extracted spectrum.
+    flux_calibration
+        Apply the instrument response correction.
+    combine_spectra
+        Combine multiple reduced spectra into a single spectrum.
     """
     dictkw = config['inits']['DICTKW']
     opdir = Path(config['outputs']['OP_DIR']) / dirname
