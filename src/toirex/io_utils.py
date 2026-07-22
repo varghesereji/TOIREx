@@ -56,7 +56,13 @@ def launch_simbad_gui():
         root_created = True
 
     # Dictionary to store results
-    results = {"name": "", "ra": None, "dec": None, "pmra": None, "pmdec": None}
+    results = {
+        "name": "",
+        "ra": None,
+        "dec": None,
+        "pmra": None,
+        "pmdec": None
+    }
 
     def clear_fields():
         for e in (entry_ra, entry_dec, entry_pmra, entry_pmdec):
