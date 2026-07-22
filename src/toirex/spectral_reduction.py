@@ -530,6 +530,48 @@ def plot_sky(fname, opdir, getsky_fn):
 
 def extraction(fname, extraction_config,
                op_fname=None):
+    """
+    Extract a spectrum from a reduced two-dimensional image.
+
+    This function runs the SpectrumExtractor package using the supplied
+    extraction configuration file to produce an extracted one-dimensional
+    spectrum. If an output filename is not provided, a default filename is
+    created in the same directory as the input image.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Path to the reduced two-dimensional FITS image from which the spectrum
+        is to be extracted.
+    extraction_config : str or pathlib.Path
+        Path to the SpectrumExtractor configuration file containing the
+        tracing and extraction parameters.
+    op_fname : str or pathlib.Path, optional
+        Path to the output FITS file. If not provided, the extracted spectrum
+        is written to ``<input_stem>.ms.fits`` in the same directory as the
+        input file.
+
+    Returns
+    -------
+    outputobjspec : numpy.ndarray
+        Extracted one-dimensional spectrum returned by SpectrumExtractor.
+    avg_xd_shift : float
+        Average cross-dispersion shift measured during extraction.
+    pixdomain : numpy.ndarray
+        Pixel coordinates corresponding to the extracted spectrum.
+
+    Notes
+    -----
+    - The extraction is performed by calling ``specextractor.main``.
+    - The extracted spectrum is written to the specified output FITS file.
+    - If ``fname`` is supplied as a string, it is converted to a
+      ``pathlib.Path`` object before processing.
+
+    See Also
+    --------
+    specextractor.main
+        Perform spectral extraction using the SpectrumExtractor package.
+    """
     if isinstance(fname, str):
         fname = Path(fname)
     opdir = Path(fname.parent)
