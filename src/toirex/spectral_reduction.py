@@ -537,8 +537,11 @@ def plot_sky(fname, opdir, getsky_fn):
 # --------------------- #
 
 
-def extraction(fname, extraction_config,
-               op_fname=None):
+def extraction(
+        fname: str | Path,
+        extraction_config: str | Path,
+        op_fname: str | Path | None = None
+) -> tuple[np.ndarray, float, np.ndarray]:
     """
     Extract a spectrum from a reduced two-dimensional image.
 
