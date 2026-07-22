@@ -13,6 +13,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 import ast
+from collections.abs import Callable
 
 from ariastrotools import combine_process
 from ariastrotools import combine_spectra
@@ -599,8 +600,12 @@ def extraction(
     return outputobjspec, avg_xd_shift, pixdomain
 
 
-def extract_obj_lamp(txtline, config,
-                     opdir, instrument):
+def extract_obj_lamp(
+        txtline: list[str],
+        config: dict,
+        opdir: Path,
+        trace_selection: Callable,
+) -> list[str]:
     """
     Extract spectra from a science frame and its associated arc-lamp frames.
 
@@ -624,10 +629,9 @@ def extract_obj_lamp(txtline, config,
     opdir : pathlib.Path
         Directory containing the input files and where the extracted spectra
         will be written.
-    instrument : dict
-        Instrument-specific configuration passed to
-        `config_for_extraction` for selecting the appropriate aperture
-        traces and extraction settings.
+    trace_selection : callable
+        Function that selects the appropriate aperture trace for the
+        science frame.
 
     Returns
     -------
@@ -660,7 +664,7 @@ def extract_obj_lamp(txtline, config,
 
     extraction_config = config_for_extraction(data_fname,
                                               config,
-                                              instrument)
+                                              trace_selection)
     op_fname = Path(data_fname).stem + ".ms.fits"
     op_fname = Path(opdir) / op_fname
     optxtfile_line = [op_fname.name]
@@ -682,7 +686,7 @@ def extract_obj_lamp(txtline, config,
     config['spectral_extraction']['EXTRACTORCONFIG'] = str(extraction_config)
     lamp_config = config_for_extraction(data_fname,
                                         config,
-                                        instrument,
+                                        trace_selection,
                                         for_lamp=lamp_entries
                                         )
     lamp_fnames = txtline[1:]
