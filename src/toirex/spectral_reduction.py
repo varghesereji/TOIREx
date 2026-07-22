@@ -247,7 +247,7 @@ def flux_calibration(fname, config,
     opname = Path(fname.parent) / opname
     operate_process(str(fname), str(response_name),
                     opfilename=opname,
-                    operation = '/',
+                    operation='/',
                     fluxext=[config['inputs']['FLUXEXT']],
                     varext=[config['inputs']['VAREXT']])
     print("Flux calibrated spectra: {}".format(opname))
