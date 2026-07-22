@@ -24,8 +24,58 @@ from .plottings import plot_arrays
 def config_for_extraction(data_fname, config,
                           trace_selection, for_lamp=None):
     """
-    Function to create a config file for spectral extraction.
-    To create config for lamp, for_lamp is a dictionary. None else.
+    Create a SpectrumExtractor configuration file for a science or lamp frame.
+
+    This function prepares a temporary extraction configuration by combining
+    the pipeline configuration with a SpectrumExtractor configuration template.
+    If no extractor configuration is specified, the default configuration
+    distributed with the package is used. The function also updates tracing and
+    extraction parameters, selects the appropriate aperture trace, and writes
+    the resulting configuration to disk.
+
+    Parameters
+    ----------
+    data_fname : str or pathlib.Path
+        Path to the input FITS file for which the extraction configuration
+        should be generated.
+    config : dict
+        Pipeline configuration dictionary containing the spectral extraction
+        parameters and the location of the SpectrumExtractor configuration
+        template.
+    trace_selection : callable
+        Function that selects the appropriate aperture trace for the input
+        frame. It must accept ``data_fname`` as input and return a tuple
+        ``(continuum_file, aperture_label, aperture_trace)``.
+    for_lamp : dict, optional
+        Dictionary containing tracing parameters for lamp extraction. If
+        provided, a lamp-specific configuration is generated instead of a
+        science-frame configuration. The dictionary is expected to contain
+        the key ``"ReFitApertureInXD"``.
+
+    Returns
+    -------
+    pathlib.Path
+        Path to the generated SpectrumExtractor configuration file.
+
+    Notes
+    -----
+    - If ``config['spectral_extraction']['EXTRACTORCONFIG']`` is empty or
+      set to ``"default"``, the default configuration bundled with the
+      package is used.
+    - For manual aperture selection
+      (``SELECT_APERTURE == 'MANUAL'``), the aperture label and trace files
+      are assumed to have the same basename as the input FITS file with
+      ``.npy`` and ``.pkl`` extensions, respectively.
+    - The generated configuration file is written in the same directory as
+      the input FITS file. Science-frame configurations are named
+      ``<filename>.config``, while lamp configurations are named
+      ``<filename>.Lamp.config``.
+
+    See Also
+    --------
+    read_config : Read a SpectrumExtractor configuration file.
+    create_config : Write a SpectrumExtractor configuration file.
+    get_pkgpath : Return the installation path of the package.
     """
     dirname = Path(data_fname.parent)
     # opdir = Path(config['outputs']['OP_DIR']) / dirname
