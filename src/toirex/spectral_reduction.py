@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
+"""
+Spectral extraction and calibration routines.
+
+This module provides the high-level spectral reduction workflow for TOIREx.
+It interfaces with SpectrumExtractor to extract one-dimensional spectra,
+performs wavelength calibration using arc-lamp spectra, optionally subtracts
+the sky background, applies instrument response correction, and combines
+multiple reduced spectra when requested.
+"""
 
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 import ast
+from collections.abc import Callable
+from typing import Any
 
 from ariastrotools import combine_process
 from ariastrotools import combine_spectra
@@ -21,12 +32,66 @@ from .setups import create_config
 from .plottings import plot_arrays
 
 
-def config_for_extraction(data_fname, config,
-                          trace_selection, for_lamp=None):
+def config_for_extraction(
+        data_fname: str | Path,
+        config: dict[str, Any],
+        trace_selection: Callable[[Path], tuple[Path, Path, Path]],
+        for_lamp: dict[str, Any] | None = None):
     """
-    Function to create a config file for spectral extraction.
-    To create config for lamp, for_lamp is a dictionary. None else.
+    Create a SpectrumExtractor configuration file for a science or lamp frame.
+
+    This function prepares a temporary extraction configuration by combining
+    the pipeline configuration with a SpectrumExtractor configuration template.
+    If no extractor configuration is specified, the default configuration
+    distributed with the package is used. The function also updates tracing and
+    extraction parameters, selects the appropriate aperture trace, and writes
+    the resulting configuration to disk.
+
+    Parameters
+    ----------
+    data_fname : str or pathlib.Path
+        Path to the input FITS file for which the extraction configuration
+        should be generated.
+    config : dict
+        Pipeline configuration dictionary containing the spectral extraction
+        parameters and the location of the SpectrumExtractor configuration
+        template.
+    trace_selection : callable
+        Function that selects the appropriate aperture trace for the input
+        frame. It must accept ``data_fname`` as input and return a tuple
+        ``(continuum_file, aperture_label, aperture_trace)``.
+    for_lamp : dict, optional
+        Dictionary containing tracing parameters for lamp extraction. If
+        provided, a lamp-specific configuration is generated instead of a
+        science-frame configuration. The dictionary is expected to contain
+        the key ``"ReFitApertureInXD"``.
+
+    Returns
+    -------
+    pathlib.Path
+        Path to the generated SpectrumExtractor configuration file.
+
+    Notes
+    -----
+    - If ``config['spectral_extraction']['EXTRACTORCONFIG']`` is empty or
+      set to ``"default"``, the default configuration bundled with the
+      package is used.
+    - For manual aperture selection
+      (``SELECT_APERTURE == 'MANUAL'``), the aperture label and trace files
+      are assumed to have the same basename as the input FITS file with
+      ``.npy`` and ``.pkl`` extensions, respectively.
+    - The generated configuration file is written in the same directory as
+      the input FITS file. Science-frame configurations are named
+      ``<filename>.config``, while lamp configurations are named
+      ``<filename>.Lamp.config``.
+
+    See Also
+    --------
+    read_config : Read a SpectrumExtractor configuration file.
+    create_config : Write a SpectrumExtractor configuration file.
+    get_pkgpath : Return the installation path of the package.
     """
+    data_fname = Path(data_fname)
     dirname = Path(data_fname.parent)
     # opdir = Path(config['outputs']['OP_DIR']) / dirname
     extractorconfig_fname = config['spectral_extraction']['EXTRACTORCONFIG']
@@ -114,7 +179,51 @@ def config_for_extraction(data_fname, config,
 # Background subtraction
 # ---------------------------
 
-def subtract_background(fname, config):
+def subtract_background(
+        fname: str | Path,
+        config: dict[str, Any]):
+    """
+    Subtract the estimated background from an extracted spectrum.
+
+    This function computes the average background per pixel using the two
+    background regions defined in the pipeline configuration and subtracts
+    the corresponding background contribution from the extracted flux. If a
+    variance extension is present, the variance is propagated assuming the
+    background estimates are independent.
+
+    The input FITS file is modified in place.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Path to the extracted FITS file. The primary HDU must contain the
+        extracted flux, while extensions 1 and 2 must contain the summed
+        background values from the two background windows.
+    config : dict
+        Pipeline configuration dictionary containing the spectral extraction
+        parameters, including ``APERTUREWINDOW`` and ``BKGWINDOWS``.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    - The average background per pixel is computed independently for the two
+      background windows and then averaged.
+    - The total background within the extraction aperture is obtained by
+      scaling the average background by the aperture width before subtraction.
+    - If the FITS file contains a ``VARIANCE`` extension, the corresponding
+      background variance extensions (``BKG VARIANCE 0`` and
+      ``BKG VARIANCE 1``) are used to propagate the uncertainties.
+    - A HISTORY entry describing the aperture and background windows used for
+      the subtraction is added to the primary FITS header.
+    - The FITS file is updated in place.
+
+    See Also
+    --------
+    astropy.io.fits.open : Open a FITS file for reading or updating.
+    """
     hdul = fits.open(fname, mode='update')
     flux = hdul[0].data
     bkg1 = hdul[1].data
@@ -168,8 +277,74 @@ def subtract_background(fname, config):
 # ---------------------------
 
 
-def wavelength_calibration(txtline, config,
-                           opdir, instrument):
+def wavelength_calibration(
+        txtline: list[str],
+        config: dict[str, Any],
+        opdir: Path,
+        instrument: dict[str, Callable[..., Any] | None],
+) -> str:
+    """
+    Derive and save the wavelength solution for an extracted spectrum.
+
+    This function calibrates the wavelength solution for each extracted
+    aperture by matching the observed arc-lamp spectrum to an instrument-
+    specific template. If multiple lamp exposures are provided, they are
+    first combined into a single reference lamp frame. The resulting
+    wavelength solution is appended as a new FITS extension and written to
+    a new output file.
+
+    Diagnostic plots showing the template match for each aperture are also
+    generated.
+
+    Parameters
+    ----------
+    txtline : list of str
+        List containing the science spectrum filename followed by one or more
+        arc-lamp filenames. The first element is the extracted science FITS
+        file, while the remaining elements are the associated calibration
+        lamp frames.
+    config : dict
+        Pipeline configuration dictionary. Currently included for interface
+        consistency and reserved for future use.
+    opdir : pathlib.Path
+        Directory containing the extracted science and lamp files. Output
+        files are also written to this directory.
+    instrument : dict
+        Instrument-specific configuration dictionary. It must contain:
+
+        - ``'pixel_offset'`` : callable or ``None``
+          Function that estimates the detector pixel offset from a lamp frame.
+        - ``'get_template'`` : callable
+          Function returning the reference wavelength template for a given
+          aperture.
+
+    Returns
+    -------
+    str
+        Filename of the generated wavelength-calibrated FITS file.
+
+    Notes
+    -----
+    - When multiple lamp frames are supplied, they are combined using a mean
+      before wavelength calibration.
+    - The wavelength solution for each aperture is determined using
+      ``recalibrate.ReCalibrateDispersionSolution`` with a third-order
+      polynomial model (``method='p3'``).
+    - One diagnostic PDF,
+      ``template_match_aperture<N>.pdf``, is generated for each aperture,
+      showing the observed lamp spectrum and the matched template.
+    - The computed wavelength solution is stored as a new FITS extension
+      named ``"Wavelength"``.
+    - The output file is written with the suffix ``.wlc.fits``.
+
+    See Also
+    --------
+    combine_process : Combine multiple lamp exposures.
+    recalibrate.ReCalibrateDispersionSolution
+        Fit the wavelength solution using a reference template.
+    instrument['get_template']
+        Return the reference wavelength template for an aperture.
+    """
     op_fname = opdir / txtline[0]
     arclamp1 = opdir / txtline[1]
     calculate_pixel_offset = instrument['pixel_offset']
@@ -236,8 +411,52 @@ def wavelength_calibration(txtline, config,
 # ---------------------------
 
 
-def flux_calibration(fname, config,
-                     instrument):
+def flux_calibration(
+        fname: str | Path,
+        config: dict[str, Any],
+        instrument: dict[str, Callable[..., Any] | None]
+) -> Path:
+    """
+    Apply instrumental response correction to an extracted spectrum.
+
+    This function performs flux calibration by dividing the extracted spectrum
+    by the instrument response curve. The appropriate response file is obtained
+    using the instrument-specific response function, and both the flux and
+    variance extensions are calibrated accordingly.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Path to the extracted FITS spectrum to be flux calibrated.
+    config : dict
+        Pipeline configuration dictionary. The ``inputs`` section must define
+        the FITS extensions corresponding to the flux and variance data
+        (``FLUXEXT`` and ``VAREXT``).
+    instrument : dict
+        Instrument-specific configuration dictionary. It must contain the key
+        ``'inst_response'``, which is a callable that accepts ``fname`` and
+        returns the path to the corresponding instrument response file.
+
+    Returns
+    -------
+    pathlib.Path
+        Path to the flux-calibrated FITS file.
+
+    Notes
+    -----
+    - Flux calibration is performed by dividing the extracted spectrum by the
+      instrument response curve.
+    - The same operation is applied to the specified variance extension so
+      that the propagated uncertainties remain consistent.
+    - The output file is written to the same directory as the input spectrum
+      with the suffix ``.flc.fits``.
+
+    See Also
+    --------
+    operate_process
+        Perform arithmetic operations between FITS files while propagating
+        variances.
+    """
     response_name = instrument['inst_response'](fname)
     print(
         "Doing flux calibration with response curves: {}".format(
@@ -247,7 +466,7 @@ def flux_calibration(fname, config,
     opname = Path(fname.parent) / opname
     operate_process(str(fname), str(response_name),
                     opfilename=opname,
-                    operation = '/',
+                    operation='/',
                     fluxext=[config['inputs']['FLUXEXT']],
                     varext=[config['inputs']['VAREXT']])
     print("Flux calibrated spectra: {}".format(opname))
@@ -256,7 +475,52 @@ def flux_calibration(fname, config,
 
 # Plot sky
 
-def plot_sky(fname, opdir, getsky_fn):
+def plot_sky(
+        fname: str | Path,
+        opdir: Path,
+        getsky_fn: Callable[[Path], Path] | None,
+) -> None:
+    """
+    Plot the extracted sky background together with a reference sky spectrum.
+
+    This function plots the two extracted background spectra from an
+    observation and, if available, overlays a standard sky spectrum for
+    comparison. All spectra are normalized by their median values before
+    plotting. The resulting figure is saved as a PDF in the output directory.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Filename of the extracted FITS spectrum.
+    opdir : pathlib.Path
+        Directory containing the extracted spectrum and where the output plot
+        will be saved.
+    getsky_fn : callable or None
+        Function that accepts the extracted spectrum filename and returns the
+        path to the corresponding standard sky spectrum. If ``None``, the
+        function returns without producing any plot.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    - The extracted background spectra are read from the ``"BKG FLUX 0"`` and
+      ``"BKG FLUX 1"`` FITS extensions.
+    - The wavelength scale is read from the ``"WAVELENGTH"`` extension.
+    - All spectra are normalized by their median values to facilitate
+      comparison of their spectral shapes.
+    - If the standard sky spectrum cannot be found, only the extracted
+      background spectra are plotted and no output file is written.
+    - When available, the comparison plot is saved as
+      ``<filename>_stdsky.pdf`` in the output directory.
+
+    See Also
+    --------
+    plot_arrays
+        Plot one or more spectra on a common set of axes.
+    """
     if getsky_fn is None:
         return
     fname = opdir / fname
@@ -292,8 +556,53 @@ def plot_sky(fname, opdir, getsky_fn):
 # --------------------- #
 
 
-def extraction(fname, extraction_config,
-               op_fname=None):
+def extraction(
+        fname: str | Path,
+        extraction_config: str | Path,
+        op_fname: str | Path | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Extract a spectrum from a reduced two-dimensional image.
+
+    This function runs the SpectrumExtractor package using the supplied
+    extraction configuration file to produce an extracted one-dimensional
+    spectrum. If an output filename is not provided, a default filename is
+    created in the same directory as the input image.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Path to the reduced two-dimensional FITS image from which the spectrum
+        is to be extracted.
+    extraction_config : str or pathlib.Path
+        Path to the SpectrumExtractor configuration file containing the
+        tracing and extraction parameters.
+    op_fname : str or pathlib.Path, optional
+        Path to the output FITS file. If not provided, the extracted spectrum
+        is written to ``<input_stem>.ms.fits`` in the same directory as the
+        input file.
+
+    Returns
+    -------
+    outputobjspec : numpy.ndarray
+        Extracted one-dimensional spectrum returned by SpectrumExtractor.
+    avg_xd_shift : numpy.ndarray
+        Cross-dispersion shift(s) measured during extraction.
+    pixdomain : numpy.ndarray
+        Pixel coordinates corresponding to the extracted spectrum.
+
+    Notes
+    -----
+    - The extraction is performed by calling ``specextractor.main``.
+    - The extracted spectrum is written to the specified output FITS file.
+    - If ``fname`` is supplied as a string, it is converted to a
+      ``pathlib.Path`` object before processing.
+
+    See Also
+    --------
+    specextractor.main
+        Perform spectral extraction using the SpectrumExtractor package.
+    """
     if isinstance(fname, str):
         fname = Path(fname)
     opdir = Path(fname.parent)
@@ -309,22 +618,77 @@ def extraction(fname, extraction_config,
     return outputobjspec, avg_xd_shift, pixdomain
 
 
-def extract_obj_lamp(txtline, config,
-                     opdir, instrument):
+def extract_obj_lamp(
+        txtline: list[str],
+        config: dict,
+        opdir: Path,
+        trace_selection: Callable,
+) -> list[str]:
     """
-    Extracting lamp and star spectra.
+    Extract spectra from a science frame and its associated arc-lamp frames.
+
+    This function extracts the spectrum from a science exposure and then
+    extracts the spectra from one or more associated arc-lamp exposures using
+    the same aperture traces. The measured cross-dispersion shifts from the
+    science extraction are reused to refit the aperture positions for the lamp
+    frames, ensuring that the wavelength calibration is performed using
+    consistent extraction apertures.
+
+    Parameters
+    ----------
+    txtline : list of str
+        List containing the science filename followed by one or more
+        associated arc-lamp filenames. The first element is treated as the
+        science frame, while the remaining elements are extracted as lamp
+        spectra.
+    config : dict
+        Pipeline configuration dictionary containing the spectral extraction
+        parameters.
+    opdir : pathlib.Path
+        Directory containing the input files and where the extracted spectra
+        will be written.
+    trace_selection : callable
+        Function that selects the appropriate aperture trace for the
+        science frame.
+
+    Returns
+    -------
+    list of str
+        List of output filenames. The first element is the extracted science
+        spectrum, followed by the extracted lamp spectra in the same order as
+        the input lamp filenames.
+
+    Notes
+    -----
+    - The science spectrum is extracted first using the configured tracing
+      settings.
+    - The average cross-dispersion shifts and pixel domains measured during
+      the science extraction are reused when generating the extraction
+      configuration for the lamp frames.
+    - Each lamp spectrum is extracted using the same aperture geometry as the
+      science spectrum.
+    - By default, the science spectrum is written as
+      ``<science>.ms.fits`` and the lamp spectra as
+      ``<science>.ms_arc<N>.fits``, where ``<N>`` is the lamp index.
+
+    See Also
+    --------
+    config_for_extraction
+        Generate the SpectrumExtractor configuration file.
+    extraction
+        Extract a one-dimensional spectrum from a two-dimensional image.
     """
     data_fname = opdir / txtline[0]
 
     extraction_config = config_for_extraction(data_fname,
                                               config,
-                                              instrument)
+                                              trace_selection)
     op_fname = Path(data_fname).stem + ".ms.fits"
     op_fname = Path(opdir) / op_fname
     optxtfile_line = [op_fname.name]
-    outputobjspec, avg_xd_shift, pixdomain = extraction(data_fname,
-                                                        extraction_config)
-    refitapertureinxd = (
+    _, avg_xd_shift, pixdomain = extraction(data_fname,
+                                            extraction_config)
+    refit_aperture_in_xd = (
         tuple(
             x.item() if isinstance(x, np.generic) else x for x in avg_xd_shift
         ),
@@ -336,11 +700,11 @@ def extract_obj_lamp(txtline, config,
     # Extracting lamps
     # We want to extract the lamp spectra from the same place where
     # science spectra was extracted.
-    lamp_entries = {"ReFitApertureInXD": refitapertureinxd}
+    lamp_entries = {"ReFitApertureInXD": refit_aperture_in_xd}
     config['spectral_extraction']['EXTRACTORCONFIG'] = str(extraction_config)
     lamp_config = config_for_extraction(data_fname,
                                         config,
-                                        instrument,
+                                        trace_selection,
                                         for_lamp=lamp_entries
                                         )
     lamp_fnames = txtline[1:]
@@ -350,18 +714,77 @@ def extract_obj_lamp(txtline, config,
         outlamp_fname = Path(op_fname).stem + "_arc{}.fits".format(n+1)
         optxtfile_line.append(outlamp_fname)
         outlamp_fname = opdir / outlamp_fname
-        outputlampspec, avgxdshift, pixdomain = extraction(lampfile,
-                                                           lamp_config,
-                                                           outlamp_fname)
+        _, _, _ = extraction(lampfile,
+                             lamp_config,
+                             outlamp_fname)
     return optxtfile_line
 
 
 # --------------------------------------- #
 # Reduction with wavelength calibration   #
 # --------------------------------------- #
-def spectral_reduction(config, dirname):
+def spectral_reduction(
+        config: dict,
+        dirname: str | Path
+) -> None:
     """
-    Spectral reduction for each frame.
+    Perform spectral extraction and calibration for a group of observations.
+
+    This function executes the complete spectral reduction workflow for all
+    observation groups in a reduced data directory. For each science frame, it
+    extracts the science and arc-lamp spectra, performs wavelength
+    calibration, optionally subtracts the background and applies flux
+    calibration, and generates diagnostic sky plots. If multiple spectra are
+    available within a group, they can optionally be combined into a single
+    averaged spectrum.
+
+    Parameters
+    ----------
+    config : dict
+        Pipeline configuration dictionary containing the reduction,
+        extraction, calibration, and output parameters.
+    dirname : str or pathlib.Path
+        Relative directory containing the reduced observations. The full
+        output directory is constructed using
+        ``config['outputs']['OP_DIR']``.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    The reduction workflow for each observation group consists of:
+
+    1. Extract the science spectrum and associated arc-lamp spectra.
+    2. Derive the wavelength solution using the extracted lamp spectra.
+    3. Generate a diagnostic comparison between the extracted sky background
+       and a reference sky spectrum (if available).
+    4. Optionally subtract the estimated background when
+       ``SUBTRACT_BKG == 'Y'``.
+    5. Optionally perform flux calibration when
+       ``FLUX_CALIB == 'Y'``.
+    6. Optionally combine all reduced spectra within the group when
+       ``SCOMBINE == 'Y'``.
+
+    The function processes every ``ReadyToReduce_group*.txt`` file found in
+    the output directory, where each file defines a group of science and
+    calibration frames to be reduced.
+
+    See Also
+    --------
+    extract_obj_lamp
+        Extract science and lamp spectra.
+    wavelength_calibration
+        Derive the wavelength solution from arc-lamp spectra.
+    plot_sky
+        Generate diagnostic sky comparison plots.
+    subtract_background
+        Remove the estimated sky background from the extracted spectrum.
+    flux_calibration
+        Apply the instrument response correction.
+    combine_spectra
+        Combine multiple reduced spectra into a single spectrum.
     """
     dictkw = config['inits']['DICTKW']
     opdir = Path(config['outputs']['OP_DIR']) / dirname
@@ -382,8 +805,10 @@ def spectral_reduction(config, dirname):
                 subtract_background(opdir / wlsolved_fname, config)
             if config['spectral_extraction']['FLUX_CALIB'] == 'Y':
                 flux_calibration(opdir / wlsolved_fname, config, instrument)
-        if (len(reduced_spectra) > 1) & (
-                config['spectral_extraction']['SCOMBINE'] == 'Y'):
+        if (
+                len(reduced_spectra) > 1
+                and config['spectral_extraction']['SCOMBINE'] == 'Y'
+        ):
             opfilename = Path(reduced_spectra[0]).stem + '.avg.fits'
             opfilename = opdir / opfilename
             reduced_spectra = [opdir / i for i in reduced_spectra]
