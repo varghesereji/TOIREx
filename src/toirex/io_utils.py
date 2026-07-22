@@ -171,7 +171,7 @@ def launch_simbad_gui():
     entry_ra.grid(row=1, column=1, padx=padx, pady=pady)
 
     tk.Label(
-        gui, text="Dec (deg):",
+        gui, text="Dec (dd:mm:ss):",
         font=("Arial", 11)).grid(row=2, column=0,
                                  sticky="e", padx=padx, pady=pady)
     entry_dec = tk.Entry(gui, width=28, font=("Arial", 11))
