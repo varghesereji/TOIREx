@@ -199,7 +199,9 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
                 if target.exists() or target.is_symlink():
                     target.unlink()
 
-                print(f"Creating symbolic link: {target} -> {smooth_flat_path}")
+                print(
+                    f"Creating symbolic link: {target} -> {smooth_flat_path}"
+                )
                 target.symlink_to(link)
 
         else:
