@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 import ast
-from collections.abs import Callable
+from collections.abc import Callable
 from typing import Any
 
 from ariastrotools import combine_process
