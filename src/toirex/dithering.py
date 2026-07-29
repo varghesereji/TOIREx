@@ -124,7 +124,7 @@ def find_shift(frame_1, frame_2, config,
 
     crop = config['dither']['CROP']
     upsample_factor = int(config['dither']['UPSAMPLE'])
-    crop = [int(x) for x in crop.strip().split(" ")]
+    crop = list(map(int, crop.split()))
     crop_yb, crop_yt, crop_xl, crop_xr = crop
     filt_img1 = filter_image(frame_1[crop_yb:crop_yt, crop_xl:crop_xr])
     filt_img2 = filter_image(frame_2[crop_yb:crop_yt, crop_xl:crop_xr])
