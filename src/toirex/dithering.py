@@ -98,16 +98,19 @@ def find_shift(frame_1, frame_2, config, flatframe=None):
     >>> print(shift_info)
     (array([dy, dx]), error_value, diffphase_value)
     """
+    if flatframe is not None:
+        if callable(flatframe):
+            flatframe = flatframe(frame_1)
+        if isinstance(flatframe, (str, Path)):
+            flatframe = read_fits_data(frame_2)
+
     if isinstance(frame_1, str) or isinstance(frame_1, Path):
         frame_1 = read_fits_data(frame_1)
     if isinstance(frame_2, str) or isinstance(frame_2, Path):
         frame_2 = read_fits_data(frame_2)
     if flatframe is not None:
-        if callable(flatframe):
-            flatframe = flatframe(frame_1)
-        if isinstance(flatframe, str) or isinstance(flatframe, Path):
-            flatframe = read_fits_data(frame_2)
-
+        frame_1 = frame_1 / flatframe
+        frame_2 = frame_2 / flatframe
     crop = config['dither']['CROP']
     upsample_factor = int(config['dither']['UPSAMPLE'])
     crop = [int(x) for x in crop.strip().split(" ")]
