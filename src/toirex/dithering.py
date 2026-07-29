@@ -56,7 +56,7 @@ def filter_image(frame, size=(20, 20)):
     return filtered_image
 
 
-def find_shift(frame_1, frame_2, config):
+def find_shift(frame_1, frame_2, config, flatframe=None):
     """
     Compute the relative shift between two FITS images.
 
@@ -102,6 +102,11 @@ def find_shift(frame_1, frame_2, config):
         frame_1 = read_fits_data(frame_1)
     if isinstance(frame_2, str) or isinstance(frame_2, Path):
         frame_2 = read_fits_data(frame_2)
+    if flatframe is not None:
+        if callable(flatframe):
+            flatframe = flatframe(frame_1)
+        if isinstance(flatframe, str) or isinstance(flatframe, Path):
+            flatframe = read_fits_data(frame_2)
 
     crop = config['dither']['CROP']
     upsample_factor = int(config['dither']['UPSAMPLE'])
