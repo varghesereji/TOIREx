@@ -348,7 +348,7 @@ def call_masterflat_tirspec(
     pkgpath = get_pkgpath()
     header = read_fits_header(frame)
     slit = header['SLIT']
-    if slit == 'open':
+    if slit.lower() == 'open':
         # Because if it is photometry, slit should be open always.
         method = 'P'
     else:
