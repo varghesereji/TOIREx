@@ -10,6 +10,7 @@ import shutil
 from ariastrotools import operate_process
 from ariastrotools import combine_process
 from ariastrotools import shifting_frame
+from ariastrotools import masking_frame
 
 
 from .utils import read_fits_data
@@ -57,7 +58,8 @@ def filter_image(frame, size=(10, 10)):
 
 
 def find_shift(frame_1, frame_2, config,
-               flatframe=None):
+               flatframe=None,
+               badpixelmask=None):
     """
     Compute the relative shift between two FITS images.
 
@@ -112,6 +114,14 @@ def find_shift(frame_1, frame_2, config,
     if flatframe is not None:
         frame_1 = frame_1 / flatframe
         frame_2 = frame_2 / flatframe
+
+    if badpixelmask is not None:
+        if callable(badpixelmask):
+            badpixelmask = badpixelmask()
+
+        frame_1 = masking_frame(frame_1, badpixelmask, method='nan')
+        frame_2 = masking_frame(frame_2, badpixelmask, method='nan')
+
     crop = config['dither']['CROP']
     upsample_factor = int(config['dither']['UPSAMPLE'])
     crop = [int(x) for x in crop.strip().split(" ")]
