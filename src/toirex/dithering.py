@@ -42,7 +42,7 @@ def filter_image(frame, size=(10, 10)):
         Input image data (2D array).
     size : tuple of int, optional
         Size of the median filter window along each axis.
-        Default is (20, 20).
+        Default is (10, 10).
 
     Returns
     -------
