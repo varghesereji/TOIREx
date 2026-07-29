@@ -28,7 +28,7 @@ from .plottings import imageplot
 # ----------------#
 
 
-def filter_image(frame, size=(20, 20)):
+def filter_image(frame, size=(10, 10)):
     """
     Apply a median filter to an image frame.
 
