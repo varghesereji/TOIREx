@@ -45,19 +45,21 @@ def manual_inspection_obj(config, dirname):
     Interactively inspect science frames, select frames for combination,
     and generate grouping files for subsequent spectral extraction.
 
-    This function reads object lists (`Objects_flats_group*.txt`) from the
+    This function reads object lists (``Objects_flats_group*.txt``) from the
     specified output directory and creates corresponding
-    `ObjectsToCombine_group*.txt` files. Depending on the pipeline
-    configuration, the user may manually accept or reject each science
-    frame, or all frames may be accepted automatically (e.g., in AUTO mode
-    or for time-series observations).
+    ``ObjectsToCombine_group*.txt`` files. Science frames may be inspected
+    interactively and accepted or rejected individually, all remaining
+    frames may be accepted using the ``acceptall`` command, or frames may be
+    accepted automatically when the pipeline is run in AUTO or time-series
+    mode.
 
     When dithering is enabled, image shifts are computed relative to a
     reference frame using ``find_shift()``. The calculated integer pixel
-    shifts are written alongside each filename. If the measured shift
-    exceeds three times the estimated uncertainty, a blank line is inserted
-    into the output file to indicate the start of a new combination group,
-    and the current frame becomes the new reference frame.
+    shifts are written alongside each filename. If the magnitude of the
+    measured shift exceeds three times the estimated registration
+    uncertainty, a blank line is inserted into the output file to indicate
+    the start of a new combination group, and the current frame becomes the
+    new reference frame.
 
     After the initial grouping file is created, it is opened in the user's
     preferred editor for manual modification. Blank lines separate groups of
@@ -67,7 +69,7 @@ def manual_inspection_obj(config, dirname):
     ----------
     config : dict
         Pipeline configuration dictionary containing initialization,
-        visualization, dithering, and output settings.
+        visualization, dithering, input, and output settings.
     dirname : str or pathlib.Path
         Name of the directory containing the grouped object lists relative
         to ``config['outputs']['OP_DIR']``.
@@ -78,17 +80,21 @@ def manual_inspection_obj(config, dirname):
       ``Objects_flats_group*.txt``.
     - Output files are written as
       ``ObjectsToCombine_group<group_number>.txt``.
-    - In time-series mode (``config['inits']['TIMESERIES'] == 'Y'``),
-      all frames are accepted automatically and separated by blank lines.
+    - During interactive inspection, entering ``acceptall`` accepts the
+      current frame and all remaining frames in the current object list.
+    - In time-series mode (``config['inits']['TIMESERIES'] == 'Y'``), all
+      frames are accepted automatically, each frame is placed in its own
+      group, and dithering is disabled.
     - In AUTO mode, all frames are accepted automatically without user
       interaction.
     - When dithering is enabled, each output line contains::
 
-          filename x_shift y_shift
+          filename y_shift x_shift
 
       where the shifts are rounded to the nearest integer pixel.
     """
     logger = get_logger("manual_inspect")
+    dictkw = config['inits']['DICTKW']
     txtfile_re = "Objects_flats_group*.txt"
     txt_path = Path(config['outputs']['OP_DIR']) / \
         dirname
@@ -109,7 +115,7 @@ def manual_inspection_obj(config, dirname):
         if (config['inits']['TIMESERIES'] == 'Y'):
             acceptall = True
             add_space = True
-            config['dither']['DITHERING'] == 'N'
+            config['dither']['DITHERING'] = 'N'
             print("Making dithering = N since timeseries data")
         elif config['inits']['MODE'] == 'AUTO':
             acceptall = True
@@ -128,9 +134,14 @@ def manual_inspection_obj(config, dirname):
                 UserInput = input(
                     'Enter "r" to reject and "aa" to accept:'
                 )
+            if UserInput == "acceptall":
+                acceptall = True
+                print("Accepting every single remaining images of this night")
+                UserInput = "aa"
             if UserInput == 'r':
                 print("Removing", target)
-                targets_name.remove(target)
+                # targets_name.remove(target)
+                continue
             elif UserInput == 'aa':
                 print("Accepting", target)
                 line_to_txt = target
@@ -139,8 +150,21 @@ def manual_inspection_obj(config, dirname):
                         reference_frame = target_fname
                         line_to_txt += " 0 0"
                     else:
-                        img_shift = find_shift(reference_frame, target_fname,
-                                               config)
+                        mask_cfg = config['inputs']['BADPIXMASK']
+                        if mask_cfg == 'N':
+                            badpixelmask = None
+                        elif mask_cfg == 'Y':
+                            badpixelmask = instruments[dictkw]['badpixelmask']
+                        else:
+                            # Assume a filename or Path was provided in the
+                            # config
+                            badpixelmask = mask_cfg
+                        img_shift = find_shift(
+                            reference_frame, target_fname,
+                            config,
+                            instruments[dictkw]['masterflat'],
+                            badpixelmask
+                        )
                         shift = np.array(img_shift[0], dtype=np.float64)
                         shift = np.rint(shift).astype(int)
                         shift_err = img_shift[1]
@@ -153,9 +177,6 @@ def manual_inspection_obj(config, dirname):
                             reference_frame = target_fname
                             Obj2Comb_txt.write("\n")
                 Obj2Comb_txt.write(line_to_txt+"\n")
-            elif UserInput == 'acceptall':
-                acceptall = True
-                print("Accepting every single remaining images of this night")
             if add_space:
                 Obj2Comb_txt.write("\n")
         Obj2Comb_txt.close()
