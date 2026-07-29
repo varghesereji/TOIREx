@@ -110,7 +110,7 @@ def manual_inspection_obj(config, dirname):
         if (config['inits']['TIMESERIES'] == 'Y'):
             acceptall = True
             add_space = True
-            config['dither']['DITHERING'] == 'N'
+            config['dither']['DITHERING'] = 'N'
             print("Making dithering = N since timeseries data")
         elif config['inits']['MODE'] == 'AUTO':
             acceptall = True
