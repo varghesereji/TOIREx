@@ -89,6 +89,7 @@ def manual_inspection_obj(config, dirname):
       where the shifts are rounded to the nearest integer pixel.
     """
     logger = get_logger("manual_inspect")
+    dictkw = config['inits']['DICTKW']
     txtfile_re = "Objects_flats_group*.txt"
     txt_path = Path(config['outputs']['OP_DIR']) / \
         dirname
@@ -140,7 +141,8 @@ def manual_inspection_obj(config, dirname):
                         line_to_txt += " 0 0"
                     else:
                         img_shift = find_shift(reference_frame, target_fname,
-                                               config)
+                                               config,
+                                               instruments[dictkw]['masterflat'])
                         shift = np.array(img_shift[0], dtype=np.float64)
                         shift = np.rint(shift).astype(int)
                         shift_err = img_shift[1]
