@@ -63,43 +63,69 @@ def find_shift(frame_1, frame_2, config,
     """
     Compute the relative shift between two FITS images.
 
-    This function reads two FITS frames, crops them based on configuration
-    settings, applies filtering, and uses phase cross-correlation to
-    determine the translation required to align the second frame with the
-    first.
+    This function determines the translational offset required to align one
+    image with another using phase cross-correlation. Input images may be
+    supplied either as FITS filenames or as already loaded arrays. Optional
+    flat-field correction and bad-pixel masking are applied before the
+    images are cropped, filtered, and registered.
 
     Parameters
     ----------
-    frame_1 : str or Path
-        Path to the first FITS file (reference image).
-    frame_2 : str or Path
-        Path to the second FITS file (moving image).
+    frame_1 : str, pathlib.Path, or ndarray
+        Reference image or path to the reference FITS file.
+    frame_2 : str, pathlib.Path, or ndarray
+        Moving image or path to the FITS file to be aligned with
+        ``frame_1``.
     config : dict
-        Configuration dictionary containing cropping settings under
-        ``config['dither']['CROP']``. The crop should be a space-separated
-        string of four integers representing:
-        [crop_y_bottom crop_y_top crop_x_left crop_x_right].
-    upsample_factor : int, optional
-        Upsampling factor for subpixel accuracy in the phase
-        cross-correlation (default is 50).
+        Pipeline configuration dictionary. The image crop region is read
+        from ``config['dither']['CROP']`` and the phase cross-correlation
+        upsampling factor from ``config['dither']['UPSAMPLE']``.
+    flatframe : str, pathlib.Path, ndarray, callable, or None, optional
+        Flat-field image used to normalize both input frames before
+        registration. If a callable is supplied, it must return the flat
+        frame corresponding to ``frame_1``. If a filename is supplied, the
+        FITS file is read automatically. If ``None`` (default), no
+        flat-field correction is applied.
+    badpixelmask : str, pathlib.Path, ndarray, callable, or None, optional
+        Bad-pixel mask applied to both images before registration. If a
+        callable is supplied, it must return the mask. If ``None``
+        (default), no bad-pixel masking is performed.
 
     Returns
     -------
     tuple
-        A tuple containing:
-        - shift : ndarray
-            Pixel shift needed to align `frame_2` to `frame_1`.
-        - error : float
-            Normalized root-mean-square error after alignment.
-        - diffphase : float
-            Global phase difference between the two images in radians.
+        Output returned by
+        ``skimage.registration.phase_cross_correlation()`` consisting of:
 
-    Example
-    -------
-    >>> config = {'dither': {'CROP': "10 100 20 200"}}
-    >>> shift_info = find_shift("image1.fits", "image2.fits", config)
-    >>> print(shift_info)
-    (array([dy, dx]), error_value, diffphase_value)
+        shift : ndarray
+            Estimated translational shift ``(y_shift, x_shift)`` required
+            to align ``frame_2`` with ``frame_1``.
+        error : float
+            Translation-invariant normalized root-mean-square error.
+        diffphase : float
+            Global phase difference between the two images, in radians.
+
+    Notes
+    -----
+    - Flat-field correction is applied before bad-pixel masking.
+    - Image registration is performed only on the cropped region specified
+      by ``config['dither']['CROP']``.
+    - NaN values introduced by bad-pixel masking are excluded from the
+      phase cross-correlation using validity masks.
+
+    Examples
+    --------
+    >>> config = {
+    ...     'dither': {
+    ...         'CROP': '10 100 20 200',
+    ...         'UPSAMPLE': '50'
+    ...     }
+    ... }
+    >>> shift, error, diffphase = find_shift(
+    ...     "image1.fits",
+    ...     "image2.fits",
+    ...     config
+    ... )
     """
     if flatframe is not None:
         if callable(flatframe):
