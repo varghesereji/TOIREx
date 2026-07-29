@@ -104,9 +104,9 @@ def find_shift(frame_1, frame_2, config, flatframe=None):
         if isinstance(flatframe, (str, Path)):
             flatframe = read_fits_data(frame_2)
 
-    if isinstance(frame_1, str) or isinstance(frame_1, Path):
+    if isinstance(frame_1, (str, Path)):
         frame_1 = read_fits_data(frame_1)
-    if isinstance(frame_2, str) or isinstance(frame_2, Path):
+    if isinstance(frame_2, (str, Path)):
         frame_2 = read_fits_data(frame_2)
     if flatframe is not None:
         frame_1 = frame_1 / flatframe
