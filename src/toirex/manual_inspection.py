@@ -140,9 +140,21 @@ def manual_inspection_obj(config, dirname):
                         reference_frame = target_fname
                         line_to_txt += " 0 0"
                     else:
-                        img_shift = find_shift(reference_frame, target_fname,
-                                               config,
-                                               instruments[dictkw]['masterflat'])
+                        mask_cfg = config['inputs']['BADPIXMASK']
+                        if mask_cfg == 'N':
+                            badpixelmask = None
+                        elif mask_cfg == 'Y':
+                            badpixelmask = instruments[dictkw]['badpixelmask']
+                        else:
+                            # Assume a filename or Path was provided in the
+                            # config
+                            badpixelmask = mask_cfg
+                        img_shift = find_shift(
+                            reference_frame, target_fname,
+                            config,
+                            instruments[dictkw]['masterflat'],
+                            badpixelmask
+                        )
                         shift = np.array(img_shift[0], dtype=np.float64)
                         shift = np.rint(shift).astype(int)
                         shift_err = img_shift[1]
