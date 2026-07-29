@@ -129,9 +129,14 @@ def manual_inspection_obj(config, dirname):
                 UserInput = input(
                     'Enter "r" to reject and "aa" to accept:'
                 )
+            if UserInput == "acceptall":
+                acceptall = True
+                print("Accepting every single remaining images of this night")
+                UserInput = "aa"
             if UserInput == 'r':
                 print("Removing", target)
-                targets_name.remove(target)
+                # targets_name.remove(target)
+                continue
             elif UserInput == 'aa':
                 print("Accepting", target)
                 line_to_txt = target
@@ -167,9 +172,6 @@ def manual_inspection_obj(config, dirname):
                             reference_frame = target_fname
                             Obj2Comb_txt.write("\n")
                 Obj2Comb_txt.write(line_to_txt+"\n")
-            elif UserInput == 'acceptall':
-                acceptall = True
-                print("Accepting every single remaining images of this night")
             if add_space:
                 Obj2Comb_txt.write("\n")
         Obj2Comb_txt.close()
