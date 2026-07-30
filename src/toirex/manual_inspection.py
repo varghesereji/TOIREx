@@ -349,7 +349,7 @@ def manual_inspection_cals(config, dirname):
         dirname
     files_list = list(op_path.glob(txtfile_re))
     print("Use the following instructions to select the frames")
-    print("'r': Reject the frame for currect SCIENCE frame")
+    print("'r': Reject the frame for current SCIENCE frame")
     print("'ra': Reject the frame from the analysis")
     print("'a': Accept the frame for current SCIENCE frame")
     print("'aa': Accept the frame for the analysis")
