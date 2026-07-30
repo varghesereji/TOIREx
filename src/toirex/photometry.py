@@ -310,7 +310,7 @@ def psf_photometry_subrot(config, fname, positions):
     error = np.sqrt(var)
 
     if config['photometry']['MODEL'] == 'CircularGaussianPSF':
-        fwhm = config['photometry']['FWHM']
+        fwhm = float(config['photometry']['FWHM'])
         print("With CircularGaussianPSF of FWHM", fwhm)
         psf_model = CircularGaussianPSF(flux=1, fwhm=fwhm)
 
