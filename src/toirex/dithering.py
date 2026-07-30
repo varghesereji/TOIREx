@@ -564,7 +564,7 @@ def combine_dithers(config, datadir):
             ditherkey = list(dither_dict.keys())[0]
             outfilename = opdir / dither_dict[ditherkey]
         else:
-            outfilename = "AlignComb_" + outfileprefix + ".fits"
+            outfilename = outfileprefix + ".fits"
             outfilename = opdir / outfilename
             print("outfilename", outfilename)
             if outfilename.exists():
