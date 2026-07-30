@@ -564,8 +564,7 @@ def combine_dithers(config, datadir):
             ditherkey = list(dither_dict.keys())[0]
             outfilename = opdir / dither_dict[ditherkey]
         else:
-            outfilename = outfileprefix + ".fits"
-            outfilename = opdir / outfilename
+            outfilename = opdir / f"{outfileprefix}.fits"
             print("outfilename", outfilename)
             if outfilename.exists():
                 print(outfilename.name, "already exists. Skipping")
