@@ -324,7 +324,7 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
                     flats_list, op_path,
                     instruments[dictkw]['sort_filename_key'],
                     method='biweight',
-                    op_prefix="Comb_{}_".format(op_fname),
+                    op_prefix=f"Comb_{op_fname}_",
                     fluxext=fluxexts,
                     varext=varexts,
                     mask=mask)
