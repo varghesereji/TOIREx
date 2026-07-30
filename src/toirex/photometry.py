@@ -331,6 +331,9 @@ def psf_photometry_subrot(config, fname, positions):
     radius = float(config['photometry']['RADIUS'])
     bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
 
+    if radius >= bkgwindows[0]:
+        raise ValueError("RADIUS must be smaller than inner_radius")
+
     if bkgwindows[0] >= bkgwindows[1]:
         raise ValueError("BKGWINDOWS must be (inner_radius, outer_radius).")
 
