@@ -328,20 +328,6 @@ def psf_photometry_subrot(config, fname, positions):
         print("With effective PSF")
         psf_model = make_epsf(data, err=error)
 
-    # print("Saving psf with data frame")
-    # size = 25
-    # center = (size - 1) / 2
-    # y, x = np.mgrid[0:size, 0:size]
-    # xg = x - center
-    # yg = y - center
-    # psf_image = psf_model(xg, yg)
-    # psf_image /= np.sum(psf_image)
-
-    # plt.figure()
-    # plt.imshow(psf_image)
-    # plt.title("PSF")
-    # plt.show()
-
     # background
     radius = float(config['photometry']['RADIUS'])
     bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
