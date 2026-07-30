@@ -484,7 +484,6 @@ def subtract_dithers(config, datadir):
                                    writeto)
 
         else:
-            # print("dithers", dithers)
             if len(dithers) == 1:
                 opfname = outfileprefix
                 print("No dithers to subtract in this group")
@@ -544,7 +543,6 @@ def select_reference_positions(dither_dict, opdir):
     selected targets is used.
     """
     print("Frames of each dither position will be displayed")
-    # print("Select at least two targes in each frame")
     print("Follow same order to select the target in all frames")
     difference_positions = {}
     reference = None
@@ -690,7 +688,6 @@ def combine_dithers(config, datadir):
 
     opdir = Path(config['outputs']['OP_DIR']) / datadir
     groups_dithers = get_dithers(opdir, mode="P")
-    # print(groups_dithers)
     print("\n")
     print("-" * 30)
 
@@ -700,7 +697,6 @@ def combine_dithers(config, datadir):
     for groups in groups_dithers:
         print("Running for group", groups)
         outfileprefix = get_filename(groups, opdir)
-        # print(groups, outfileprefix)
         dither_dict = text_to_dict(
             txtfname=opdir / f"Clean_frame_group{groups}_dFull.txt"
         )
@@ -752,7 +748,6 @@ def combine_dithers(config, datadir):
                                        line_profile='aperture',
                                        get_target=True)
             headers = ['Y', 'X', 'Target', 'RA', 'Dec', 'pmRA', 'pmDec']
-            # print(centroids_list)
             write_asciitable(centroids_list,
                              tar_wcs_fname,
                              headers=headers)
