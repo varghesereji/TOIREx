@@ -548,6 +548,9 @@ def combine_dithers(config, datadir):
     print("\n")
     print("-" * 30)
 
+    fluxext = list(config['inputs']['FLUXEXT'])
+    varext = list(config['inputs']['VAREXT'])
+
     for groups in groups_dithers:
         print("Running for group", groups)
         outfileprefix = get_filename(groups, opdir)
@@ -577,8 +580,8 @@ def combine_dithers(config, datadir):
                 combine_process(aligned_fnames,
                                 outfilename,
                                 method='mean',
-                                fluxext=list(config['inputs']['FLUXEXT']),
-                                varext=list(config['inputs']['VAREXT'])
+                                fluxext=fluxext,
+                                varext=varext
                                 )
         print("Running WCS correction")
         tar_wcs_fname_suggestion = outfilename.stem + "_wcstargets.txt"
