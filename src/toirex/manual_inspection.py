@@ -292,6 +292,7 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
                     print(
                         "Accepting every single remaining images of this night"
                     )
+                    selected_flats.append(target)
                 else:
                     # 'a' or any other input
                     print("Accepting", target)
