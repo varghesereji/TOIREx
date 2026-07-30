@@ -318,7 +318,7 @@ def psf_photometry_subrot(config, fname, positions):
 
     elif config['photometry']['MODEL'] == 'GaussianPSF':
         psf_fwhm = config['photometry']['PSF_FWHM']
-        psf_fwhm = list(float(x) for x in ast.literal_eval(psf_fwhm))
+        psf_fwhm = tuple(float(x) for x in ast.literal_eval(psf_fwhm))
         psf_angle = float(config['photometry']['PSF_ANGLE'])
         print("With GaussianPSF of psf fwhm", psf_fwhm, "and psf angle",
               psf_angle)
