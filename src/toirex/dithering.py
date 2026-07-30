@@ -591,8 +591,8 @@ def combine_dithers(config, datadir):
 
         print("Running WCS correction")
         tar_wcs_fname_suggestion = f"{outfilename.stem}_wcstargets.txt"
-        print("If you have a list of WCS targets created in previous trial,")
-        print("enter that filename here. Otherwise, press enter.")
+        print("If you have a list of WCS targets created in a previous trial,")
+        print("enter that filename here. Otherwise, press Enter.")
         tar_wcs_fname = input(
             "Enter the WCS list filename here:"
             ) or tar_wcs_fname_suggestion
