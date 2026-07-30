@@ -259,10 +259,7 @@ def get_dithers(opdir, mode="S"):
     groups_dithers = []
     print(dither_txtfiles)
     for group in dither_txtfiles:
-        # The text file name have two integers. So, the
-        # function will return two numners. first one
-        # will be the group number, and second one
-        # will be dither number.
+        # Extract the group and dither indices from the filename.
         # For phtometry, there will be only group number.
         numbers = extract_number_from_fname(group.name)
         if mode == "P":
