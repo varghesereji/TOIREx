@@ -298,16 +298,19 @@ def psf_photometry_subrot(config, fname, positions):
     print("Doing PSF Photometry")
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
+
     try:
         varext = int(varext)
     except ValueError:
         print("Using flux array as variance")
         varext = flext
 
+    # Reading data
     data = fits.getdata(fname, ext=flext)
     var = fits.getdata(fname, ext=varext)
     error = np.sqrt(var)
 
+    # Making PSF
     if config['photometry']['MODEL'] == 'CircularGaussianPSF':
         fwhm = float(config['photometry']['FWHM'])
         print("With CircularGaussianPSF of FWHM", fwhm)
@@ -323,6 +326,7 @@ def psf_photometry_subrot(config, fname, positions):
                                 x_fwhm=psf_fwhm[0],
                                 y_fwhm=psf_fwhm[1],
                                 theta=psf_angle)
+
     elif config['photometry']['MODEL'] == 'EPSF':
         print("With effective PSF")
         psf_model = make_epsf(data, err=error)
@@ -355,6 +359,7 @@ def psf_photometry_subrot(config, fname, positions):
         history='PSF photometry table added on file update.',
         flext=flext
     )
+
     return opfname
 
 
