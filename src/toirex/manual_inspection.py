@@ -271,13 +271,23 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
             # logger.info("Combining {} by biweight".format(targets_path))
             op_fname = framecat.lower()
             if len(flats_list) > 0:
+                if config['inputs']['BADPIXMASK'] == 'N':
+                    mask = None
+                elif config['inputs']['BADPIXMASK'] == 'Y':
+                    mask = instruments[dictkw]['badpixelmask']
+                    if mask is not None:
+                        mask = mask()
+                else:
+                    if isinstance(config['inputs']['BADPIXMASK'], str):
+                        mask = config['inputs']['BADPIXMASK']
                 comb_framename = combine_frames(
                     flats_list, op_path,
                     instruments[dictkw]['sort_filename_key'],
                     method='biweight',
                     op_prefix="Comb_{}_".format(op_fname),
                     fluxext=fluxexts,
-                    varext=varexts)
+                    varext=varexts,
+                    mask=mask)
                 object_frame_list = object_name + " " + comb_framename + "\n"
             else:
                 print("No flats available in the night")
