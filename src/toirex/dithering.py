@@ -1,4 +1,37 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Utilities for identifying, aligning, subtracting, and combining dithered
+astronomical observations.
+
+This module provides routines for processing dithered imaging and
+spectroscopic observations within the TOIREx pipeline. It supports both
+spectroscopic dither subtraction and imaging dither combination, including
+automatic or manual frame alignment, image registration using phase
+cross-correlation, frame shifting, and image stacking.
+
+For spectroscopic observations, the module groups frames by dither position,
+allows interactive specification of subtraction pairs, performs pairwise
+subtraction of dithered images, and generates input lists for subsequent
+spectral extraction.
+
+For imaging observations, the module determines relative image shifts either
+interactively from user-selected reference sources or automatically through
+phase cross-correlation. Aligned frames are combined into a single science
+image, after which an interactive World Coordinate System (WCS) calibration is
+performed to prepare the image for source extraction and astrometric analysis.
+
+The module also includes utility functions for reading dither information,
+organizing frames by observing group, applying median filtering for image
+registration, and generating metadata required by later pipeline stages.
+
+Notes
+-----
+Most high-level routines in this module are interactive and may prompt the
+user for input, including dither subtraction instructions, reference target
+selection, WCS target identification, and editing of WCS catalogues.
+"""
 
 import numpy as np
 from pathlib import Path
@@ -226,10 +259,7 @@ def get_dithers(opdir, mode="S"):
     groups_dithers = []
     print(dither_txtfiles)
     for group in dither_txtfiles:
-        # The text file name have two integers. So, the
-        # function will return two numners. first one
-        # will be the group number, and second one
-        # will be dither number.
+        # Extract the group and dither indices from the filename.
         # For phtometry, there will be only group number.
         numbers = extract_number_from_fname(group.name)
         if mode == "P":
@@ -440,7 +470,7 @@ def subtract_dithers(config, datadir):
     for groups, dithers in groups_dithers.items():
         print("Running for group", groups)
         outfileprefix = get_filename(groups, opdir)
-        dithers.sort()  # Just making them to be ascending order
+        dithers.sort()
         writeto = open(opdir / "ReadyToReduce_group{}.txt".format(groups), 'w')
         if config['inits']['TIMESERIES'] == 'Y':
             print("Timeseries data")
@@ -454,7 +484,6 @@ def subtract_dithers(config, datadir):
                                    writeto)
 
         else:
-            # print("dithers", dithers)
             if len(dithers) == 1:
                 opfname = outfileprefix
                 print("No dithers to subtract in this group")
@@ -486,8 +515,34 @@ def subtract_dithers(config, datadir):
 
 
 def select_reference_positions(dither_dict, opdir):
+    """
+    Interactively determine relative dither offsets from user-selected targets.
+
+    Each frame corresponding to a dither position is displayed, and the user
+    selects one or more reference targets. The centroid positions in the first
+    frame are used as the reference, and the relative offsets of all
+    subsequent frames are computed with respect to it.
+
+    Parameters
+    ----------
+    dither_dict : dict
+        Dictionary mapping dither identifiers to image filenames.
+    opdir : str or pathlib.Path
+        Directory containing the image files.
+
+    Returns
+    -------
+    dict
+        Dictionary mapping each dither identifier to a NumPy array
+        ``[y_shift, x_shift]`` giving its offset relative to the reference
+        frame. The reference frame has an offset of ``[0, 0]``.
+
+    Notes
+    -----
+    If multiple targets are selected in a frame, the average offset of all
+    selected targets is used.
+    """
     print("Frames of each dither position will be displayed")
-    # print("Select at least two targes in each frame")
     print("Follow same order to select the target in all frames")
     difference_positions = {}
     reference = None
@@ -510,6 +565,30 @@ def select_reference_positions(dither_dict, opdir):
 
 
 def get_dither_shift_auto(dither_dict, opdir, config):
+    """
+    Automatically determine relative shifts between dithered images.
+
+    The first image (or the image specified by ``REF_FRAME`` in the
+    configuration) is used as the reference. The remaining images are aligned
+    to the reference using phase cross-correlation.
+
+    Parameters
+    ----------
+    dither_dict : dict
+        Dictionary mapping dither identifiers to image filenames.
+    opdir : str or pathlib.Path
+        Directory containing the image files.
+    config : dict
+        Pipeline configuration dictionary. The reference image may be
+        specified by ``config['dither']['REF_FRAME']``.
+
+    Returns
+    -------
+    dict
+        Dictionary mapping each dither identifier to a NumPy array
+        ``[y_shift, x_shift]`` representing the measured image shift relative
+        to the reference frame.
+    """
     ref_image = opdir / config['dither']['REF_FRAME']
     if not ref_image.exists():
         ref_image = None
@@ -527,6 +606,32 @@ def get_dither_shift_auto(dither_dict, opdir, config):
 
 
 def align_frames(dither_dict, shift_dict, opdir, config):
+    """
+    Apply measured shifts to a set of dithered images.
+
+    Each image is shifted according to the corresponding value in
+    ``shift_dict`` and written to a new FITS file prefixed with
+    ``"Shifted_"``.
+
+    Parameters
+    ----------
+    dither_dict : dict
+        Dictionary mapping dither identifiers to image filenames.
+    shift_dict : dict
+        Dictionary mapping dither identifiers to image shifts as
+        ``[y_shift, x_shift]``.
+    opdir : str or pathlib.Path
+        Directory containing the input images and where the shifted images
+        will be written.
+    config : dict
+        Pipeline configuration containing the flux and variance FITS
+        extensions.
+
+    Returns
+    -------
+    list of pathlib.Path
+        Paths to the shifted FITS images generated by this function.
+    """
     alighed_fnames = []
     for dither, fname in dither_dict.items():
         opfname = "Shifted_" + fname
@@ -583,7 +688,6 @@ def combine_dithers(config, datadir):
 
     opdir = Path(config['outputs']['OP_DIR']) / datadir
     groups_dithers = get_dithers(opdir, mode="P")
-    # print(groups_dithers)
     print("\n")
     print("-" * 30)
 
@@ -593,7 +697,6 @@ def combine_dithers(config, datadir):
     for groups in groups_dithers:
         print("Running for group", groups)
         outfileprefix = get_filename(groups, opdir)
-        # print(groups, outfileprefix)
         dither_dict = text_to_dict(
             txtfname=opdir / f"Clean_frame_group{groups}_dFull.txt"
         )
@@ -645,7 +748,6 @@ def combine_dithers(config, datadir):
                                        line_profile='aperture',
                                        get_target=True)
             headers = ['Y', 'X', 'Target', 'RA', 'Dec', 'pmRA', 'pmDec']
-            # print(centroids_list)
             write_asciitable(centroids_list,
                              tar_wcs_fname,
                              headers=headers)
