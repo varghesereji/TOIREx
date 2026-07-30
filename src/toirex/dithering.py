@@ -486,6 +486,33 @@ def subtract_dithers(config, datadir):
 
 
 def select_reference_positions(dither_dict, opdir):
+    """
+    Interactively determine relative dither offsets from user-selected targets.
+
+    Each frame corresponding to a dither position is displayed, and the user
+    selects one or more reference targets. The centroid positions in the first
+    frame are used as the reference, and the relative offsets of all
+    subsequent frames are computed with respect to it.
+
+    Parameters
+    ----------
+    dither_dict : dict
+        Dictionary mapping dither identifiers to image filenames.
+    opdir : str or pathlib.Path
+        Directory containing the image files.
+
+    Returns
+    -------
+    dict
+        Dictionary mapping each dither identifier to a NumPy array
+        ``[y_shift, x_shift]`` giving its offset relative to the reference
+        frame. The reference frame has an offset of ``[0, 0]``.
+
+    Notes
+    -----
+    If multiple targets are selected in a frame, the average offset of all
+    selected targets is used.
+    """
     print("Frames of each dither position will be displayed")
     # print("Select at least two targes in each frame")
     print("Follow same order to select the target in all frames")
