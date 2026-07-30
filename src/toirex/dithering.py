@@ -559,7 +559,7 @@ def combine_dithers(config, datadir):
         dither_dict = text_to_dict(
             txtfname=opdir / "Clean_frame_group{}_dFull.txt".format(groups)
         )
-        if len(list(dither_dict.keys())) == 1:
+        if len(dither_dict) == 1:
             print("Single image. Nothing to combine")
             ditherkey = list(dither_dict.keys())[0]
             outfilename = opdir / dither_dict[ditherkey]
