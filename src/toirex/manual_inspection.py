@@ -266,11 +266,13 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
 
                     imageplot(target_fname, title=title)
                 if acceptall:
-                    UserInput = 'aa'
-                else:
-                    UserInput = input(
-                        'Enter according to above instruction:'
-                    ) or 'acceptall'
+                    selected_flats.append(target)
+                    continue
+
+                UserInput = input(
+                    'Enter according to above instruction:'
+                ) or 'acceptall'
+
                 if UserInput == 'ra':
                     print("Completely Removing", target)
                     flats_list.remove(target)
