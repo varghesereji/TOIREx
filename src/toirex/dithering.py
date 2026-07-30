@@ -549,10 +549,6 @@ def combine_dithers(config, datadir):
     print("-" * 30)
 
     for groups in groups_dithers:
-        finalframes = open(
-            opdir / "Readytoextract_group{}.txt".format(groups),
-            'w'
-        )
         print("Running for group", groups)
         outfileprefix = get_filename(groups, opdir)
         # print(groups, outfileprefix)
@@ -611,7 +607,9 @@ def combine_dithers(config, datadir):
         print(tar_wcs_fname)
         open_in_editor(tar_wcs_fname, config)
         wcs_correction(outfilename, tar_wcs_fname, config)
-        finalframes.write(outfilename.name)
-        finalframes.close()
+
+        finalframes_fname = opdir / f"Readytoextract_group{groups}.txt"
+        with open(finalframes_fname, "w") as finalframes:
+            finalframes.write(outfilename.name)
 
 # End
