@@ -1,5 +1,37 @@
 #!/usr/bin/env python3
 
+"""
+Utilities for identifying, aligning, subtracting, and combining dithered
+astronomical observations.
+
+This module provides routines for processing dithered imaging and
+spectroscopic observations within the TOIREx pipeline. It supports both
+spectroscopic dither subtraction and imaging dither combination, including
+automatic or manual frame alignment, image registration using phase
+cross-correlation, frame shifting, and image stacking.
+
+For spectroscopic observations, the module groups frames by dither position,
+allows interactive specification of subtraction pairs, performs pairwise
+subtraction of dithered images, and generates input lists for subsequent
+spectral extraction.
+
+For imaging observations, the module determines relative image shifts either
+interactively from user-selected reference sources or automatically through
+phase cross-correlation. Aligned frames are combined into a single science
+image, after which an interactive World Coordinate System (WCS) calibration is
+performed to prepare the image for source extraction and astrometric analysis.
+
+The module also includes utility functions for reading dither information,
+organizing frames by observing group, applying median filtering for image
+registration, and generating metadata required by later pipeline stages.
+
+Notes
+-----
+Most high-level routines in this module are interactive and may prompt the
+user for input, including dither subtraction instructions, reference target
+selection, WCS target identification, and editing of WCS catalogues.
+"""
+
 import numpy as np
 from pathlib import Path
 from collections import defaultdict
