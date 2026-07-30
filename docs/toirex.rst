@@ -4,18 +4,18 @@ toirex package
 Submodules
 ----------
 
-toirex.grouping\_frames module
-------------------------------
+toirex.toirex\_main module
+--------------------------
 
-.. automodule:: toirex.grouping_frames
+.. automodule:: toirex.toirex_main
    :members:
    :show-inheritance:
    :undoc-members:
 
-toirex.instrument module
-------------------------
+toirex.grouping\_frames module
+------------------------------
 
-.. automodule:: toirex.instrument
+.. automodule:: toirex.grouping_frames
    :members:
    :show-inheritance:
    :undoc-members:
@@ -36,6 +36,14 @@ toirex.selecting\_frames module
    :show-inheritance:
    :undoc-members:
 
+toirex.dithering module
+-------------------------------
+
+.. automodule:: toirex.dithering
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 toirex.setups module
 --------------------
 
@@ -44,18 +52,18 @@ toirex.setups module
    :show-inheritance:
    :undoc-members:
 
-toirex.toirex\_main module
---------------------------
-
-.. automodule:: toirex.toirex_main
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
 toirex.utils module
 -------------------
 
 .. automodule:: toirex.utils
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ toirex.instrument module
+------------------------
+
+.. automodule:: toirex.instrument
    :members:
    :show-inheritance:
    :undoc-members:
