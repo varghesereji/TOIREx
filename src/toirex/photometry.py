@@ -351,7 +351,8 @@ def psf_photometry_subrot(config, fname, positions):
 
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             local_bkg_estimator=local_bkg_estimator,
-                            aperture_radius=4)
+                            aperture_radius=4,
+                            progress_bar=True)
 
     phot = psfphot(data, error=error, init_params=positions)
     opfname = save_photometry(
