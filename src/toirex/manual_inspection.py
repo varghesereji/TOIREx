@@ -234,7 +234,7 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
             object_name = line[0]
             flats_list = line[1:]
             if not acceptall:
-                print("*"*30)
+                print("*" * 30)
                 print(
                     f"Inspecting {framecat.lower()} for {object_name}"
                 )
