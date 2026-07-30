@@ -295,6 +295,46 @@ def make_epsf(
 
 
 def psf_photometry_subrot(config, fname, positions):
+    """
+    Perform PSF photometry on sources in a FITS image.
+
+    This function performs point spread function (PSF) photometry using one of
+    the supported PSF models (circular Gaussian, elliptical Gaussian, or
+    effective PSF). A local background is estimated and subtracted for each
+    source before fitting. The resulting photometry table is saved to the
+    input FITS file.
+
+    Parameters
+    ----------
+    config : configparser.ConfigParser
+        Configuration object containing the photometry settings, input FITS
+        extensions, PSF model parameters, fitting parameters, and background
+        estimation options.
+    fname : str or pathlib.Path
+        Path to the input FITS file.
+    positions : astropy.table.Table
+        Table containing the initial source positions for PSF fitting. The
+        table must contain the columns required by
+        `photutils.psf.PSFPhotometry`.
+
+    Returns
+    -------
+    str or pathlib.Path
+        Path to the output FITS file containing the PSF photometry results.
+
+    Raises
+    ------
+    ValueError
+        If the aperture radius is greater than or equal to the inner
+        background radius, or if the inner background radius is greater than
+        or equal to the outer background radius.
+
+    Notes
+    -----
+    A local background is estimated using
+    `photutils.background.MMMBackground` within the annulus defined by
+    ``BKGWINDOWS``. The returned PSF fluxes are background-subtracted.
+    """
     print("Doing PSF Photometry")
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
