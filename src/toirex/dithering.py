@@ -537,6 +537,30 @@ def select_reference_positions(dither_dict, opdir):
 
 
 def get_dither_shift_auto(dither_dict, opdir, config):
+    """
+    Automatically determine relative shifts between dithered images.
+
+    The first image (or the image specified by ``REF_FRAME`` in the
+    configuration) is used as the reference. The remaining images are aligned
+    to the reference using phase cross-correlation.
+
+    Parameters
+    ----------
+    dither_dict : dict
+        Dictionary mapping dither identifiers to image filenames.
+    opdir : str or pathlib.Path
+        Directory containing the image files.
+    config : dict
+        Pipeline configuration dictionary. The reference image may be
+        specified by ``config['dither']['REF_FRAME']``.
+
+    Returns
+    -------
+    dict
+        Dictionary mapping each dither identifier to a NumPy array
+        ``[y_shift, x_shift]`` representing the measured image shift relative
+        to the reference frame.
+    """
     ref_image = opdir / config['dither']['REF_FRAME']
     if not ref_image.exists():
         ref_image = None
