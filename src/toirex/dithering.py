@@ -473,7 +473,7 @@ def subtract_dithers(config, datadir):
     for groups, dithers in groups_dithers.items():
         print("Running for group", groups)
         outfileprefix = get_filename(groups, opdir)
-        dithers.sort()  # Just making them to be ascending order
+        dithers.sort()
         writeto = open(opdir / "ReadyToReduce_group{}.txt".format(groups), 'w')
         if config['inits']['TIMESERIES'] == 'Y':
             print("Timeseries data")
