@@ -542,53 +542,96 @@ def align_frames(dither_dict, shift_dict, opdir, config):
 
 
 def combine_dithers(config, datadir):
+    """
+    Combine dithered frames into a single science image and prepare it for
+    spectral extraction.
+
+    This function groups science frames according to their dither pattern.
+    Groups containing multiple frames are aligned using either manually
+    selected or automatically determined shifts before being combined into a
+    single image. Groups containing only one frame are used directly without
+    further processing.
+
+    After the combined image is created, an interactive World Coordinate
+    System (WCS) correction is performed. If a previously created list of
+    target centroids and sky coordinates is available, it is reused;
+    otherwise, the user is prompted to identify the targets, and a new list is
+    generated. The user may edit this list before the WCS solution is applied.
+    Finally, the filename of the processed image is written to a text file for
+    use during spectral extraction.
+
+    Parameters
+    ----------
+    config : configparser.ConfigParser
+        Pipeline configuration containing the input/output directories,
+        dither-combination parameters, and FITS extension information.
+    datadir : str or pathlib.Path
+        Relative path of the observation directory within the configured
+        output directory.
+
+    Notes
+    -----
+    - Frames are combined only when more than one dither position is present.
+    - The frame alignment method is determined by the ``AUTODITHER``
+      configuration option.
+    - The WCS correction step is interactive and allows the user to review
+      and modify the target list before applying the solution.
+    - The final image filename is recorded in
+      ``Readytoextract_group<group>.txt`` for use by the spectral extraction
+      stage.
+    """
+
     opdir = Path(config['outputs']['OP_DIR']) / datadir
     groups_dithers = get_dithers(opdir, mode="P")
     # print(groups_dithers)
     print("\n")
     print("-" * 30)
 
+    fluxext = list(config['inputs']['FLUXEXT'])
+    varext = list(config['inputs']['VAREXT'])
+
     for groups in groups_dithers:
-        finalframes = open(
-            opdir / "Readytoextract_group{}.txt".format(groups),
-            'w'
-        )
         print("Running for group", groups)
         outfileprefix = get_filename(groups, opdir)
         # print(groups, outfileprefix)
         dither_dict = text_to_dict(
-            txtfname=opdir / "Clean_frame_group{}_dFull.txt".format(groups)
+            txtfname=opdir / f"Clean_frame_group{groups}_dFull.txt"
         )
-        if len(list(dither_dict.keys())) == 1:
+
+        if len(dither_dict) == 1:
             print("Single image. Nothing to combine")
             ditherkey = list(dither_dict.keys())[0]
             outfilename = opdir / dither_dict[ditherkey]
+
         else:
-            outfilename = "AlignComb_" + outfileprefix + ".fits"
-            outfilename = opdir / outfilename
+            outfilename = opdir / f"{outfileprefix}.fits"
             print("outfilename", outfilename)
+
             if outfilename.exists():
                 print(outfilename.name, "already exists. Skipping")
                 continue
+
+            if config['dither']['AUTODITHER'] == 'N':
+                shift_dict = select_reference_positions(dither_dict, opdir)
+
             else:
-                if config['dither']['AUTODITHER'] == 'N':
-                    shift_dict = select_reference_positions(dither_dict, opdir)
-                else:
-                    shift_dict = get_dither_shift_auto(dither_dict, opdir,
-                                                       config)
-                aligned_fnames = align_frames(
-                    dither_dict, shift_dict, opdir,
-                    config)
-                combine_process(aligned_fnames,
-                                outfilename,
-                                method='mean',
-                                fluxext=list(config['inputs']['FLUXEXT']),
-                                varext=list(config['inputs']['VAREXT'])
-                                )
+                shift_dict = get_dither_shift_auto(dither_dict, opdir,
+                                                   config)
+
+            aligned_fnames = align_frames(
+                dither_dict, shift_dict, opdir,
+                config)
+            combine_process(aligned_fnames,
+                            outfilename,
+                            method='mean',
+                            fluxext=fluxext,
+                            varext=varext
+                            )
+
         print("Running WCS correction")
-        tar_wcs_fname_suggestion = outfilename.stem + "_wcstargets.txt"
-        print("If you have a list of WCS targets created in previous trial,")
-        print("enter that filename here. Otherwise, press enter.")
+        tar_wcs_fname_suggestion = f"{outfilename.stem}_wcstargets.txt"
+        print("If you have a list of WCS targets created in a previous trial,")
+        print("enter that filename here. Otherwise, press Enter.")
         tar_wcs_fname = input(
             "Enter the WCS list filename here:"
             ) or tar_wcs_fname_suggestion
@@ -606,13 +649,15 @@ def combine_dithers(config, datadir):
             write_asciitable(centroids_list,
                              tar_wcs_fname,
                              headers=headers)
-        print("Opening the text editor with centroid of targets")
-        print("and its wcs informations")
-        print("You can make changes in this if any")
+        print("Opening the text editor with the target centroid")
+        print("and their wcs information.")
+        print("You can make changes in this if necessary.")
         print(tar_wcs_fname)
         open_in_editor(tar_wcs_fname, config)
         wcs_correction(outfilename, tar_wcs_fname, config)
-        finalframes.write(outfilename.name)
-        finalframes.close()
+
+        finalframes_fname = opdir / f"Readytoextract_group{groups}.txt"
+        with open(finalframes_fname, "w") as finalframes:
+            finalframes.write(outfilename.name)
 
 # End
