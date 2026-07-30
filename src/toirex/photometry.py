@@ -340,7 +340,8 @@ def psf_photometry_subrot(config, fname, positions):
     # plt.imshow(psf_image)
     # plt.title("PSF")
     # plt.show()
-
+    bkgwindows = config['photometry']['BKGWINDOWS']
+    print("Bkg windows", bkgwindows)
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             aperture_radius=4)
 
