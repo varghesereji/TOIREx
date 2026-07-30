@@ -189,10 +189,13 @@ def manual_inspection_obj(config, dirname):
 def manual_inspection_flats(config, dirname, framecat="FLATS"):
     logger = get_logger("manual_inspect")
     dictkw = config['inits']['DICTKW']
+
     if framecat == "FLATS":
         txtfile_re = "Objects_flats_group*.txt"
     elif framecat == "SKY":
         txtfile_re = "Objects_sky_group*.txt"
+    else:
+        raise ValueError(f"Unknown frame category: {framecat}")
     op_path = Path(config['outputs']['OP_DIR']) / \
         dirname
     files_list = list(op_path.glob(txtfile_re))
