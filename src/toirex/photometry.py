@@ -330,10 +330,16 @@ def psf_photometry_subrot(config, fname, positions):
     # background
     radius = float(config['photometry']['RADIUS'])
     bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
+
+    if bkgwindows[0] >= bkgwindows[1]:
+        raise ValueError("BKGWINDOWS must be (inner_radius, outer_radius).")
+
     bkgstat = MMMBackground()
     local_bkg_estimator = LocalBackground(bkgwindows[0],
                                           bkgwindows[1],
                                           bkg_estimator=bkgstat)
+
+    # PSF photometry
     fit_shape = ast.literal_eval(config['photometry']['FIT_SHAPE'])
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             local_bkg_estimator=local_bkg_estimator,
