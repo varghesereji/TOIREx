@@ -343,6 +343,7 @@ def psf_photometry_subrot(config, fname, positions):
     # plt.show()
 
     # background
+    radius = float(config['photometry']['RADIUS'])
     bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
     bkgstat = MMMBackground()
     local_bkg_estimator = LocalBackground(bkgwindows[0],
@@ -351,7 +352,7 @@ def psf_photometry_subrot(config, fname, positions):
 
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             local_bkg_estimator=local_bkg_estimator,
-                            aperture_radius=4,
+                            aperture_radius=radius,
                             progress_bar=True)
 
     phot = psfphot(data, error=error, init_params=positions)
