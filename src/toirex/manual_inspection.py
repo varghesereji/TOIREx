@@ -343,6 +343,56 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
 
 
 def manual_inspection_cals(config, dirname):
+    """
+    Interactively inspect and combine calibration frames.
+
+    This function allows the user to manually inspect and accept or reject
+    flat-field or sky frames associated with each SCIENCE frame. Accepted
+    frames are combined using a biweight statistic to produce a calibration
+    frame for each SCIENCE target. The resulting calibration frame names are
+    written to an output text file for subsequent pipeline stages.
+
+    During inspection, the following commands are available:
+
+    - ``r`` : Reject the frame for the current SCIENCE frame only.
+    - ``ra`` : Reject the frame from all subsequent SCIENCE frames in the
+      current group.
+    - ``a`` : Accept the frame for the current SCIENCE frame only.
+    - ``aa`` : Accept the frame for all subsequent SCIENCE frames in the
+      current group.
+    - Press Enter without typing anything to accept the current frame and all
+      remaining frames in the group without further inspection.
+
+    If all candidate calibration frames for a SCIENCE frame are rejected, the
+    pipeline falls back to using the master calibration frame.
+
+    Parameters
+    ----------
+    config : configparser.ConfigParser
+        Pipeline configuration containing the input, output, instrument, and
+        visualisation settings.
+    dirname : str or pathlib.Path
+        Directory containing the observation files. This directory is
+        interpreted relative to the pipeline output directory.
+    framecat : {'FLATS', 'SKY'}, optional
+        Calibration frame category to inspect. ``'FLATS'`` inspects flat-field
+        frames, while ``'SKY'`` inspects sky frames. Default is ``'FLATS'``.
+
+    Raises
+    ------
+    ValueError
+        If ``framecat`` is not one of ``'FLATS'`` or ``'SKY'``.
+
+    Notes
+    -----
+    Accepted calibration frames are combined using the biweight estimator via
+    ``combine_frames()``. If a bad-pixel mask is specified in the
+    configuration, it is applied during frame combination.
+
+    This function is interactive and requires user input unless automatic
+    acceptance of the remaining frames is selected.
+    """
+
     logger = get_logger("manual_inspect")
     dictkw = config['inits']['DICTKW']
     txtfile_re = "Objects_lamps_group*.txt"
