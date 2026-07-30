@@ -196,16 +196,20 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
         txtfile_re = "Objects_sky_group*.txt"
     else:
         raise ValueError(f"Unknown frame category: {framecat}")
+
     op_path = Path(config['outputs']['OP_DIR']) / \
         dirname
     files_list = list(op_path.glob(txtfile_re))
+
     print("Use the following instructions to select the frames")
     print("'r': Reject the frame for currect SCIENCE frame")
     print("'ra': Reject the frame from the analysis")
     print("'a': Accept the frame for current SCIENCE frame")
     print("'aa': Accept the frame for the analysis")
     print("Press Enter without anything: Accept all frames without inspection")
+
     for f in files_list:
+
         number = extract_number_from_fname(f.name)
 
         print("Group number running:", int(number[0]), "\n")
