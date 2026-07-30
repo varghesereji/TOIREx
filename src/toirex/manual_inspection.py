@@ -212,12 +212,15 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
 
         number = extract_number_from_fname(f.name)
 
-        print("Group number running:", int(number[0]), "\n")
-        logger.info("Calling file" + f.name)
+        print(f"Group number running: {int(number[0])}\n")
+        logger.info(f"Calling file {f.name}")
+
         read_file = read_txt_file(f)
+
         always_accept_list = []
         always_reject_list = []
         acceptall = False
+
         if framecat == "FLATS":
             finalframe_txtfname = "Objects_finalflats_group{}.txt".format(
                 number[0]
@@ -232,8 +235,9 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
             flats_list = line[1:]
             if not acceptall:
                 print("*"*30)
-                print("Inspecting {} for {}".format(framecat.lower(),
-                                                    object_name))
+                print(
+                    f"Inspecting {framecat.lower()} for {object_name}"
+                )
             for target in flats_list:
                 if target in always_reject_list:
                     flats_list.remove(target)
