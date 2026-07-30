@@ -568,21 +568,23 @@ def combine_dithers(config, datadir):
             if outfilename.exists():
                 print(outfilename.name, "already exists. Skipping")
                 continue
+
+            if config['dither']['AUTODITHER'] == 'N':
+                shift_dict = select_reference_positions(dither_dict, opdir)
+
             else:
-                if config['dither']['AUTODITHER'] == 'N':
-                    shift_dict = select_reference_positions(dither_dict, opdir)
-                else:
-                    shift_dict = get_dither_shift_auto(dither_dict, opdir,
-                                                       config)
-                aligned_fnames = align_frames(
-                    dither_dict, shift_dict, opdir,
-                    config)
-                combine_process(aligned_fnames,
-                                outfilename,
-                                method='mean',
-                                fluxext=fluxext,
-                                varext=varext
-                                )
+                shift_dict = get_dither_shift_auto(dither_dict, opdir,
+                                                   config)
+
+            aligned_fnames = align_frames(
+                dither_dict, shift_dict, opdir,
+                config)
+            combine_process(aligned_fnames,
+                            outfilename,
+                            method='mean',
+                            fluxext=fluxext,
+                            varext=varext
+                            )
         print("Running WCS correction")
         tar_wcs_fname_suggestion = outfilename.stem + "_wcstargets.txt"
         print("If you have a list of WCS targets created in previous trial,")
