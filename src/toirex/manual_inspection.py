@@ -328,11 +328,15 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
                     fluxext=fluxexts,
                     varext=varexts,
                     mask=mask)
-                object_frame_list = object_name + " " + comb_framename + "\n"
+                object_frame_list = (
+                    f"{object_name} {comb_framename}\n"
+                    )
             else:
                 print("No flats available in the night")
                 print("Using master flat instead")
-                object_frame_list = object_name + " MasterFlat\n"
+                object_frame_list = (
+                    f"{object_name} MasterFlat\n"
+                    )
             finalframe_txt.write(object_frame_list)
         finalframe_txt.close()
 
