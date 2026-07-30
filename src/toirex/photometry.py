@@ -15,6 +15,7 @@ from photutils.psf import CircularGaussianPSF
 from photutils.psf import CircularGaussianSigmaPRF
 from photutils.psf import GaussianPSF
 from photutils.psf import PSFPhotometry
+from photutils.background import LocalBackground, MMMBackground
 # from photutils.psf import IntegratedGaussianPRF
 from photutils.psf import extract_stars
 try:
@@ -340,9 +341,16 @@ def psf_photometry_subrot(config, fname, positions):
     # plt.imshow(psf_image)
     # plt.title("PSF")
     # plt.show()
-    bkgwindows = config['photometry']['BKGWINDOWS']
-    print("Bkg windows", bkgwindows)
+
+    # background
+    bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
+    bkgstat = MMMBackground()
+    local_bkg_estimator = LocalBackground(bkgwindows[0],
+                                          bkgwindows[1],
+                                          bkg_estimator=bkgstat)
+
     psfphot = PSFPhotometry(psf_model, fit_shape,
+                            local_bkg_estimator=local_bkg_estimator,
                             aperture_radius=4)
 
     phot = psfphot(data, error=error, init_params=positions)
