@@ -610,9 +610,9 @@ def combine_dithers(config, datadir):
             write_asciitable(centroids_list,
                              tar_wcs_fname,
                              headers=headers)
-        print("Opening the text editor with centroid of targets")
-        print("and its wcs informations")
-        print("You can make changes in this if any")
+        print("Opening the text editor with the target centroid")
+        print("and their wcs information.")
+        print("You can make changes in this if necessary.")
         print(tar_wcs_fname)
         open_in_editor(tar_wcs_fname, config)
         wcs_correction(outfilename, tar_wcs_fname, config)
