@@ -238,20 +238,32 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
                 print(
                     f"Inspecting {framecat.lower()} for {object_name}"
                 )
+
+            selected_flats = []
+
             for target in flats_list:
+
+                # Permanently rejected
                 if target in always_reject_list:
-                    flats_list.remove(target)
+                    # flats_list.remove(target)
                     continue
+
+                # Permanently accepted
                 if target in always_accept_list:
                     # print(target, "Is always accepted")
+                    selected_flats.append(target)
                     continue
-                if not acceptall and config['visual']['FLAT'] == 'Y':
+                if (
+                        not acceptall
+                        and config['visual']['FLAT'] == 'Y'
+                ):
                     target_fname = Path(dirname) / target
                     print("Displaying ", target)
+
                     title = making_title_for_frame(target,
                                                    dirname,
                                                    config)
-                    print(target)
+
                     imageplot(target_fname, title=title)
                 if acceptall:
                     UserInput = 'aa'
