@@ -189,28 +189,38 @@ def manual_inspection_obj(config, dirname):
 def manual_inspection_flats(config, dirname, framecat="FLATS"):
     logger = get_logger("manual_inspect")
     dictkw = config['inits']['DICTKW']
+
     if framecat == "FLATS":
         txtfile_re = "Objects_flats_group*.txt"
     elif framecat == "SKY":
         txtfile_re = "Objects_sky_group*.txt"
+    else:
+        raise ValueError(f"Unknown frame category: {framecat}")
+
     op_path = Path(config['outputs']['OP_DIR']) / \
         dirname
     files_list = list(op_path.glob(txtfile_re))
+
     print("Use the following instructions to select the frames")
     print("'r': Reject the frame for currect SCIENCE frame")
     print("'ra': Reject the frame from the analysis")
     print("'a': Accept the frame for current SCIENCE frame")
     print("'aa': Accept the frame for the analysis")
     print("Press Enter without anything: Accept all frames without inspection")
+
     for f in files_list:
+
         number = extract_number_from_fname(f.name)
 
-        print("Group number running:", int(number[0]), "\n")
-        logger.info("Calling file" + f.name)
+        print(f"Group number running: {int(number[0])}\n")
+        logger.info(f"Calling file {f.name}")
+
         read_file = read_txt_file(f)
+
         always_accept_list = []
         always_reject_list = []
         acceptall = False
+
         if framecat == "FLATS":
             finalframe_txtfname = "Objects_finalflats_group{}.txt".format(
                 number[0]
@@ -224,70 +234,165 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
             object_name = line[0]
             flats_list = line[1:]
             if not acceptall:
-                print("*"*30)
-                print("Inspecting {} for {}".format(framecat.lower(),
-                                                    object_name))
+                print("*" * 30)
+                print(
+                    f"Inspecting {framecat.lower()} for {object_name}"
+                )
+
+            selected_flats = []
+
             for target in flats_list:
+
+                # Permanently rejected
                 if target in always_reject_list:
-                    flats_list.remove(target)
+                    # flats_list.remove(target)
                     continue
+
+                # Permanently accepted
                 if target in always_accept_list:
                     # print(target, "Is always accepted")
+                    selected_flats.append(target)
                     continue
-                if not acceptall and config['visual']['FLAT'] == 'Y':
+                if (
+                        not acceptall
+                        and config['visual']['FLAT'] == 'Y'
+                ):
                     target_fname = Path(dirname) / target
                     print("Displaying ", target)
+
                     title = making_title_for_frame(target,
                                                    dirname,
                                                    config)
-                    print(target)
+
                     imageplot(target_fname, title=title)
                 if acceptall:
-                    UserInput = 'aa'
-                else:
-                    UserInput = input(
-                        'Enter according to above instruction:'
-                    ) or 'acceptall'
+                    selected_flats.append(target)
+                    continue
+
+                UserInput = input(
+                    'Enter according to above instruction:'
+                ) or 'acceptall'
+
                 if UserInput == 'ra':
                     print("Completely Removing", target)
-                    flats_list.remove(target)
+                    # flats_list.remove(target)
                     always_reject_list.append(target)
+
                 elif UserInput == 'aa':
                     print("Always Accepting", target)
                     always_accept_list.append(target)
+                    selected_flats.append(target)
+
                 elif UserInput == 'r':
-                    flats_list.remove(target)
+                    # flats_list.remove(target)
+                    print("Rejecting", target)
+
                 elif UserInput == 'acceptall':
                     acceptall = True
                     print(
                         "Accepting every single remaining images of this night"
                     )
+                    selected_flats.append(target)
                 else:
+                    # 'a' or any other input
                     print("Accepting", target)
+                    selected_flats.append(target)
+
+            flats_list = selected_flats
+
             fluxexts = list(config['inputs']['FLUXEXT'])
             varexts = list(config['inputs']['VAREXT'])
             logger.info("Flux extensions: {}".format(fluxexts))
             logger.info("Variance extensions: {}".format(varexts))
             # logger.info("Combining {} by biweight".format(targets_path))
+
             op_fname = framecat.lower()
+
             if len(flats_list) > 0:
+                if config['inputs']['BADPIXMASK'] == 'N':
+                    mask = None
+
+                elif config['inputs']['BADPIXMASK'] == 'Y':
+                    mask = instruments[dictkw]['badpixelmask']
+
+                    if mask is not None:
+                        mask = mask()
+
+                else:
+                    # if isinstance(config['inputs']['BADPIXMASK'], str):
+                    mask = config['inputs']['BADPIXMASK']
                 comb_framename = combine_frames(
                     flats_list, op_path,
                     instruments[dictkw]['sort_filename_key'],
                     method='biweight',
-                    op_prefix="Comb_{}_".format(op_fname),
+                    op_prefix=f"Comb_{op_fname}_",
                     fluxext=fluxexts,
-                    varext=varexts)
-                object_frame_list = object_name + " " + comb_framename + "\n"
+                    varext=varexts,
+                    mask=mask)
+                object_frame_list = (
+                    f"{object_name} {comb_framename}\n"
+                    )
             else:
                 print("No flats available in the night")
                 print("Using master flat instead")
-                object_frame_list = object_name + " MasterFlat\n"
+                object_frame_list = (
+                    f"{object_name} MasterFlat\n"
+                    )
             finalframe_txt.write(object_frame_list)
         finalframe_txt.close()
 
 
 def manual_inspection_cals(config, dirname):
+    """
+    Interactively inspect and combine calibration frames.
+
+    This function allows the user to manually inspect and accept or reject
+    flat-field or sky frames associated with each SCIENCE frame. Accepted
+    frames are combined using a biweight statistic to produce a calibration
+    frame for each SCIENCE target. The resulting calibration frame names are
+    written to an output text file for subsequent pipeline stages.
+
+    During inspection, the following commands are available:
+
+    - ``r`` : Reject the frame for the current SCIENCE frame only.
+    - ``ra`` : Reject the frame from all subsequent SCIENCE frames in the
+      current group.
+    - ``a`` : Accept the frame for the current SCIENCE frame only.
+    - ``aa`` : Accept the frame for all subsequent SCIENCE frames in the
+      current group.
+    - Press Enter without typing anything to accept the current frame and all
+      remaining frames in the group without further inspection.
+
+    If all candidate calibration frames for a SCIENCE frame are rejected, the
+    pipeline falls back to using the master calibration frame.
+
+    Parameters
+    ----------
+    config : configparser.ConfigParser
+        Pipeline configuration containing the input, output, instrument, and
+        visualisation settings.
+    dirname : str or pathlib.Path
+        Directory containing the observation files. This directory is
+        interpreted relative to the pipeline output directory.
+    framecat : {'FLATS', 'SKY'}, optional
+        Calibration frame category to inspect. ``'FLATS'`` inspects flat-field
+        frames, while ``'SKY'`` inspects sky frames. Default is ``'FLATS'``.
+
+    Raises
+    ------
+    ValueError
+        If ``framecat`` is not one of ``'FLATS'`` or ``'SKY'``.
+
+    Notes
+    -----
+    Accepted calibration frames are combined using the biweight estimator via
+    ``combine_frames()``. If a bad-pixel mask is specified in the
+    configuration, it is applied during frame combination.
+
+    This function is interactive and requires user input unless automatic
+    acceptance of the remaining frames is selected.
+    """
+
     logger = get_logger("manual_inspect")
     dictkw = config['inits']['DICTKW']
     txtfile_re = "Objects_lamps_group*.txt"
@@ -295,7 +400,7 @@ def manual_inspection_cals(config, dirname):
         dirname
     files_list = list(op_path.glob(txtfile_re))
     print("Use the following instructions to select the frames")
-    print("'r': Reject the frame for currect SCIENCE frame")
+    print("'r': Reject the frame for current SCIENCE frame")
     print("'ra': Reject the frame from the analysis")
     print("'a': Accept the frame for current SCIENCE frame")
     print("'aa': Accept the frame for the analysis")
@@ -305,7 +410,7 @@ def manual_inspection_cals(config, dirname):
         number = extract_number_from_fname(f.name)
 
         print("Group number running:", int(number[0]), "\n")
-        logger.info("Calling file" + f.name)
+        logger.info(f"Calling file {f.name}")
         read_file = read_txt_file(f)
         always_accept_list = []
         always_reject_list = []
