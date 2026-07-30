@@ -542,6 +542,45 @@ def align_frames(dither_dict, shift_dict, opdir, config):
 
 
 def combine_dithers(config, datadir):
+    """
+    Combine dithered frames into a single science image and prepare it for
+    spectral extraction.
+
+    This function groups science frames according to their dither pattern.
+    Groups containing multiple frames are aligned using either manually
+    selected or automatically determined shifts before being combined into a
+    single image. Groups containing only one frame are used directly without
+    further processing.
+
+    After the combined image is created, an interactive World Coordinate
+    System (WCS) correction is performed. If a previously created list of
+    target centroids and sky coordinates is available, it is reused;
+    otherwise, the user is prompted to identify the targets, and a new list is
+    generated. The user may edit this list before the WCS solution is applied.
+    Finally, the filename of the processed image is written to a text file for
+    use during spectral extraction.
+
+    Parameters
+    ----------
+    config : configparser.ConfigParser
+        Pipeline configuration containing the input/output directories,
+        dither-combination parameters, and FITS extension information.
+    datadir : str or pathlib.Path
+        Relative path of the observation directory within the configured
+        output directory.
+
+    Notes
+    -----
+    - Frames are combined only when more than one dither position is present.
+    - The frame alignment method is determined by the ``AUTODITHER``
+      configuration option.
+    - The WCS correction step is interactive and allows the user to review
+      and modify the target list before applying the solution.
+    - The final image filename is recorded in
+      ``Readytoextract_group<group>.txt`` for use by the spectral extraction
+      stage.
+    """
+
     opdir = Path(config['outputs']['OP_DIR']) / datadir
     groups_dithers = get_dithers(opdir, mode="P")
     # print(groups_dithers)
