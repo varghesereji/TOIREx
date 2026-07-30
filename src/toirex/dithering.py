@@ -558,13 +558,16 @@ def combine_dithers(config, datadir):
         dither_dict = text_to_dict(
             txtfname=opdir / f"Clean_frame_group{groups}_dFull.txt"
         )
+
         if len(dither_dict) == 1:
             print("Single image. Nothing to combine")
             ditherkey = list(dither_dict.keys())[0]
             outfilename = opdir / dither_dict[ditherkey]
+
         else:
             outfilename = opdir / f"{outfileprefix}.fits"
             print("outfilename", outfilename)
+
             if outfilename.exists():
                 print(outfilename.name, "already exists. Skipping")
                 continue
@@ -585,6 +588,7 @@ def combine_dithers(config, datadir):
                             fluxext=fluxext,
                             varext=varext
                             )
+
         print("Running WCS correction")
         tar_wcs_fname_suggestion = outfilename.stem + "_wcstargets.txt"
         print("If you have a list of WCS targets created in previous trial,")
