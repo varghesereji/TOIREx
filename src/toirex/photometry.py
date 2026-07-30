@@ -15,6 +15,7 @@ from photutils.psf import CircularGaussianPSF
 from photutils.psf import CircularGaussianSigmaPRF
 from photutils.psf import GaussianPSF
 from photutils.psf import PSFPhotometry
+from photutils.background import LocalBackground, MMMBackground
 # from photutils.psf import IntegratedGaussianPRF
 from photutils.psf import extract_stars
 try:
@@ -294,28 +295,70 @@ def make_epsf(
 
 
 def psf_photometry_subrot(config, fname, positions):
+    """
+    Perform PSF photometry on sources in a FITS image.
+
+    This function performs point spread function (PSF) photometry using one of
+    the supported PSF models (circular Gaussian, elliptical Gaussian, or
+    effective PSF). A local background is estimated and subtracted for each
+    source before fitting. The resulting photometry table is saved to the
+    input FITS file.
+
+    Parameters
+    ----------
+    config : configparser.ConfigParser
+        Configuration object containing the photometry settings, input FITS
+        extensions, PSF model parameters, fitting parameters, and background
+        estimation options.
+    fname : str or pathlib.Path
+        Path to the input FITS file.
+    positions : astropy.table.Table
+        Table containing the initial source positions for PSF fitting. The
+        table must contain the columns required by
+        `photutils.psf.PSFPhotometry`.
+
+    Returns
+    -------
+    str or pathlib.Path
+        Path to the output FITS file containing the PSF photometry results.
+
+    Raises
+    ------
+    ValueError
+        If the aperture radius is greater than or equal to the inner
+        background radius, or if the inner background radius is greater than
+        or equal to the outer background radius.
+
+    Notes
+    -----
+    A local background is estimated using
+    `photutils.background.MMMBackground` within the annulus defined by
+    ``BKGWINDOWS``. The returned PSF fluxes are background-subtracted.
+    """
     print("Doing PSF Photometry")
-    fit_shape = (15, 15)
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
+
     try:
         varext = int(varext)
     except ValueError:
         print("Using flux array as variance")
         varext = flext
 
+    # Reading data
     data = fits.getdata(fname, ext=flext)
     var = fits.getdata(fname, ext=varext)
     error = np.sqrt(var)
 
+    # Making PSF
     if config['photometry']['MODEL'] == 'CircularGaussianPSF':
-        fwhm = config['photometry']['FWHM']
+        fwhm = float(config['photometry']['FWHM'])
         print("With CircularGaussianPSF of FWHM", fwhm)
         psf_model = CircularGaussianPSF(flux=1, fwhm=fwhm)
 
     elif config['photometry']['MODEL'] == 'GaussianPSF':
         psf_fwhm = config['photometry']['PSF_FWHM']
-        psf_fwhm = list(float(x) for x in ast.literal_eval(psf_fwhm))
+        psf_fwhm = tuple(float(x) for x in ast.literal_eval(psf_fwhm))
         psf_angle = float(config['photometry']['PSF_ANGLE'])
         print("With GaussianPSF of psf fwhm", psf_fwhm, "and psf angle",
               psf_angle)
@@ -323,26 +366,32 @@ def psf_photometry_subrot(config, fname, positions):
                                 x_fwhm=psf_fwhm[0],
                                 y_fwhm=psf_fwhm[1],
                                 theta=psf_angle)
+
     elif config['photometry']['MODEL'] == 'EPSF':
         print("With effective PSF")
         psf_model = make_epsf(data, err=error)
 
-    # print("Saving psf with data frame")
-    # size = 25
-    # center = (size - 1) / 2
-    # y, x = np.mgrid[0:size, 0:size]
-    # xg = x - center
-    # yg = y - center
-    # psf_image = psf_model(xg, yg)
-    # psf_image /= np.sum(psf_image)
+    # background
+    radius = float(config['photometry']['RADIUS'])
+    bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
 
-    # plt.figure()
-    # plt.imshow(psf_image)
-    # plt.title("PSF")
-    # plt.show()
+    if radius >= bkgwindows[0]:
+        raise ValueError("RADIUS must be smaller than inner_radius")
 
+    if bkgwindows[0] >= bkgwindows[1]:
+        raise ValueError("BKGWINDOWS must be (inner_radius, outer_radius).")
+
+    bkgstat = MMMBackground()
+    local_bkg_estimator = LocalBackground(bkgwindows[0],
+                                          bkgwindows[1],
+                                          bkg_estimator=bkgstat)
+
+    # PSF photometry
+    fit_shape = ast.literal_eval(config['photometry']['FIT_SHAPE'])
     psfphot = PSFPhotometry(psf_model, fit_shape,
-                            aperture_radius=4)
+                            local_bkg_estimator=local_bkg_estimator,
+                            aperture_radius=radius,
+                            progress_bar=True)
 
     phot = psfphot(data, error=error, init_params=positions)
     opfname = save_photometry(
@@ -350,6 +399,7 @@ def psf_photometry_subrot(config, fname, positions):
         history='PSF photometry table added on file update.',
         flext=flext
     )
+
     return opfname
 
 
