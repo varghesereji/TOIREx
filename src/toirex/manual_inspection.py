@@ -315,7 +315,7 @@ def manual_inspection_cals(config, dirname):
         number = extract_number_from_fname(f.name)
 
         print("Group number running:", int(number[0]), "\n")
-        logger.info("Calling file" + f.name)
+        logger.info(f"Calling file {f.name}")
         read_file = read_txt_file(f)
         always_accept_list = []
         always_reject_list = []
