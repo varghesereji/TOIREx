@@ -275,36 +275,51 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
 
                 if UserInput == 'ra':
                     print("Completely Removing", target)
-                    flats_list.remove(target)
+                    # flats_list.remove(target)
                     always_reject_list.append(target)
+
                 elif UserInput == 'aa':
                     print("Always Accepting", target)
                     always_accept_list.append(target)
+                    selected_flats.append(target)
+
                 elif UserInput == 'r':
-                    flats_list.remove(target)
+                    # flats_list.remove(target)
+                    print("Rejecting", target)
+
                 elif UserInput == 'acceptall':
                     acceptall = True
                     print(
                         "Accepting every single remaining images of this night"
                     )
                 else:
+                    # 'a' or any other input
                     print("Accepting", target)
+                    selected_flats.append(target)
+
+            flats_list = selected_flats
+
             fluxexts = list(config['inputs']['FLUXEXT'])
             varexts = list(config['inputs']['VAREXT'])
             logger.info("Flux extensions: {}".format(fluxexts))
             logger.info("Variance extensions: {}".format(varexts))
             # logger.info("Combining {} by biweight".format(targets_path))
+
             op_fname = framecat.lower()
+
             if len(flats_list) > 0:
                 if config['inputs']['BADPIXMASK'] == 'N':
                     mask = None
+
                 elif config['inputs']['BADPIXMASK'] == 'Y':
                     mask = instruments[dictkw]['badpixelmask']
+
                     if mask is not None:
                         mask = mask()
+
                 else:
-                    if isinstance(config['inputs']['BADPIXMASK'], str):
-                        mask = config['inputs']['BADPIXMASK']
+                    # if isinstance(config['inputs']['BADPIXMASK'], str):
+                    mask = config['inputs']['BADPIXMASK']
                 comb_framename = combine_frames(
                     flats_list, op_path,
                     instruments[dictkw]['sort_filename_key'],
