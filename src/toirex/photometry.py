@@ -296,7 +296,6 @@ def make_epsf(
 
 def psf_photometry_subrot(config, fname, positions):
     print("Doing PSF Photometry")
-    fit_shape = (15, 15)
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
     try:
@@ -335,7 +334,7 @@ def psf_photometry_subrot(config, fname, positions):
     local_bkg_estimator = LocalBackground(bkgwindows[0],
                                           bkgwindows[1],
                                           bkg_estimator=bkgstat)
-
+    fit_shape = ast.literal_eval(config['photometry']['FIT_SHAPE'])
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             local_bkg_estimator=local_bkg_estimator,
                             aperture_radius=radius,
