@@ -535,7 +535,8 @@ def photometry_extraction(config, dirname):
                 if editsource:
                     centroids = targetfind_manual(
                         frametoextract,
-                        centroids_0=table_to_centroids(centroids)
+                        centroids_0=table_to_centroids(centroids),
+                        aperture_radii=(radius, bkgwindows[0], bkgwindows[1])
                     )
 
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
