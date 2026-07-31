@@ -189,6 +189,12 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
             )
 
         radius, bkg_in, bkg_out = aperture_radii
+
+        if not (radius < bkg_in < bkg_out):
+            raise ValueError(
+                "Expected source_radius < bkg_inner < bkg_outer."
+            )
+
         centroid_list = select_aperture(fig, axs, data,
                                         radius=radius,
                                         bkgs=(bkg_in, bkg_out),
