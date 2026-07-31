@@ -411,8 +411,8 @@ def select_aperture(fig,
 
         centroid = select_source(sel_reg)
 
-        x_center = centroid[1] + xdata-10
-        y_center = centroid[0] + ydata-10
+        x_center = centroid[1] + x0
+        y_center = centroid[0] + y0
 
         source, bkg_in, bkg_out = mark_source(
             ax,
