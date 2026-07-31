@@ -127,10 +127,11 @@ def targetfind_auto(fname,
     return positions
 
 
-def targetfind_manual(fname, centroids_0):
+def targetfind_manual(fname, centroids_0, aperture_radii=(10, 15, 20)):
     centroids = imageplot(fname, ext=0, title="Select sources",
                           line_profile="aperture", get_target=False,
-                          centroid_list=centroids_0)
+                          centroid_list=centroids_0,
+                          aperture_radii=aperture_radii)
     positions = Table()
     positions['x_0'] = centroids[:, 1]
     positions['y_0'] = centroids[:, 0]
