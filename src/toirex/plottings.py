@@ -261,10 +261,14 @@ def mark_source(ax, center,
     return source, bkg_in, bkg_out
 
 
-def select_aperture(fig, ax, image,
+def select_aperture(fig,
+                    ax,
+                    image,
                     radius=10,
                     bkgs=(15, 20),
-                    get_target=False, centroids_list=None):
+                    get_target=False,
+                    centroids_list=None):
+
     if centroids_list is None:
         centroids_list = []
     circles_list = []
