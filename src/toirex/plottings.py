@@ -263,7 +263,54 @@ def select_aperture(fig,
                     bkgs=(15, 20),
                     get_target=False,
                     centroids_list=None):
+    """
+    Interactively select source apertures on an image.
 
+    Existing sources are displayed using a circular source aperture and
+    background annulus. Additional sources can be selected by holding the
+    Ctrl key and clicking near a source, while the nearest selected source
+    can be removed by holding the Shift key and clicking near it. The
+    clicked position is refined by centroiding within a small region
+    around the click location.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        Figure containing the displayed image.
+    ax : matplotlib.axes.Axes
+        Axes on which the image is displayed.
+    image : ndarray
+        Two-dimensional image array.
+    radius : float, optional
+        Radius of the source aperture in pixels. Default is 10.
+    bkgs : tuple of float, optional
+        Inner and outer radii of the background annulus in pixels, given
+        as ``(inner_radius, outer_radius)``. Default is ``(15, 20)``.
+    get_target : bool, optional
+        If `True`, prompt for SIMBAD target information after selecting a
+        source and store the returned metadata together with the source
+        coordinates. Default is `False`.
+    centroids_list : list, optional
+        Initial list of source centroids. Each element must contain at
+        least the source coordinates as ``[y, x]``. If `None`, an empty
+        list is created.
+
+    Returns
+    -------
+    list
+        Updated list of source centroids. If ``get_target=True``, each
+        entry additionally contains the target name, equatorial
+        coordinates, and proper motions returned by the SIMBAD query.
+
+    Notes
+    -----
+    The following mouse interactions are supported:
+
+    - **Ctrl + Left Click**: Add a source after centroid refinement.
+    - **Shift + Left Click**: Remove the nearest selected source.
+
+    The display is updated interactively as sources are added or removed.
+    """
     if centroids_list is None:
         centroids_list = []
 
