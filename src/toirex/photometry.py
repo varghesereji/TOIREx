@@ -32,6 +32,7 @@ from photutils.aperture import aperture_photometry
 import inspect
 
 from .utils import read_txt_file
+from .utils import table_to_centroids
 from .plottings import imageplot
 from .io_utils import convert_radec
 
@@ -528,11 +529,10 @@ def photometry_extraction(config, dirname):
                                             threshold=threshold,
                                             showplot=not editsource)
                 if editsource:
-                    x_cents = centroids['x_0']
-                    y_cents = centroids['y_0']
-                    centroids_0 = list(np.array([y_cents, x_cents]).T)
-                    centroids = targetfind_manual(frametoextract,
-                                                  centroids_0=centroids_0)
+                    centroids = targetfind_manual(
+                        frametoextract,
+                        centroids_0=table_to_centroids(centroids)
+                    )
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
                 centroids_0 = get_centroids(sources_txtfname, purpose='read')
                 centroids = targetfind_manual(frametoextract,
