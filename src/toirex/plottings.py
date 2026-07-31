@@ -261,7 +261,10 @@ def mark_source(ax, center,
     return source, bkg_in, bkg_out
 
 
-def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
+def select_aperture(fig, ax, image,
+                    radius=10,
+                    bkgs=(15, 20),
+                    get_target=False, centroids_list=None):
     if centroids_list is None:
         centroids_list = []
     circles_list = []
@@ -271,8 +274,8 @@ def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
 
         circle, _, _ = mark_source(ax,
                                    (x_center, y_center),
-                                   radius=10,
-                                   bkgs=(15, 20))
+                                   radius=radius,
+                                   bkgs=bkgs)
 
         circles_list.append(circle)
     fig.canvas.draw_idle()
@@ -305,8 +308,8 @@ def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
             radius = 10
             circle, _, _ = mark_source(ax,
                                        (x_center, y_center),
-                                       radius,
-                                       bkgs=(15, 20))
+                                       radius=radius,
+                                       bkgs=bkgs)
             circles_list.append(circle)
             # fig.canvas.draw()
             # target_name = input("Enter target name")
