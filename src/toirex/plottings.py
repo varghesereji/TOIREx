@@ -271,8 +271,10 @@ def select_aperture(fig,
 
     if centroids_list is None:
         centroids_list = []
+
     circles_list = []
 
+    # Draw existing apertures
     for c in centroids_list:
         y_center, x_center = c[:2]
 
