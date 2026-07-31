@@ -197,6 +197,36 @@ def enable_line_profile(fig, ax, image):
 def mark_source(ax, center,
                 radius=10,
                 bkgs=(15, 20)):
+    """
+    Draw the source aperture and background annulus on an axes.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Axes on which the apertures are drawn.
+    center : tuple of float
+        ``(x, y)`` coordinates of the source centre in pixel units.
+    radius : float, optional
+        Radius of the source aperture in pixels. Default is 10.
+    bkgs : tuple of float, optional
+        Inner and outer radii of the background annulus in pixels, given
+        as ``(inner_radius, outer_radius)``. Default is ``(15, 20)``.
+
+    Returns
+    -------
+    source : matplotlib.patches.Circle
+        Circle representing the source aperture.
+    bkg_in : matplotlib.patches.Circle
+        Circle representing the inner boundary of the background annulus.
+    bkg_out : matplotlib.patches.Circle
+        Circle representing the outer boundary of the background annulus.
+
+    Raises
+    ------
+    ValueError
+        If ``bkgs`` does not contain exactly two radii or if the inner
+        radius is greater than or equal to the outer radius.
+    """
 
     common = dict(facecolor="none", linewidth=2)
 
