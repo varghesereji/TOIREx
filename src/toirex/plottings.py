@@ -206,6 +206,11 @@ def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
                         facecolor='none',
                         linewidth=2)
         ax.add_patch(circle)
+        circle2 = Circle((x_center, y_center), 15,
+                         edgecolor='green',
+                         facecolor='none',
+                         linewidth=2)
+        ax.add_patch(circle2)
         circles_list.append(circle)
     fig.canvas.draw_idle()
     # plt.show()
