@@ -219,6 +219,8 @@ def mark_source(ax, center,
                         linewidth=2)
     ax.add_patch(circle_out)
 
+    return circle, circle_in, circle_out
+
 
 def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
     if centroids_list is None:
