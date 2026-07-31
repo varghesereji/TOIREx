@@ -23,7 +23,67 @@ from .io_utils import launch_simbad_gui
 
 
 def imageplot(fname, ext=0, title=None, line_profile='drawline',
-              get_target=False, centroid_list=None, **kwargs):
+              get_target=False, centroid_list=None,
+              aperture_radii=(10, 15, 20),
+              **kwargs):
+    """
+    Display a FITS image with interactive visualization tools.
+
+    The displayed image includes controls for adjusting the intensity
+    range, image stretch, and colormap. Depending on the selected
+    interactive mode, line profiles can be drawn or source apertures can
+    be selected directly on the image.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Path to the FITS image.
+    ext : int, optional
+        FITS extension containing the image data. Default is 0.
+    title : str or pathlib.Path, optional
+        Title displayed above the image. If a `Path` object is supplied,
+        only its filename is displayed.
+    line_profile : {'drawline', 'aperture'}, optional
+        Interactive mode to enable. ``'drawline'`` enables interactive
+        line-profile measurements, while ``'aperture'`` enables
+        interactive aperture selection. Default is ``'drawline'``.
+    get_target : bool, optional
+        If `True`, query SIMBAD for target information after selecting a
+        source in aperture mode. Default is `False`.
+    centroid_list : list, optional
+        Initial list of source centroids. Existing apertures are
+        displayed when aperture mode is enabled. If `None`, an empty list
+        is used.
+    aperture_radii : tuple of float, optional
+        Tuple specifying the source aperture radius, background inner
+        radius, and background outer radius as
+        ``(source_radius, bkg_inner, bkg_outer)``. Used only when
+        ``line_profile='aperture'``. Default is ``(10, 15, 20)``.
+    **kwargs
+        Additional keyword arguments passed to
+        `matplotlib.axes.Axes.imshow`.
+
+    Returns
+    -------
+    ndarray
+        Array containing the selected source centroids. If
+        ``get_target=True``, additional target information returned by
+        the SIMBAD query is included for each selected source.
+
+    Raises
+    ------
+    ValueError
+        If ``aperture_radii`` does not contain exactly three values or if
+        the radii do not satisfy
+        ``source_radius < bkg_inner < bkg_outer``.
+
+    Notes
+    -----
+    In aperture mode, the following mouse interactions are available:
+
+    - **Ctrl + Left Click** : Add a source after centroid refinement.
+    - **Shift + Left Click** : Remove the nearest selected source.
+    """
     data = read_fits_data(fname, ext=ext)
 
     header = read_fits_header(fname, ext=ext)
@@ -44,8 +104,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
 
     # --- Initial normalization ---
     interval = ZScaleInterval()
-    # stretch = LinearStretch()
-    # norm = ImageNormalize(data, interval=interval, stretch=stretch)
+
     fig = plt.figure(figsize=(9, 9))
     gs = GridSpec(
         nrows=1,
@@ -59,22 +118,15 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
         axs.coords[0].set_axislabel('RA')
         axs.coords[1].set_axislabel('Dec')
     else:
-        # fig, axs = plt.subplots(figsize=(8, 8))
+
         axs = fig.add_subplot(gs[0, 1])
-    # plt.subplots_adjust(left=0.55, bottom=0.05)
+
     im = axs.imshow(data, **kwargs)
 
     if title is not None:
         axs.set_title(title, loc="left")
+
     # --- Sliders for vmin/vmax ---
-    # ax_vmin = plt.axes([0.15, 0.05, 0.55, 0.03])
-    # ax_vmax = plt.axes([0.15, 0.0, 0.55, 0.03])
-    # s_vmin = Slider(ax_vmin, 'vmin', np.nanmin(data), np.nanmax(data),
-    #                 valinit=np.nanmin(data))
-    # s_vmin = Slider(ax_vmin, 'vmin', kwargs['vmin'], kwargs['vmax'],
-    #                 valinit=kwargs['vmin'])
-    # s_vmax = Slider(ax_vmax, 'vmax', kwargs['vmin'], kwargs['vmax'],
-    #                 valinit=kwargs['vmax'])
     ax_range = plt.axes([0.25, 0.05, 0.5, 0.035])
     s_range = RangeSlider(
         ax=ax_range,
@@ -84,6 +136,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
         valinit=(kwargs['vmin'], kwargs['vmax']),
         )
     fig.canvas.draw_idle()
+
     # --- Radio buttons for stretch ---
     ax_stretch = fig.add_axes([0.005, 0.55, 0.12, 0.25])
     stretch_buttons = RadioButtons(ax_stretch, ('linear', 'sqrt', 'log'))
@@ -110,16 +163,12 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
                               vmin=vmin, vmax=vmax)
         im.set_norm(norm)
         im.set_cmap(cmap)
+
     # --- Connect the widgets ---
-    # vmin, vmax = s_range.val
     s_range.on_changed(update)
 
     plt.tight_layout()
-    # fig.colorbar(im, ax=axs, label="Counts",
-    #              fraction=0.035,  # thickness
-    #              pad=0.02,        # gap from image
-    #              shrink=1      # length)
-    #              )
+
     cax = fig.add_subplot(gs[0, 2])
     cbar = fig.colorbar(im, cax=cax)
     cbar.set_label("Counts")
@@ -132,7 +181,24 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
         title = title + "\n Press Ctrl and click on apertures to select them"
         title += "\n Press Shift and click to remove selected apertures"
         axs.set_title(title, loc="left")
-        centroid_list = select_aperture(fig, axs, data, get_target,
+        if len(aperture_radii) != 3:
+
+            raise ValueError(
+                "'aperture_radii' must contain "
+                "(source_radius, bkg_inner, bkg_outer)."
+            )
+
+        radius, bkg_in, bkg_out = aperture_radii
+
+        if not (radius < bkg_in < bkg_out):
+            raise ValueError(
+                "Expected source_radius < bkg_inner < bkg_outer."
+            )
+
+        centroid_list = select_aperture(fig, axs, data,
+                                        radius=radius,
+                                        bkgs=(bkg_in, bkg_out),
+                                        get_target=get_target,
                                         centroids_list=centroid_list)
     plt.show()
     return np.array(centroid_list)
@@ -194,22 +260,214 @@ def enable_line_profile(fig, ax, image):
     fig.canvas.mpl_connect("button_press_event", onclick)
 
 
-def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
+def mark_source(ax, center,
+                radius=10,
+                bkgs=(15, 20)):
+    """
+    Draw the source aperture and background annulus on an axes.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Axes on which the apertures are drawn.
+    center : tuple of float
+        ``(x, y)`` coordinates of the source centre in pixel units.
+    radius : float, optional
+        Radius of the source aperture in pixels. Default is 10.
+    bkgs : tuple of float, optional
+        Inner and outer radii of the background annulus in pixels, given
+        as ``(inner_radius, outer_radius)``. Default is ``(15, 20)``.
+
+    Returns
+    -------
+    source : matplotlib.patches.Circle
+        Circle representing the source aperture.
+    bkg_in : matplotlib.patches.Circle
+        Circle representing the inner boundary of the background annulus.
+    bkg_out : matplotlib.patches.Circle
+        Circle representing the outer boundary of the background annulus.
+
+    Raises
+    ------
+    ValueError
+        If ``bkgs`` does not contain exactly two radii or if the inner
+        radius is greater than or equal to the outer radius.
+    """
+
+    common = dict(facecolor="none", linewidth=2)
+
+    # source aperture
+    source = Circle(center,
+                    radius=radius,
+                    edgecolor='red',
+                    **common)
+
+    # bkg circles
+    if len(bkgs) != 2:
+        raise ValueError(
+            "'bkgs' must contain (inner_radius, outer_radius)."
+        )
+
+    if bkgs[0] >= bkgs[1]:
+        raise ValueError(
+            "Background inner radius must be smaller than outer radius."
+        )
+
+    bkg_in = Circle(center, bkgs[0],
+                    edgecolor='green',
+                    **common)
+
+    bkg_out = Circle(center, bkgs[1],
+                     edgecolor='green',
+                     **common)
+
+    for patch in (source, bkg_in, bkg_out):
+        ax.add_patch(patch)
+
+    return source, bkg_in, bkg_out
+
+
+def select_aperture(fig,
+                    ax,
+                    image,
+                    radius=10,
+                    bkgs=(15, 20),
+                    get_target=False,
+                    centroids_list=None):
+    """
+    Interactively select source apertures on an image.
+
+    Existing sources are displayed using a circular source aperture and
+    background annulus. Additional sources can be selected by holding the
+    Ctrl key and clicking near a source, while the nearest selected source
+    can be removed by holding the Shift key and clicking near it. The
+    clicked position is refined by centroiding within a small region
+    around the click location.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        Figure containing the displayed image.
+    ax : matplotlib.axes.Axes
+        Axes on which the image is displayed.
+    image : ndarray
+        Two-dimensional image array.
+    radius : float, optional
+        Radius of the source aperture in pixels. Default is 10.
+    bkgs : tuple of float, optional
+        Inner and outer radii of the background annulus in pixels, given
+        as ``(inner_radius, outer_radius)``. Default is ``(15, 20)``.
+    get_target : bool, optional
+        If `True`, prompt for SIMBAD target information after selecting a
+        source and store the returned metadata together with the source
+        coordinates. Default is `False`.
+    centroids_list : list, optional
+        Initial list of source centroids. Each element must contain at
+        least the source coordinates as ``[y, x]``. If `None`, an empty
+        list is created.
+
+    Returns
+    -------
+    list
+        Updated list of source centroids. If ``get_target=True``, each
+        entry additionally contains the target name, equatorial
+        coordinates, and proper motions returned by the SIMBAD query.
+
+    Notes
+    -----
+    The following mouse interactions are supported:
+
+    - **Ctrl + Left Click**: Add a source after centroid refinement.
+    - **Shift + Left Click**: Remove the nearest selected source.
+
+    The display is updated interactively as sources are added or removed.
+    """
     if centroids_list is None:
         centroids_list = []
-    circles_list = []
 
+    aperture_patches = []
+
+    # Draw existing apertures
     for c in centroids_list:
         y_center, x_center = c[:2]
-        circle = Circle((x_center, y_center), 10,
-                        edgecolor='red',
-                        facecolor='none',
-                        linewidth=2)
-        ax.add_patch(circle)
-        circles_list.append(circle)
+
+        source, bkg_in, bkg_out = mark_source(
+            ax,
+            (x_center, y_center),
+            radius=radius,
+            bkgs=bkgs
+        )
+
+        aperture_patches.append(
+            (source, bkg_in, bkg_out)
+        )
+
     fig.canvas.draw_idle()
-    # plt.show()
-    # annotation = None
+
+    def add_source(xdata, ydata):
+        """Add a source near the clicked position"""
+
+        half_box = 10
+
+        y0 = max(0, int(ydata) - half_box)
+        y1 = min(image.shape[0], int(ydata) + half_box)
+        x0 = max(0, int(xdata) - half_box)
+        x1 = min(image.shape[1], int(xdata) + half_box)
+        sel_reg = image[y0:y1, x0:x1]
+
+        centroid = select_source(sel_reg)
+
+        x_center = centroid[1] + x0
+        y_center = centroid[0] + y0
+
+        source, bkg_in, bkg_out = mark_source(
+            ax,
+            (x_center, y_center),
+            radius=radius,
+            bkgs=bkgs
+        )
+
+        aperture_patches.append(
+            (source, bkg_in, bkg_out)
+        )
+
+        if get_target:
+            coords = launch_simbad_gui()
+            centroids_list.append([
+                int(y_center),
+                int(x_center),
+                coords["name"],
+                coords["ra"],
+                coords["dec"],
+                coords["pmra"],
+                coords["pmdec"],
+            ])
+        else:
+            centroids_list.append(
+                [
+                    y_center,
+                    x_center
+                ]
+            )
+
+    def remove_source(xdata, ydata):
+        """Remove the nearest selected source."""
+
+        if not centroids_list:
+            return
+        points = np.asarray(centroids_list)[:, :2]
+
+        distances = np.sqrt(
+            (points[:, 0] - ydata)**2 +
+            (points[:, 1] - xdata)**2
+        )
+        idx = np.argmin(distances)
+        centroids_list.pop(idx)
+        # aperture_patches.pop(idx).remove()
+        source, bkg_in, bkg_out = aperture_patches.pop(idx)
+
+        for patch in (source, bkg_in, bkg_out):
+            patch.remove()
 
     def onclick(event):
         # nonlocal line_coords
@@ -220,52 +478,20 @@ def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
 
         if event.inaxes != ax:
             return
-        if event.key not in ['control', 'shift']:
-            return  # quietly ignore other clicks
 
-        xdata, ydata = event.xdata, event.ydata
-        if event.key == 'control':
-            sel_reg = image[int(ydata)-10:int(ydata)+10,
-                            int(xdata)-10:int(xdata)+10]
-            centroid = select_source(sel_reg)
-            x_center = centroid[1] + xdata-10
-            y_center = centroid[0] + ydata-10
-            if not get_target:
-                centroids_list.append([y_center,
-                                       x_center])
+        if event.key == "control":
+            add_source(event.xdata, event.ydata)
 
-            radius = 10
-            circle = Circle((x_center, y_center), radius,
-                            edgecolor='red', facecolor='none', linewidth=2)
-            ax.add_patch(circle)
-            circles_list.append(circle)
-            # fig.canvas.draw()
-            # target_name = input("Enter target name")
-            # query_object((xdata, ydata))
-            if get_target:
-                coords = launch_simbad_gui()
-                target_coords = [int(y_center), int(x_center)]
-                target_coords.append(coords['name'])
-                target_coords.append(coords['ra'])
-                target_coords.append(coords['dec'])
-                target_coords.append(coords['pmra'])
-                target_coords.append(coords['pmdec'])
-                centroids_list.append(target_coords)
-        elif event.key == 'shift':
-            if not centroids_list:
-                return
-            points = np.array(centroids_list)[:, :2]
-            distances = np.sqrt(
-                (points[:, 0] - ydata)**2 +
-                (points[:, 1] - xdata)**2
-                )
-            idx = np.argmin(distances)
-            centroids_list.pop(idx)
-            circles_list.pop(idx).remove()
+        elif event.key == "shift":
+            remove_source(event.xdata, event.ydata)
+
+        else:
+            return
+
         fig.canvas.draw_idle()
-        # print(coords)
-        # print(centroids_list)
+
     fig.canvas.mpl_connect("button_press_event", onclick)
+
     return centroids_list
 
 
