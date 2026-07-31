@@ -194,6 +194,32 @@ def enable_line_profile(fig, ax, image):
     fig.canvas.mpl_connect("button_press_event", onclick)
 
 
+def mark_source(ax, center,
+                radius=10,
+                bkgs=(15, 20)):
+
+    # source aperture
+    circle = Circle(center,
+                    radius=radius,
+                    edgecolor='red',
+                    facecolor='none',
+                    linewidth=2)
+    ax.add_patch(circle)
+
+    # bkg inner circle
+    circle_in = Circle(center, bkgs[0],
+                       edgecolor='green',
+                       facecolor='none',
+                       linewidth=2)
+    ax.add_patch(circle_in)
+
+    circle_out = Circle(center, bkgs[1],
+                        edgecolor='green',
+                        facecolor='none',
+                        linewidth=2)
+    ax.add_patch(circle_out)
+
+
 def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
     if centroids_list is None:
         centroids_list = []
