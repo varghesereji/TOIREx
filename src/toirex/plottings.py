@@ -289,10 +289,13 @@ def select_aperture(fig,
     def add_source(xdata, ydata):
         """Add a source near the clicked position"""
 
-        sel_reg = image[
-            int(ydata)-10:int(ydata)+10,
-            int(xdata)-10:int(xdata)+10
-        ]
+        half_box = 10
+
+        y0 = max(0, int(ydata) - half_box)
+        y1 = min(image.shape[0], int(ydata) + half_box)
+        x0 = max(0, int(xdata) - half_box)
+        x1 = min(image.shape[1], int(xdata) + half_box)
+        sel_reg = image[y0:y1, x0:x1]
 
         centroid = select_source(sel_reg)
 
