@@ -669,6 +669,6 @@ def fit_gaussian_profile(counts):
 
 def table_to_centroids(table, keys=("y_0", "x_0")):
     """Convert a source table to a list of (y, x) centroids."""
-    return np.column_stack((table[keys[0]], table[keys[0]])).tolist()
+    return np.column_stack((table[keys[0]], table[keys[1]])).tolist()
 
 # End
