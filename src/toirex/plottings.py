@@ -23,7 +23,9 @@ from .io_utils import launch_simbad_gui
 
 
 def imageplot(fname, ext=0, title=None, line_profile='drawline',
-              get_target=False, centroid_list=None, **kwargs):
+              get_target=False, centroid_list=None,
+              aperture_radii=(10, 15, 20),
+              **kwargs):
     data = read_fits_data(fname, ext=ext)
 
     header = read_fits_header(fname, ext=ext)
