@@ -116,17 +116,14 @@ def targetfind_auto(fname,
     x_key = "x_centroid" if "x_centroid" in sources.colnames else "xcentroid"
     y_key = "y_centroid" if "y_centroid" in sources.colnames else "ycentroid"
 
-    x_pos = sources[x_key]
-    y_pos = sources[y_key]
-
-    centroids = list(np.array([y_pos, x_pos]).T)
+    centroids = table_to_centroids(sources, keys=(y_key, x_key))
     if showplot:
         imageplot(fname, ext=0, title="Sources found",
                   line_profile="aperture", get_target=False,
                   centroid_list=centroids)
     positions = Table()
-    positions['x_0'] = x_pos
-    positions['y_0'] = y_pos
+    positions['x_0'] = sources[x_key]
+    positions['y_0'] = sources[y_key]
     return positions
 
 
