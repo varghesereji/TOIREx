@@ -70,7 +70,8 @@ def targetfind_auto(fname,
                     threshold=50,
                     n_brightest=None,
                     xycoords=None,
-                    showplot=True):
+                    showplot=True,
+                    aperture_radii=(10, 15, 20)):
     """
     Automatically detect point sources in an image using DAOStarFinder.
 
@@ -93,6 +94,10 @@ def targetfind_auto(fname,
     showplot : bool, optional
         If `True`, display the detected sources overlaid on the image.
         Default is `True`.
+    aperture_radii : tuple of float, optional
+        Tuple specifying the source aperture radius, background inner
+        radius, and background outer radius as
+        ``(source_radius, bkg_inner, bkg_outer)``.
 
     Returns
     -------
@@ -120,7 +125,8 @@ def targetfind_auto(fname,
     if showplot:
         imageplot(fname, ext=0, title="Sources found",
                   line_profile="aperture", get_target=False,
-                  centroid_list=centroids)
+                  centroid_list=centroids,
+                  aperture_radii=aperture_radii)
     positions = Table()
     positions['x_0'] = sources[x_key]
     positions['y_0'] = sources[y_key]
@@ -528,10 +534,14 @@ def photometry_extraction(config, dirname):
             if config['photometry']['FINDSOURCE'] == 'AUTO':
                 fwhm = float(config['photometry']['FWHM'])
                 threshold = float(config['photometry']['THRESHOLD'])
-                centroids = targetfind_auto(frametoextract,
-                                            fwhm=fwhm,
-                                            threshold=threshold,
-                                            showplot=not editsource)
+                centroids = targetfind_auto(
+                    frametoextract,
+                    fwhm=fwhm,
+                    threshold=threshold,
+                    showplot=not editsource,
+                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1])
+                )
+
                 if editsource:
                     centroids = targetfind_manual(
                         frametoextract,
