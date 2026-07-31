@@ -7,7 +7,6 @@ from astropy.io import fits
 from astropy.table import Table
 from astropy.stats import sigma_clipped_stats
 from astropy.wcs import WCS
-from astropy.nddata import Cutout2D
 from astropy.nddata import NDData, StdDevUncertainty
 
 from photutils.detection import DAOStarFinder
@@ -23,7 +22,6 @@ try:
     from photutils.psf import EPSFBuilder
 except ModuleNotFoundError:
     from photutils.psf.epsf import EPSFBuilder
-from photutils.psf import ImagePSF
 
 from photutils.aperture import CircularAperture
 from photutils.aperture import EllipticalAperture
@@ -33,7 +31,6 @@ from photutils.aperture import aperture_photometry
 
 import inspect
 
-import matplotlib.pyplot as plt
 from .utils import read_txt_file
 from .plottings import imageplot
 from .io_utils import convert_radec
