@@ -26,6 +26,64 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
               get_target=False, centroid_list=None,
               aperture_radii=(10, 15, 20),
               **kwargs):
+    """
+    Display a FITS image with interactive visualization tools.
+
+    The displayed image includes controls for adjusting the intensity
+    range, image stretch, and colormap. Depending on the selected
+    interactive mode, line profiles can be drawn or source apertures can
+    be selected directly on the image.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Path to the FITS image.
+    ext : int, optional
+        FITS extension containing the image data. Default is 0.
+    title : str or pathlib.Path, optional
+        Title displayed above the image. If a `Path` object is supplied,
+        only its filename is displayed.
+    line_profile : {'drawline', 'aperture'}, optional
+        Interactive mode to enable. ``'drawline'`` enables interactive
+        line-profile measurements, while ``'aperture'`` enables
+        interactive aperture selection. Default is ``'drawline'``.
+    get_target : bool, optional
+        If `True`, query SIMBAD for target information after selecting a
+        source in aperture mode. Default is `False`.
+    centroid_list : list, optional
+        Initial list of source centroids. Existing apertures are
+        displayed when aperture mode is enabled. If `None`, an empty list
+        is used.
+    aperture_radii : tuple of float, optional
+        Tuple specifying the source aperture radius, background inner
+        radius, and background outer radius as
+        ``(source_radius, bkg_inner, bkg_outer)``. Used only when
+        ``line_profile='aperture'``. Default is ``(10, 15, 20)``.
+    **kwargs
+        Additional keyword arguments passed to
+        `matplotlib.axes.Axes.imshow`.
+
+    Returns
+    -------
+    ndarray
+        Array containing the selected source centroids. If
+        ``get_target=True``, additional target information returned by
+        the SIMBAD query is included for each selected source.
+
+    Raises
+    ------
+    ValueError
+        If ``aperture_radii`` does not contain exactly three values or if
+        the radii do not satisfy
+        ``source_radius < bkg_inner < bkg_outer``.
+
+    Notes
+    -----
+    In aperture mode, the following mouse interactions are available:
+
+    - **Ctrl + Left Click** : Add a source after centroid refinement.
+    - **Shift + Left Click** : Remove the nearest selected source.
+    """
     data = read_fits_data(fname, ext=ext)
 
     header = read_fits_header(fname, ext=ext)
