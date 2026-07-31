@@ -307,7 +307,6 @@ def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
                                        (x_center, y_center),
                                        radius,
                                        bkgs=(15, 20))
-            ax.add_patch(circle)
             circles_list.append(circle)
             # fig.canvas.draw()
             # target_name = input("Enter target name")
