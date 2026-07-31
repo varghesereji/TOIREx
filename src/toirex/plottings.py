@@ -126,9 +126,10 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
         title = title + "\n Press Ctrl and click on apertures to select them"
         title += "\n Press Shift and click to remove selected apertures"
         axs.set_title(title, loc="left")
+        radius, bkg_in, bkg_out = aperture_radii
         centroid_list = select_aperture(fig, axs, data,
-                                        radius=10,
-                                        bkgs=(15, 20),
+                                        radius=radius,
+                                        bkgs=(bkg_in, bkg_out),
                                         get_target=get_target,
                                         centroids_list=centroid_list)
     plt.show()
