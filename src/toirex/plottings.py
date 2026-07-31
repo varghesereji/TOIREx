@@ -67,14 +67,6 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
     if title is not None:
         axs.set_title(title, loc="left")
     # --- Sliders for vmin/vmax ---
-    # ax_vmin = plt.axes([0.15, 0.05, 0.55, 0.03])
-    # ax_vmax = plt.axes([0.15, 0.0, 0.55, 0.03])
-    # s_vmin = Slider(ax_vmin, 'vmin', np.nanmin(data), np.nanmax(data),
-    #                 valinit=np.nanmin(data))
-    # s_vmin = Slider(ax_vmin, 'vmin', kwargs['vmin'], kwargs['vmax'],
-    #                 valinit=kwargs['vmin'])
-    # s_vmax = Slider(ax_vmax, 'vmax', kwargs['vmin'], kwargs['vmax'],
-    #                 valinit=kwargs['vmax'])
     ax_range = plt.axes([0.25, 0.05, 0.5, 0.035])
     s_range = RangeSlider(
         ax=ax_range,
