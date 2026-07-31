@@ -660,4 +660,15 @@ def fit_gaussian_profile(counts):
     g_fit = fit_g(g_init, x, counts)
 
     return x, counts, g_fit(x), g_fit
+
+
+# ------------------------------
+# Other small utils
+# ------------------------------
+
+
+def table_to_centroids(table, keys=("y_0", "x_0")):
+    """Convert a source table to a list of (y, x) centroids."""
+    return np.column_stack((table[keys[0]], table[keys[1]])).tolist()
+
 # End

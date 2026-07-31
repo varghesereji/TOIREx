@@ -7,7 +7,6 @@ from astropy.io import fits
 from astropy.table import Table
 from astropy.stats import sigma_clipped_stats
 from astropy.wcs import WCS
-from astropy.nddata import Cutout2D
 from astropy.nddata import NDData, StdDevUncertainty
 
 from photutils.detection import DAOStarFinder
@@ -23,7 +22,6 @@ try:
     from photutils.psf import EPSFBuilder
 except ModuleNotFoundError:
     from photutils.psf.epsf import EPSFBuilder
-from photutils.psf import ImagePSF
 
 from photutils.aperture import CircularAperture
 from photutils.aperture import EllipticalAperture
@@ -33,8 +31,8 @@ from photutils.aperture import aperture_photometry
 
 import inspect
 
-import matplotlib.pyplot as plt
 from .utils import read_txt_file
+from .utils import table_to_centroids
 from .plottings import imageplot
 from .io_utils import convert_radec
 
@@ -43,6 +41,11 @@ from .io_utils import convert_radec
 _DAOSTARFINDER_SUPPORTS_N_BRIGHTEST = (
     "n_brightest" in inspect.signature(DAOStarFinder).parameters
 )
+
+
+# -----------------------------
+# Locatinig targets
+# -----------------------------
 
 
 def _make_daostarfinder(fwhm, threshold, n_brightest, **kwargs):
@@ -67,7 +70,8 @@ def targetfind_auto(fname,
                     threshold=50,
                     n_brightest=None,
                     xycoords=None,
-                    showplot=True):
+                    showplot=True,
+                    aperture_radii=(10, 15, 20)):
     """
     Automatically detect point sources in an image using DAOStarFinder.
 
@@ -90,6 +94,10 @@ def targetfind_auto(fname,
     showplot : bool, optional
         If `True`, display the detected sources overlaid on the image.
         Default is `True`.
+    aperture_radii : tuple of float, optional
+        Tuple specifying the source aperture radius, background inner
+        radius, and background outer radius as
+        ``(source_radius, bkg_inner, bkg_outer)``.
 
     Returns
     -------
@@ -113,30 +121,55 @@ def targetfind_auto(fname,
     x_key = "x_centroid" if "x_centroid" in sources.colnames else "xcentroid"
     y_key = "y_centroid" if "y_centroid" in sources.colnames else "ycentroid"
 
-    x_pos = sources[x_key]
-    y_pos = sources[y_key]
-
-    centroids = list(np.array([y_pos, x_pos]).T)
+    centroids = table_to_centroids(sources, keys=(y_key, x_key))
     if showplot:
         imageplot(fname, ext=0, title="Sources found",
                   line_profile="aperture", get_target=False,
-                  centroid_list=centroids)
+                  centroid_list=centroids,
+                  aperture_radii=aperture_radii)
     positions = Table()
-    positions['x_0'] = x_pos
-    positions['y_0'] = y_pos
+    positions['x_0'] = sources[x_key]
+    positions['y_0'] = sources[y_key]
     return positions
 
 
-def targetfind_manual(fname, centroids_0):
+def targetfind_manual(fname,
+                      centroids_0,
+                      aperture_radii=(10, 15, 20)):
+    """
+    Interactively review and modify source positions in an image.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Path to the FITS image.
+    centroids_0 : array-like
+        Initial source positions as ``(y, x)`` coordinate pairs. These
+        positions are displayed on the image and can be modified
+        interactively.
+    aperture_radii : tuple of float, optional
+        Radii of the circular apertures, in pixels, displayed around each
+        source during interactive editing. Default is ``(10, 15, 20)``.
+
+    Returns
+    -------
+    astropy.table.Table
+        Table containing the final source positions after interactive
+        editing. The returned table has columns ``'x_0'`` and ``'y_0'``.
+    """
     centroids = imageplot(fname, ext=0, title="Select sources",
                           line_profile="aperture", get_target=False,
-                          centroid_list=centroids_0)
+                          centroid_list=centroids_0,
+                          aperture_radii=aperture_radii)
     positions = Table()
     positions['x_0'] = centroids[:, 1]
     positions['y_0'] = centroids[:, 0]
     return positions
 
+
+# -----------------------------
 # Aperture photometry
+# -----------------------------
 
 
 def aperture_photometry_subrot(config, fname, positions):
@@ -228,7 +261,10 @@ def aperture_photometry_subrot(config, fname, positions):
 
     return opfname
 
+
+# -----------------------------
 # PSF photometry
+# -----------------------------
 
 
 def make_epsf(
@@ -403,7 +439,9 @@ def psf_photometry_subrot(config, fname, positions):
     return opfname
 
 
+# -----------------------------
 # WCS conversion
+# -----------------------------
 
 
 def save_to_wcs(final_fname):
@@ -439,7 +477,10 @@ def save_to_wcs(final_fname):
         print("{} saved with WCS coordinates".format(out_table_name))
 
 
+# -----------------------------
 # File Saving
+# -----------------------------
+
 
 def save_photometry(fname, phot_table, history="Photometry table added",
                     flext=0):
@@ -453,6 +494,11 @@ def save_photometry(fname, phot_table, history="Photometry table added",
     opfname = opdir / opfname
     hdul.writeto(opfname, overwrite=True)
     return opfname
+
+
+# -----------------------------
+# Centroid
+# -----------------------------
 
 
 def get_centroids(filename, purpose='read', new_centroids=None):
@@ -485,7 +531,9 @@ def get_centroids(filename, purpose='read', new_centroids=None):
         print("Updated the selected sources list")
 
 
+# -----------------------------
 # Extraction
+# -----------------------------
 
 
 def photometry_extraction(config, dirname):
@@ -493,22 +541,46 @@ def photometry_extraction(config, dirname):
     opdir = Path(config['outputs']['OP_DIR']) / dirname
     reduce_txtfname = "Readytoextract_group*.txt"
     txtfiles_groups = opdir.glob(reduce_txtfname)
+
+    radius = float(config['photometry']['RADIUS'])
+    bkgwindows = ast.literal_eval(
+        config['photometry']['BKGWINDOWS']
+    )
+
     for groupfile in txtfiles_groups:
         txtfile_full = read_txt_file(groupfile)
         for txtline in txtfile_full:
             frametoextract = txtline[0]
             frametoextract = opdir / frametoextract
             sources_txtfname = opdir / config['photometry']['SOURCELIST']
+            editsource = config['photometry']['EDITSOURCE'] == 'YES'
             if config['photometry']['FINDSOURCE'] == 'AUTO':
                 fwhm = float(config['photometry']['FWHM'])
                 threshold = float(config['photometry']['THRESHOLD'])
-                centroids = targetfind_auto(frametoextract,
-                                            fwhm=fwhm,
-                                            threshold=threshold)
+                centroids = targetfind_auto(
+                    frametoextract,
+                    fwhm=fwhm,
+                    threshold=threshold,
+                    showplot=not editsource,
+                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1])
+                )
+
+                if editsource:
+                    centroids = targetfind_manual(
+                        frametoextract,
+                        centroids_0=table_to_centroids(centroids),
+                        aperture_radii=(radius, bkgwindows[0], bkgwindows[1])
+                    )
+
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
+
                 centroids_0 = get_centroids(sources_txtfname, purpose='read')
-                centroids = targetfind_manual(frametoextract,
-                                              centroids_0=centroids_0)
+                centroids = targetfind_manual(
+                    frametoextract,
+                    centroids_0=centroids_0,
+                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1])
+                )
+
             get_centroids(sources_txtfname, purpose='write',
                           new_centroids=centroids)
             # Doing photometry
