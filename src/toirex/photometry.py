@@ -531,10 +531,21 @@ def photometry_extraction(config, dirname):
                         frametoextract,
                         centroids_0=table_to_centroids(centroids)
                     )
+
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
+
+                radius = float(config['photometry']['RADIUS'])
+                bkgwindows = ast.literal_eval(
+                    config['photometry']['BKGWINDOWS']
+                )
+
                 centroids_0 = get_centroids(sources_txtfname, purpose='read')
-                centroids = targetfind_manual(frametoextract,
-                                              centroids_0=centroids_0)
+                centroids = targetfind_manual(
+                    frametoextract,
+                    centroids_0=centroids_0,
+                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1])
+                )
+
             get_centroids(sources_txtfname, purpose='write',
                           new_centroids=centroids)
             # Doing photometry
