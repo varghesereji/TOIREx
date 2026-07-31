@@ -207,6 +207,16 @@ def mark_source(ax, center,
     ax.add_patch(circle)
 
     # bkg inner circle
+    if len(bkgs) != 2:
+        raise ValueError(
+            "'bkgs' must contain (inner_radius, outer_radius)."
+        )
+
+    if bkgs[0] >= bkgs[1]:
+        raise ValueError(
+            "Background inner radius must be smaller than outer radius."
+        )
+
     circle_in = Circle(center, bkgs[0],
                        edgecolor='green',
                        facecolor='none',
