@@ -281,12 +281,16 @@ def select_aperture(fig,
     for c in centroids_list:
         y_center, x_center = c[:2]
 
-        circle, _, _ = mark_source(ax,
-                                   (x_center, y_center),
-                                   radius=radius,
-                                   bkgs=bkgs)
+        source, bkg_in, bkg_out = mark_source(
+            ax,
+            (x_center, y_center),
+            radius=radius,
+            bkgs=bkgs
+        )
 
-        circles_list.append(circle)
+        circles_list.append(
+            (source, bkg_in, bkg_out)
+        )
 
     fig.canvas.draw_idle()
 
@@ -303,12 +307,16 @@ def select_aperture(fig,
         x_center = centroid[1] + xdata-10
         y_center = centroid[0] + ydata-10
 
-        circle, _, _ = mark_source(ax,
-                                   (x_center, y_center),
-                                   radius=radius,
-                                   bkgs=bkgs)
+        source, bkg_in, bkg_out = mark_source(
+            ax,
+            (x_center, y_center),
+            radius=radius,
+            bkgs=bkgs
+        )
 
-        circles_list.append(circle)
+        circles_list.append(
+            (source, bkg_in, bkg_out)
+        )
 
         if get_target:
             coords = launch_simbad_gui()
