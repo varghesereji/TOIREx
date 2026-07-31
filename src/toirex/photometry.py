@@ -512,6 +512,12 @@ def photometry_extraction(config, dirname):
     opdir = Path(config['outputs']['OP_DIR']) / dirname
     reduce_txtfname = "Readytoextract_group*.txt"
     txtfiles_groups = opdir.glob(reduce_txtfname)
+
+    radius = float(config['photometry']['RADIUS'])
+    bkgwindows = ast.literal_eval(
+        config['photometry']['BKGWINDOWS']
+    )
+
     for groupfile in txtfiles_groups:
         txtfile_full = read_txt_file(groupfile)
         for txtline in txtfile_full:
@@ -533,11 +539,6 @@ def photometry_extraction(config, dirname):
                     )
 
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
-
-                radius = float(config['photometry']['RADIUS'])
-                bkgwindows = ast.literal_eval(
-                    config['photometry']['BKGWINDOWS']
-                )
 
                 centroids_0 = get_centroids(sources_txtfname, purpose='read')
                 centroids = targetfind_manual(
