@@ -201,11 +201,10 @@ def mark_source(ax, center,
     common = dict(facecolor="none", linewidth=2)
 
     # source aperture
-    circle = Circle(center,
+    source = Circle(center,
                     radius=radius,
                     edgecolor='red',
                     **common)
-    ax.add_patch(circle)
 
     # bkg circles
     if len(bkgs) != 2:
@@ -218,17 +217,18 @@ def mark_source(ax, center,
             "Background inner radius must be smaller than outer radius."
         )
 
-    circle_in = Circle(center, bkgs[0],
-                       edgecolor='green',
-                       **common)
-    ax.add_patch(circle_in)
+    bkg_in = Circle(center, bkgs[0],
+                    edgecolor='green',
+                    **common)
 
-    circle_out = Circle(center, bkgs[1],
-                        edgecolor='green',
-                        **common)
-    ax.add_patch(circle_out)
+    bkg_out = Circle(center, bkgs[1],
+                     edgecolor='green',
+                     **common)
 
-    return circle, circle_in, circle_out
+    for patch in (source, bkg_in, bkg_out):
+        ax.add_patch(patch)
+
+    return source, bkg_in, bkg_out
 
 
 def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
