@@ -133,7 +133,30 @@ def targetfind_auto(fname,
     return positions
 
 
-def targetfind_manual(fname, centroids_0, aperture_radii=(10, 15, 20)):
+def targetfind_manual(fname,
+                      centroids_0,
+                      aperture_radii=(10, 15, 20)):
+    """
+    Interactively review and modify source positions in an image.
+
+    Parameters
+    ----------
+    fname : str or pathlib.Path
+        Path to the FITS image.
+    centroids_0 : array-like
+        Initial source positions as ``(y, x)`` coordinate pairs. These
+        positions are displayed on the image and can be modified
+        interactively.
+    aperture_radii : tuple of float, optional
+        Radii of the circular apertures, in pixels, displayed around each
+        source during interactive editing. Default is ``(10, 15, 20)``.
+
+    Returns
+    -------
+    astropy.table.Table
+        Table containing the final source positions after interactive
+        editing. The returned table has columns ``'x_0'`` and ``'y_0'``.
+    """
     centroids = imageplot(fname, ext=0, title="Select sources",
                           line_profile="aperture", get_target=False,
                           centroid_list=centroids_0,
