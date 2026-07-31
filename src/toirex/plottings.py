@@ -326,6 +326,21 @@ def select_aperture(fig,
                 ]
             )
 
+    def remove_source(xdata, ydata):
+        """Remove the nearest selected source."""
+
+        if not centroids_list:
+            return
+        points = np.asarray(centroids_list)[:, :2]
+
+        distances = np.sqrt(
+            (points[:, 0] - ydata)**2 +
+            (points[:, 1] - xdata)**2
+        )
+        idx = np.argmin(distances)
+        centroids_list.pop(idx)
+        circles_list.pop(idx).remove()
+
     def onclick(event):
         # nonlocal line_coords
         toolbar = fig.canvas.toolbar
