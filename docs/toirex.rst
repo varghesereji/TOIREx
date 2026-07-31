@@ -44,6 +44,22 @@ toirex.dithering module
    :show-inheritance:
    :undoc-members:
 
+toirex.photometry module
+-------------------------------
+
+.. automodule:: toirex.photometry
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+toirex.spectral\_reduction module
+-------------------------------
+
+.. automodule:: toirex.spectral_reduction
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 toirex.setups module
 --------------------
 
