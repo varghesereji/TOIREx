@@ -229,23 +229,11 @@ def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
 
     for c in centroids_list:
         y_center, x_center = c[:2]
-        circle = Circle((x_center, y_center), 10,
-                        edgecolor='red',
-                        facecolor='none',
-                        linewidth=2)
-        ax.add_patch(circle)
 
-        circle_in = Circle((x_center, y_center), 15,
-                           edgecolor='green',
-                           facecolor='none',
-                           linewidth=2)
-        ax.add_patch(circle_in)
-
-        circle_out = Circle((x_center, y_center), 20,
-                            edgecolor='green',
-                            facecolor='none',
-                            linewidth=2)
-        ax.add_patch(circle_out)
+        circle, _, _ = mark_source(ax,
+                                   (x_center, y_center),
+                                   radius=10,
+                                   bkgs=(15, 20))
 
         circles_list.append(circle)
     fig.canvas.draw_idle()
@@ -276,8 +264,10 @@ def select_aperture(fig, ax, image, get_target=False, centroids_list=None):
                                        x_center])
 
             radius = 10
-            circle = Circle((x_center, y_center), radius,
-                            edgecolor='red', facecolor='none', linewidth=2)
+            circle, _, _ = mark_source(ax,
+                                       (x_center, y_center),
+                                       radius,
+                                       bkgs=(15, 20))
             ax.add_patch(circle)
             circles_list.append(circle)
             # fig.canvas.draw()
