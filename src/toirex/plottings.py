@@ -284,9 +284,47 @@ def select_aperture(fig,
                                    bkgs=bkgs)
 
         circles_list.append(circle)
+
     fig.canvas.draw_idle()
-    # plt.show()
-    # annotation = None
+
+    def add_source(xdata, ydata):
+        """Add a source near the clicked position"""
+
+        sel_reg = image[
+            int(ydata)-10:int(ydata)+10,
+            int(xdata)-10:int(xdata)+10
+        ]
+
+        centroid = select_source(sel_reg)
+
+        x_center = centroid[1] + xdata-10
+        y_center = centroid[0] + ydata-10
+
+        circle, _, _ = mark_source(ax,
+                                   (x_center, y_center),
+                                   radius=radius,
+                                   bkgs=bkgs)
+
+        circles_list.append(circle)
+
+        if get_target:
+            coords = launch_simbad_gui()
+            centroids_list.append([
+                int(y_center),
+                int(x_center),
+                coords["name"],
+                coords["ra"],
+                coords["dec"],
+                coords["pmra"],
+                coords["pmdec"],
+            ])
+        else:
+            centroids_list.append(
+                [
+                    y_center,
+                    x_center
+                ]
+            )
 
     def onclick(event):
         # nonlocal line_coords
