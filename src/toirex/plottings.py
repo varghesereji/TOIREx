@@ -275,7 +275,7 @@ def select_aperture(fig,
     if centroids_list is None:
         centroids_list = []
 
-    circles_list = []
+    aperture_patches = []
 
     # Draw existing apertures
     for c in centroids_list:
@@ -288,7 +288,7 @@ def select_aperture(fig,
             bkgs=bkgs
         )
 
-        circles_list.append(
+        aperture_patches.append(
             (source, bkg_in, bkg_out)
         )
 
@@ -314,7 +314,7 @@ def select_aperture(fig,
             bkgs=bkgs
         )
 
-        circles_list.append(
+        aperture_patches.append(
             (source, bkg_in, bkg_out)
         )
 
@@ -350,8 +350,8 @@ def select_aperture(fig,
         )
         idx = np.argmin(distances)
         centroids_list.pop(idx)
-        # circles_list.pop(idx).remove()
-        source, bkg_in, bkg_out = circles_list.pop(idx)
+        # aperture_patches.pop(idx).remove()
+        source, bkg_in, bkg_out = aperture_patches.pop(idx)
 
         for patch in (source, bkg_in, bkg_out):
             patch.remove()
