@@ -350,7 +350,11 @@ def select_aperture(fig,
         )
         idx = np.argmin(distances)
         centroids_list.pop(idx)
-        circles_list.pop(idx).remove()
+        # circles_list.pop(idx).remove()
+        source, bkg_in, bkg_out = circles_list.pop(idx)
+
+        for patch in (source, bkg_in, bkg_out):
+            patch.remove()
 
     def onclick(event):
         # nonlocal line_coords
