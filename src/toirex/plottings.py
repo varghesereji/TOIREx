@@ -198,15 +198,16 @@ def mark_source(ax, center,
                 radius=10,
                 bkgs=(15, 20)):
 
+    common = dict(facecolor="none", linewidth=2)
+
     # source aperture
     circle = Circle(center,
                     radius=radius,
                     edgecolor='red',
-                    facecolor='none',
-                    linewidth=2)
+                    **common)
     ax.add_patch(circle)
 
-    # bkg inner circle
+    # bkg circles
     if len(bkgs) != 2:
         raise ValueError(
             "'bkgs' must contain (inner_radius, outer_radius)."
@@ -219,14 +220,12 @@ def mark_source(ax, center,
 
     circle_in = Circle(center, bkgs[0],
                        edgecolor='green',
-                       facecolor='none',
-                       linewidth=2)
+                       **common)
     ax.add_patch(circle_in)
 
     circle_out = Circle(center, bkgs[1],
                         edgecolor='green',
-                        facecolor='none',
-                        linewidth=2)
+                        **common)
     ax.add_patch(circle_out)
 
     return circle, circle_in, circle_out
