@@ -104,8 +104,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
 
     # --- Initial normalization ---
     interval = ZScaleInterval()
-    # stretch = LinearStretch()
-    # norm = ImageNormalize(data, interval=interval, stretch=stretch)
+
     fig = plt.figure(figsize=(9, 9))
     gs = GridSpec(
         nrows=1,
@@ -119,13 +118,14 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
         axs.coords[0].set_axislabel('RA')
         axs.coords[1].set_axislabel('Dec')
     else:
-        # fig, axs = plt.subplots(figsize=(8, 8))
+
         axs = fig.add_subplot(gs[0, 1])
-    # plt.subplots_adjust(left=0.55, bottom=0.05)
+
     im = axs.imshow(data, **kwargs)
 
     if title is not None:
         axs.set_title(title, loc="left")
+
     # --- Sliders for vmin/vmax ---
     ax_range = plt.axes([0.25, 0.05, 0.5, 0.035])
     s_range = RangeSlider(
@@ -136,6 +136,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
         valinit=(kwargs['vmin'], kwargs['vmax']),
         )
     fig.canvas.draw_idle()
+
     # --- Radio buttons for stretch ---
     ax_stretch = fig.add_axes([0.005, 0.55, 0.12, 0.25])
     stretch_buttons = RadioButtons(ax_stretch, ('linear', 'sqrt', 'log'))
@@ -162,16 +163,12 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
                               vmin=vmin, vmax=vmax)
         im.set_norm(norm)
         im.set_cmap(cmap)
+
     # --- Connect the widgets ---
-    # vmin, vmax = s_range.val
     s_range.on_changed(update)
 
     plt.tight_layout()
-    # fig.colorbar(im, ax=axs, label="Counts",
-    #              fraction=0.035,  # thickness
-    #              pad=0.02,        # gap from image
-    #              shrink=1      # length)
-    #              )
+
     cax = fig.add_subplot(gs[0, 2])
     cbar = fig.colorbar(im, cax=cax)
     cbar.set_label("Counts")
