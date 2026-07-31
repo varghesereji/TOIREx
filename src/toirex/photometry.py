@@ -519,12 +519,20 @@ def photometry_extraction(config, dirname):
             frametoextract = txtline[0]
             frametoextract = opdir / frametoextract
             sources_txtfname = opdir / config['photometry']['SOURCELIST']
+            editsource = config['photometry']['EDITSOURCE'] == 'YES'
             if config['photometry']['FINDSOURCE'] == 'AUTO':
                 fwhm = float(config['photometry']['FWHM'])
                 threshold = float(config['photometry']['THRESHOLD'])
                 centroids = targetfind_auto(frametoextract,
                                             fwhm=fwhm,
-                                            threshold=threshold)
+                                            threshold=threshold,
+                                            showplot=not editsource)
+                if editsource:
+                    x_cents = centroids['x_0']
+                    y_cents = centroids['y_0']
+                    centroids_0 = list(np.array([y_cents, x_cents]).T)
+                    centroids = targetfind_manual(frametoextract,
+                                                  centroids_0=centroids_0)
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
                 centroids_0 = get_centroids(sources_txtfname, purpose='read')
                 centroids = targetfind_manual(frametoextract,
