@@ -42,6 +42,11 @@ _DAOSTARFINDER_SUPPORTS_N_BRIGHTEST = (
 )
 
 
+# -----------------------------
+# Locatinig targets
+# -----------------------------
+
+
 def _make_daostarfinder(fwhm, threshold, n_brightest, **kwargs):
     if _DAOSTARFINDER_SUPPORTS_N_BRIGHTEST:
         return DAOStarFinder(
@@ -133,7 +138,10 @@ def targetfind_manual(fname, centroids_0):
     positions['y_0'] = centroids[:, 0]
     return positions
 
+
+# -----------------------------
 # Aperture photometry
+# -----------------------------
 
 
 def aperture_photometry_subrot(config, fname, positions):
@@ -225,7 +233,10 @@ def aperture_photometry_subrot(config, fname, positions):
 
     return opfname
 
+
+# -----------------------------
 # PSF photometry
+# -----------------------------
 
 
 def make_epsf(
@@ -400,7 +411,9 @@ def psf_photometry_subrot(config, fname, positions):
     return opfname
 
 
+# -----------------------------
 # WCS conversion
+# -----------------------------
 
 
 def save_to_wcs(final_fname):
@@ -436,7 +449,10 @@ def save_to_wcs(final_fname):
         print("{} saved with WCS coordinates".format(out_table_name))
 
 
+# -----------------------------
 # File Saving
+# -----------------------------
+
 
 def save_photometry(fname, phot_table, history="Photometry table added",
                     flext=0):
@@ -450,6 +466,11 @@ def save_photometry(fname, phot_table, history="Photometry table added",
     opfname = opdir / opfname
     hdul.writeto(opfname, overwrite=True)
     return opfname
+
+
+# -----------------------------
+# Centroid
+# -----------------------------
 
 
 def get_centroids(filename, purpose='read', new_centroids=None):
@@ -482,7 +503,9 @@ def get_centroids(filename, purpose='read', new_centroids=None):
         print("Updated the selected sources list")
 
 
+# -----------------------------
 # Extraction
+# -----------------------------
 
 
 def photometry_extraction(config, dirname):
