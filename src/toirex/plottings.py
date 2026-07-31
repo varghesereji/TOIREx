@@ -350,53 +350,20 @@ def select_aperture(fig,
 
         if event.inaxes != ax:
             return
-        if event.key not in ['control', 'shift']:
-            return  # quietly ignore other clicks
 
-        xdata, ydata = event.xdata, event.ydata
-        if event.key == 'control':
-            sel_reg = image[int(ydata)-10:int(ydata)+10,
-                            int(xdata)-10:int(xdata)+10]
-            centroid = select_source(sel_reg)
-            x_center = centroid[1] + xdata-10
-            y_center = centroid[0] + ydata-10
-            if not get_target:
-                centroids_list.append([y_center,
-                                       x_center])
+        if event.key == "control":
+            add_source(event.xdata, event.ydata)
 
-            radius = 10
-            circle, _, _ = mark_source(ax,
-                                       (x_center, y_center),
-                                       radius=radius,
-                                       bkgs=bkgs)
-            circles_list.append(circle)
-            # fig.canvas.draw()
-            # target_name = input("Enter target name")
-            # query_object((xdata, ydata))
-            if get_target:
-                coords = launch_simbad_gui()
-                target_coords = [int(y_center), int(x_center)]
-                target_coords.append(coords['name'])
-                target_coords.append(coords['ra'])
-                target_coords.append(coords['dec'])
-                target_coords.append(coords['pmra'])
-                target_coords.append(coords['pmdec'])
-                centroids_list.append(target_coords)
-        elif event.key == 'shift':
-            if not centroids_list:
-                return
-            points = np.array(centroids_list)[:, :2]
-            distances = np.sqrt(
-                (points[:, 0] - ydata)**2 +
-                (points[:, 1] - xdata)**2
-                )
-            idx = np.argmin(distances)
-            centroids_list.pop(idx)
-            circles_list.pop(idx).remove()
+        elif event.key == "shift":
+            remove_source(event.xdata, event.ydata)
+
+        else:
+            return
+
         fig.canvas.draw_idle()
-        # print(coords)
-        # print(centroids_list)
+
     fig.canvas.mpl_connect("button_press_event", onclick)
+
     return centroids_list
 
 
