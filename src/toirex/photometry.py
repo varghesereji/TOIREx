@@ -34,6 +34,7 @@ import inspect
 from .utils import read_txt_file
 from .utils import table_to_centroids
 from .plottings import imageplot
+from .plottings import plot_epsf
 from .io_utils import convert_radec
 
 # Detect whether the installed Photutils version supports the
@@ -273,7 +274,8 @@ def make_epsf(
         star_positions=None,
         cutout_size=25,
         oversample=4,
-        normalize=True
+        normalize=True,
+        opdir="."
 ):
     """
     Build an effective PSF (ePSF) from a single image frame.
@@ -327,6 +329,7 @@ def make_epsf(
                                maxiters=10,
                                progress_bar=True)
     epsf, fitted_stars = epsf_builder(epsf_stars)
+    plot_epsf(epsf, frame)
     return epsf
 
 
