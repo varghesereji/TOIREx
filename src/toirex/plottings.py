@@ -23,9 +23,29 @@ from .io_utils import launch_simbad_gui
 
 
 def plot_epsf(epsf, fitted_stars, opdir="."):
+
+    # Plotting epsf
     fig, ax = plt.subplots(figsize=(12, 12))
     axim = ax.imshow(epsf.data, origin="lower")
     fig.colorbar(axim)
+
+    # Plotting stars used
+    n = len(fitted_stars)
+    ncols = 5
+    nrows = int(np.ceil(n / ncols))
+    fig, axes = plt.subplots(nrows, ncols,
+                             figsize=(2*ncols, 2*nrows))
+    axes = np.atleast_1d(axes).ravel()
+
+    for ax, star in zip(axes, fitted_stars):
+        ax.imshow(star.data, origin="lower", cmap="gray")
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+    for x in axes[n:]:
+        ax.axis("off")
+    plt.tight_layout()
+
     plt.show()
 
 
