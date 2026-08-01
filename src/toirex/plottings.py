@@ -24,7 +24,7 @@ from .image_utils import select_source
 from .io_utils import launch_simbad_gui
 
 
-def plot_epsf(epsf, fitted_stars, plot_dir=".",
+def plot_epsf(epsf, fitted_stars, plot_fname="epsf_plot.pdf",
               show_plot=True):
     """
     Create diagnostic plots for the generated effective PSF (ePSF).
@@ -55,8 +55,7 @@ def plot_epsf(epsf, fitted_stars, plot_dir=".",
     2. The stellar cutouts used to construct the ePSF, annotated with their
        index and fitted center coordinates.
     """
-    pdfname = Path(plot_dir) / "epsf_diagnostics.pdf"
-    pdf = PdfPages(pdfname)
+    pdf = PdfPages(plot_fname)
 
     # Plotting epsf, page 1
     fig1, ax = plt.subplots(figsize=(12, 12))
