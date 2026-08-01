@@ -6,7 +6,7 @@ from pathlib import Path
 from matplotlib.patches import Circle
 from astropy.wcs import WCS
 
-from matplotlib.widgets import Slider, RadioButtons
+from matplotlib.widgets import RadioButtons
 from matplotlib.widgets import RangeSlider
 from astropy.visualization import ImageNormalize
 from astropy.visualization import ZScaleInterval
