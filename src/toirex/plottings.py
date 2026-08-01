@@ -22,8 +22,9 @@ from .image_utils import select_source
 from .io_utils import launch_simbad_gui
 
 
-def plot_epsf(epsf, frame, opdir):
+def plot_epsf(epsf, frame, opdir="."):
     print("This feature will be added soon")
+    
 
 
 def imageplot(fname, ext=0, title=None, line_profile='drawline',
