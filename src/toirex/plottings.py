@@ -43,7 +43,7 @@ def plot_epsf(epsf, fitted_stars, opdir="."):
         ax.set_yticks([])
 
     for x in axes[n:]:
-        ax.axis("off")
+        x.axis("off")
     plt.tight_layout()
 
     plt.show()
