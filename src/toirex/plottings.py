@@ -22,8 +22,7 @@ from .image_utils import select_source
 from .io_utils import launch_simbad_gui
 
 
-def plot_epsf(epsf, frame, opdir="."):
-    print("This feature will be added soon")
+def plot_epsf(epsf, fitted_stars, opdir="."):
     fig, ax = plt.subplots(figsize=(12, 12))
     axim = ax.imshow(epsf.data, origin="lower")
     fig.colorbar(axim)
