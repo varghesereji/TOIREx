@@ -24,7 +24,7 @@ from .image_utils import select_source
 from .io_utils import launch_simbad_gui
 
 
-def plot_epsf(epsf, fitted_stars, plot_dir=".",
+def plot_epsf(epsf, fitted_stars, plot_fname="epsf_plot.pdf",
               show_plot=True):
     """
     Create diagnostic plots for the generated effective PSF (ePSF).
@@ -39,9 +39,10 @@ def plot_epsf(epsf, fitted_stars, plot_dir=".",
         Effective PSF model produced by the ePSF builder.
     fitted_stars : `photutils.psf.EPSFStars`
         Collection of fitted stellar cutouts used to construct the ePSF.
-    plot_dir : str or pathlib.Path, optional
-        Directory in which the diagnostic PDF is saved. The output file is
-        named ``epsf_diagnostics.pdf``. Default is the current directory.
+    plot_fname : str or pathlib.Path, optional
+        Full path and filename for the output PDF. If the filename does not
+        have a ``.pdf`` extension (case-insensitive), it is added
+        automatically. Default is ``"epsf_plot.pdf"``.
     show_plot : bool, optional
         If `True`, display the generated figures after saving them to the
         PDF. If `False`, close the figures without displaying them.
@@ -55,8 +56,11 @@ def plot_epsf(epsf, fitted_stars, plot_dir=".",
     2. The stellar cutouts used to construct the ePSF, annotated with their
        index and fitted center coordinates.
     """
-    pdfname = Path(plot_dir) / "epsf_diagnostics.pdf"
-    pdf = PdfPages(pdfname)
+    plot_fname = Path(plot_fname)
+    if plot_fname.suffix.lower() != ".pdf":
+        plot_fname = plot_fname.with_suffix(".pdf")
+
+    pdf = PdfPages(plot_fname)
 
     # Plotting epsf, page 1
     fig1, ax = plt.subplots(figsize=(12, 12))
@@ -93,6 +97,8 @@ def plot_epsf(epsf, fitted_stars, plot_dir=".",
     else:
         plt.close(fig1)
         plt.close(fig2)
+
+    print("ePSF saved as:", plot_fname)
 
 
 def imageplot(fname, ext=0, title=None, line_profile='drawline',
