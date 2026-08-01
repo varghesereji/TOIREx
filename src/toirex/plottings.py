@@ -98,6 +98,8 @@ def plot_epsf(epsf, fitted_stars, plot_fname="epsf_plot.pdf",
         plt.close(fig1)
         plt.close(fig2)
 
+    print("ePSF saved as:", plot_fname)
+
 
 def imageplot(fname, ext=0, title=None, line_profile='drawline',
               get_target=False, centroid_list=None,
