@@ -329,7 +329,7 @@ def make_epsf(
                                maxiters=10,
                                progress_bar=True)
     epsf, fitted_stars = epsf_builder(epsf_stars)
-    plot_epsf(epsf, frame, opdir=opdir)
+    plot_epsf(epsf, fitted_stars, opdir=opdir)
     return epsf
 
 
