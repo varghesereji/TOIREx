@@ -6,7 +6,9 @@ from pathlib import Path
 from matplotlib.patches import Circle
 from astropy.wcs import WCS
 
-from matplotlib.widgets import Slider, RadioButtons
+from matplotlib.backends.backend_pdf import PdfPages
+
+from matplotlib.widgets import RadioButtons
 from matplotlib.widgets import RangeSlider
 from astropy.visualization import ImageNormalize
 from astropy.visualization import ZScaleInterval
@@ -20,6 +22,77 @@ from .utils import read_fits_header
 from .utils import fit_gaussian_profile
 from .image_utils import select_source
 from .io_utils import launch_simbad_gui
+
+
+def plot_epsf(epsf, fitted_stars, plot_dir=".",
+              show_plot=True):
+    """
+    Create diagnostic plots for the generated effective PSF (ePSF).
+
+    This function generates a two-page PDF containing the constructed ePSF
+    and the stellar cutouts used to build it. Optionally, the figures can
+    also be displayed interactively.
+
+    Parameters
+    ----------
+    epsf : `photutils.psf.ImagePSF` or `photutils.psf.EPSFModel`
+        Effective PSF model produced by the ePSF builder.
+    fitted_stars : `photutils.psf.EPSFStars`
+        Collection of fitted stellar cutouts used to construct the ePSF.
+    plot_dir : str or pathlib.Path, optional
+        Directory in which the diagnostic PDF is saved. The output file is
+        named ``epsf_diagnostics.pdf``. Default is the current directory.
+    show_plot : bool, optional
+        If `True`, display the generated figures after saving them to the
+        PDF. If `False`, close the figures without displaying them.
+        Default is `True`.
+
+    Notes
+    -----
+    The generated PDF contains two pages:
+
+    1. The effective PSF image.
+    2. The stellar cutouts used to construct the ePSF, annotated with their
+       index and fitted center coordinates.
+    """
+    pdfname = Path(plot_dir) / "epsf_diagnostics.pdf"
+    pdf = PdfPages(pdfname)
+
+    # Plotting epsf, page 1
+    fig1, ax = plt.subplots(figsize=(12, 12))
+    axim = ax.imshow(epsf.data, origin="lower")
+    fig1.colorbar(axim)
+    fig1.suptitle("Effective PSF")
+    fig1.tight_layout(rect=[0, 0, 1, 0.97])
+    pdf.savefig(fig1, bbox_inches="tight")
+
+    # Plotting stars used
+    n = len(fitted_stars)
+    ncols = 5
+    nrows = int(np.ceil(n / ncols))
+    fig2, axes = plt.subplots(nrows, ncols,
+                              figsize=(2*ncols, 2*nrows))
+    axes = np.atleast_1d(axes).ravel()
+
+    for i, (ax, star) in enumerate(zip(axes, fitted_stars), start=1):
+        ax.imshow(star.data, origin="lower", cmap="gray")
+        x, y = star.center
+        ax.set_title(f"{i}\n{x:.1f},{y:.1f}", fontsize=8)
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+    for x in axes[n:]:
+        x.axis("off")
+    fig2.suptitle("Stars used to make ePSF")
+    fig2.tight_layout(rect=[0, 0, 1, 0.97])
+    pdf.savefig(fig2, bbox_inches="tight")
+    pdf.close()
+
+    if show_plot:
+        plt.show()
+    else:
+        plt.close(fig1)
+        plt.close(fig2)
 
 
 def imageplot(fname, ext=0, title=None, line_profile='drawline',

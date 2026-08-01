@@ -34,6 +34,7 @@ import inspect
 from .utils import read_txt_file
 from .utils import table_to_centroids
 from .plottings import imageplot
+from .plottings import plot_epsf
 from .io_utils import convert_radec
 
 # Detect whether the installed Photutils version supports the
@@ -273,7 +274,8 @@ def make_epsf(
         star_positions=None,
         cutout_size=25,
         oversample=4,
-        normalize=True
+        normalize=True,
+        plot_dir="."
 ):
     """
     Build an effective PSF (ePSF) from a single image frame.
@@ -327,10 +329,12 @@ def make_epsf(
                                maxiters=10,
                                progress_bar=True)
     epsf, fitted_stars = epsf_builder(epsf_stars)
+    plot_epsf(epsf, fitted_stars, opdir=plot_dir)
     return epsf
 
 
-def psf_photometry_subrot(config, fname, positions):
+def psf_photometry_subrot(config, fname, positions,
+                          plot_dirs="."):
     """
     Perform PSF photometry on sources in a FITS image.
 
@@ -405,7 +409,8 @@ def psf_photometry_subrot(config, fname, positions):
 
     elif config['photometry']['MODEL'] == 'EPSF':
         print("With effective PSF")
-        psf_model = make_epsf(data, err=error)
+        psf_model = make_epsf(data, err=error,
+                              plot_dir=plot_dirs)
 
     # background
     radius = float(config['photometry']['RADIUS'])
@@ -547,6 +552,10 @@ def photometry_extraction(config, dirname):
         config['photometry']['BKGWINDOWS']
     )
 
+    # Making directory to save plots
+    plot_dir = opdir / "Photometry_plots"
+    plot_dir.mkdir(exist_ok=True)
+
     for groupfile in txtfiles_groups:
         txtfile_full = read_txt_file(groupfile)
         for txtline in txtfile_full:
@@ -586,7 +595,8 @@ def photometry_extraction(config, dirname):
             # Doing photometry
             if config['photometry']['METHOD'] == 'PSF':
                 withphot = psf_photometry_subrot(config, frametoextract,
-                                                 positions=centroids)
+                                                 positions=centroids,
+                                                 plot_dirs=plot_dir)
             elif config['photometry']['METHOD'] == 'Aperture':
                 withphot = aperture_photometry_subrot(config, frametoextract,
                                                       positions=centroids)
