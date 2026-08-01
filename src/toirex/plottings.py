@@ -35,6 +35,7 @@ def plot_epsf(epsf, fitted_stars, opdir=".",
     axim = ax.imshow(epsf.data, origin="lower")
     fig1.colorbar(axim)
     fig1.suptitle("Effective PSF")
+    fig1.tight_layout(rect=[0, 0, 1, 0.97])
     pdf.savefig(fig1)
 
     # Plotting stars used
@@ -55,7 +56,7 @@ def plot_epsf(epsf, fitted_stars, opdir=".",
     for x in axes[n:]:
         x.axis("off")
     fig2.suptitle("Stars used to make ePSF")
-    fig2.tight_layout()
+    fig2.tight_layout(rect=[0, 0, 1, 0.97])
     pdf.savefig(fig2)
     pdf.close()
 
