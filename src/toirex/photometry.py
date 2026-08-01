@@ -409,7 +409,7 @@ def psf_photometry_subrot(config, fname, positions,
 
     elif config['photometry']['MODEL'] == 'EPSF':
         print("With effective PSF")
-        plot_fname = fname.with_suffix(".pdf")
+        plot_fname = fname.with_name(f"{fname.stem}_epsf.pdf")
         psf_model = make_epsf(data, err=error,
                               plot_fname=plot_fname)
 
