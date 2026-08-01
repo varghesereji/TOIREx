@@ -275,7 +275,7 @@ def make_epsf(
         cutout_size=25,
         oversample=4,
         normalize=True,
-        opdir="."
+        plot_dir="."
 ):
     """
     Build an effective PSF (ePSF) from a single image frame.
@@ -329,7 +329,7 @@ def make_epsf(
                                maxiters=10,
                                progress_bar=True)
     epsf, fitted_stars = epsf_builder(epsf_stars)
-    plot_epsf(epsf, fitted_stars, opdir=opdir)
+    plot_epsf(epsf, fitted_stars, opdir=plot_dir)
     return epsf
 
 
@@ -410,7 +410,7 @@ def psf_photometry_subrot(config, fname, positions,
     elif config['photometry']['MODEL'] == 'EPSF':
         print("With effective PSF")
         psf_model = make_epsf(data, err=error,
-                              opdir=plot_dirs)
+                              plot_dir=plot_dirs)
 
     # background
     radius = float(config['photometry']['RADIUS'])

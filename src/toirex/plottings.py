@@ -24,7 +24,7 @@ from .image_utils import select_source
 from .io_utils import launch_simbad_gui
 
 
-def plot_epsf(epsf, fitted_stars, opdir=".",
+def plot_epsf(epsf, fitted_stars, plot_dir=".",
               show_plot=True):
     """
     Create diagnostic plots for the generated effective PSF (ePSF).
@@ -39,7 +39,7 @@ def plot_epsf(epsf, fitted_stars, opdir=".",
         Effective PSF model produced by the ePSF builder.
     fitted_stars : `photutils.psf.EPSFStars`
         Collection of fitted stellar cutouts used to construct the ePSF.
-    opdir : str or pathlib.Path, optional
+    plot_dir : str or pathlib.Path, optional
         Directory in which the diagnostic PDF is saved. The output file is
         named ``epsf_diagnostics.pdf``. Default is the current directory.
     show_plot : bool, optional
@@ -55,7 +55,7 @@ def plot_epsf(epsf, fitted_stars, opdir=".",
     2. The stellar cutouts used to construct the ePSF, annotated with their
        index and fitted center coordinates.
     """
-    pdfname = Path(opdir) / "epsf_diagnostics.pdf"
+    pdfname = Path(plot_dir) / "epsf_diagnostics.pdf"
     pdf = PdfPages(pdfname)
 
     # Plotting epsf, page 1
