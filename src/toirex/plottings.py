@@ -6,6 +6,8 @@ from pathlib import Path
 from matplotlib.patches import Circle
 from astropy.wcs import WCS
 
+from matplotlib.backends.backend_pdf import PdfPages
+
 from matplotlib.widgets import RadioButtons
 from matplotlib.widgets import RangeSlider
 from astropy.visualization import ImageNormalize
