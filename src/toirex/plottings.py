@@ -24,7 +24,10 @@ from .io_utils import launch_simbad_gui
 
 def plot_epsf(epsf, frame, opdir="."):
     print("This feature will be added soon")
-    
+    fig, ax = plt.subplots(figsize=(12, 12))
+    axim = ax.imshow(epsf.data, origin="lower")
+    fig.colorbar(axim)
+    plt.show()
 
 
 def imageplot(fname, ext=0, title=None, line_profile='drawline',
