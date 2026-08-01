@@ -23,11 +23,12 @@ from .io_utils import launch_simbad_gui
 
 
 def plot_epsf(epsf, fitted_stars, opdir="."):
-
+    
     # Plotting epsf
     fig, ax = plt.subplots(figsize=(12, 12))
     axim = ax.imshow(epsf.data, origin="lower")
     fig.colorbar(axim)
+    fig.suptitle("Effective PSF")
 
     # Plotting stars used
     n = len(fitted_stars)
@@ -37,13 +38,16 @@ def plot_epsf(epsf, fitted_stars, opdir="."):
                              figsize=(2*ncols, 2*nrows))
     axes = np.atleast_1d(axes).ravel()
 
-    for ax, star in zip(axes, fitted_stars):
+    for i, (ax, star) in enumerate(zip(axes, fitted_stars), start=1):
         ax.imshow(star.data, origin="lower", cmap="gray")
+        x, y = star.center
+        ax.set_title(f"{str(i)}\n{x:.1f},{y:.1f}", fontsize=8)
         ax.set_xticks([])
         ax.set_yticks([])
 
     for x in axes[n:]:
         x.axis("off")
+    fig.suptitle("Stars used to make ePSF")
     plt.tight_layout()
 
     plt.show()
