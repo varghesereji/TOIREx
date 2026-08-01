@@ -333,7 +333,8 @@ def make_epsf(
     return epsf
 
 
-def psf_photometry_subrot(config, fname, positions):
+def psf_photometry_subrot(config, fname, positions,
+                          plot_dirs="."):
     """
     Perform PSF photometry on sources in a FITS image.
 
