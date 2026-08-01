@@ -275,7 +275,7 @@ def make_epsf(
         cutout_size=25,
         oversample=4,
         normalize=True,
-        plot_dir="."
+        plot_fname="epsf_plot.pdf"
 ):
     """
     Build an effective PSF (ePSF) from a single image frame.
@@ -329,7 +329,7 @@ def make_epsf(
                                maxiters=10,
                                progress_bar=True)
     epsf, fitted_stars = epsf_builder(epsf_stars)
-    plot_epsf(epsf, fitted_stars, opdir=plot_dir)
+    plot_epsf(epsf, fitted_stars, opdir=plot_fname)
     return epsf
 
 
