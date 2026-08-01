@@ -408,7 +408,8 @@ def psf_photometry_subrot(config, fname, positions):
 
     elif config['photometry']['MODEL'] == 'EPSF':
         print("With effective PSF")
-        psf_model = make_epsf(data, err=error)
+        psf_model = make_epsf(data, err=error,
+                              opdir=fname.parent)
 
     # background
     radius = float(config['photometry']['RADIUS'])
@@ -549,6 +550,10 @@ def photometry_extraction(config, dirname):
     bkgwindows = ast.literal_eval(
         config['photometry']['BKGWINDOWS']
     )
+
+    # Making directory to save plots
+    plot_dir = opdir / "Photometry_plots"
+    plot_dir.mkdir(exist_ok=True)
 
     for groupfile in txtfiles_groups:
         txtfile_full = read_txt_file(groupfile)
