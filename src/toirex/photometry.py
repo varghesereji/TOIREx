@@ -409,8 +409,9 @@ def psf_photometry_subrot(config, fname, positions,
 
     elif config['photometry']['MODEL'] == 'EPSF':
         print("With effective PSF")
+        plot_fname = fname.with_suffix(".pdf")
         psf_model = make_epsf(data, err=error,
-                              plot_dir=plot_dirs)
+                              plot_fname=plot_fname)
 
     # background
     radius = float(config['photometry']['RADIUS'])
