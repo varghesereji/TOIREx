@@ -24,20 +24,25 @@ from .image_utils import select_source
 from .io_utils import launch_simbad_gui
 
 
-def plot_epsf(epsf, fitted_stars, opdir="."):
-    
-    # Plotting epsf
-    fig, ax = plt.subplots(figsize=(12, 12))
+def plot_epsf(epsf, fitted_stars, opdir=".",
+              show_plot=True):
+
+    pdfname = Path(opdir) / "epsf_diagnostics.pdf"
+    pdf = PdfPages(pdfname)
+
+    # Plotting epsf, page 1
+    fig1, ax = plt.subplots(figsize=(12, 12))
     axim = ax.imshow(epsf.data, origin="lower")
-    fig.colorbar(axim)
-    fig.suptitle("Effective PSF")
+    fig1.colorbar(axim)
+    fig1.suptitle("Effective PSF")
+    pdf.savefig(fig1)
 
     # Plotting stars used
     n = len(fitted_stars)
     ncols = 5
     nrows = int(np.ceil(n / ncols))
-    fig, axes = plt.subplots(nrows, ncols,
-                             figsize=(2*ncols, 2*nrows))
+    fig2, axes = plt.subplots(nrows, ncols,
+                              figsize=(2*ncols, 2*nrows))
     axes = np.atleast_1d(axes).ravel()
 
     for i, (ax, star) in enumerate(zip(axes, fitted_stars), start=1):
@@ -49,10 +54,16 @@ def plot_epsf(epsf, fitted_stars, opdir="."):
 
     for x in axes[n:]:
         x.axis("off")
-    fig.suptitle("Stars used to make ePSF")
+    fig2.suptitle("Stars used to make ePSF")
     plt.tight_layout()
+    pdf.savefig(fig2)
+    pdf.close()
 
-    plt.show()
+    if show_plot:
+        plt.show()
+    else:
+        plt.close(fig1)
+        plt.close(fig2)
 
 
 def imageplot(fname, ext=0, title=None, line_profile='drawline',
