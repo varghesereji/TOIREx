@@ -55,7 +55,7 @@ def plot_epsf(epsf, fitted_stars, opdir=".",
     for x in axes[n:]:
         x.axis("off")
     fig2.suptitle("Stars used to make ePSF")
-    plt.tight_layout()
+    fig2.tight_layout()
     pdf.savefig(fig2)
     pdf.close()
 
