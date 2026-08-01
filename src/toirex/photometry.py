@@ -410,7 +410,7 @@ def psf_photometry_subrot(config, fname, positions,
     elif config['photometry']['MODEL'] == 'EPSF':
         print("With effective PSF")
         psf_model = make_epsf(data, err=error,
-                              opdir=fname.parent)
+                              opdir=plot_dirs)
 
     # background
     radius = float(config['photometry']['RADIUS'])
@@ -595,7 +595,8 @@ def photometry_extraction(config, dirname):
             # Doing photometry
             if config['photometry']['METHOD'] == 'PSF':
                 withphot = psf_photometry_subrot(config, frametoextract,
-                                                 positions=centroids)
+                                                 positions=centroids,
+                                                 plot_dirs=plot_dir)
             elif config['photometry']['METHOD'] == 'Aperture':
                 withphot = aperture_photometry_subrot(config, frametoextract,
                                                       positions=centroids)
