@@ -136,7 +136,8 @@ def targetfind_auto(fname,
 
 def targetfind_manual(fname,
                       centroids_0,
-                      aperture_radii=(10, 15, 20)):
+                      aperture_radii=(10, 15, 20),
+                      plot_dirs="."):
     """
     Interactively review and modify source positions in an image.
 
@@ -151,6 +152,8 @@ def targetfind_manual(fname,
     aperture_radii : tuple of float, optional
         Radii of the circular apertures, in pixels, displayed around each
         source during interactive editing. Default is ``(10, 15, 20)``.
+    plot_dirs : str or pathlib.Path
+        Path to save the plots. Default is ``.``.
 
     Returns
     -------
@@ -158,9 +161,12 @@ def targetfind_manual(fname,
         Table containing the final source positions after interactive
         editing. The returned table has columns ``'x_0'`` and ``'y_0'``.
     """
+    plot_name = fname.with_name(f"{fname.stem}_selectedsources.pdf")
+    plot_name = Path(plot_dirs) / plot_name.name
     centroids = imageplot(fname, ext=0, title="Select sources",
                           line_profile="aperture", get_target=False,
                           centroid_list=centroids_0,
+                          save_plot=plot_name,
                           aperture_radii=aperture_radii)
     positions = Table()
     positions['x_0'] = centroids[:, 1]
@@ -356,6 +362,8 @@ def psf_photometry_subrot(config, fname, positions,
         Table containing the initial source positions for PSF fitting. The
         table must contain the columns required by
         `photutils.psf.PSFPhotometry`.
+    plot_dirs : str or pathlib.Path
+        Path to save the plots. Default is ``.``.
 
     Returns
     -------
