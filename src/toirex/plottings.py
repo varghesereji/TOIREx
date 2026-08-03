@@ -284,13 +284,14 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
                                         bkgs=(bkg_in, bkg_out),
                                         get_target=get_target,
                                         centroids_list=centroid_list)
+
+    if show_plot:
+        plt.show()
     if save_plot is not None:
         print("Plot saved", save_plot)
         fig.savefig(save_plot)
 
-    if show_plot:
-        plt.show()
-    else:
+    if not show_plot:
         plt.close(fig)
 
     return np.array(centroid_list)
