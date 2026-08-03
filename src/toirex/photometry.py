@@ -72,7 +72,8 @@ def targetfind_auto(fname,
                     n_brightest=None,
                     xycoords=None,
                     showplot=True,
-                    aperture_radii=(10, 15, 20)):
+                    aperture_radii=(10, 15, 20),
+                    plot_dirs=".",):
     """
     Automatically detect point sources in an image using DAOStarFinder.
 
@@ -95,6 +96,8 @@ def targetfind_auto(fname,
     showplot : bool, optional
         If `True`, display the detected sources overlaid on the image.
         Default is `True`.
+    plot_dirs : str or pathlib.Path
+        Path to save the plots. Default is ``.``.
     aperture_radii : tuple of float, optional
         Tuple specifying the source aperture radius, background inner
         radius, and background outer radius as
