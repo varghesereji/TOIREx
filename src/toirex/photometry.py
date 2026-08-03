@@ -597,7 +597,8 @@ def photometry_extraction(config, dirname):
                 centroids = targetfind_manual(
                     frametoextract,
                     centroids_0=centroids_0,
-                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1])
+                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
+                    plot_dirs=plot_dir
                 )
 
             get_centroids(sources_txtfname, purpose='write',
