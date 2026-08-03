@@ -105,6 +105,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
               get_target=False, centroid_list=None,
               aperture_radii=(10, 15, 20),
               save_plot=None,
+              show_plot=True,
               **kwargs):
     """
     Display a FITS image with interactive visualization tools.
