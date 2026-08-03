@@ -104,6 +104,7 @@ def plot_epsf(epsf, fitted_stars, plot_fname="epsf_plot.pdf",
 def imageplot(fname, ext=0, title=None, line_profile='drawline',
               get_target=False, centroid_list=None,
               aperture_radii=(10, 15, 20),
+              save_plot=None,
               **kwargs):
     """
     Display a FITS image with interactive visualization tools.
