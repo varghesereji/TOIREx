@@ -139,6 +139,9 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
         radius, and background outer radius as
         ``(source_radius, bkg_inner, bkg_outer)``. Used only when
         ``line_profile='aperture'``. Default is ``(10, 15, 20)``.
+    save_plot : str or pathlib.Path, optional
+        Filename to save the displayed figure. If `None`, the figure is
+        not saved. Default is `None`.
     **kwargs
         Additional keyword arguments passed to
         `matplotlib.axes.Axes.imshow`.
