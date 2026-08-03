@@ -127,9 +127,12 @@ def targetfind_auto(fname,
 
     centroids = table_to_centroids(sources, keys=(y_key, x_key))
     if showplot:
+        plot_name = fname.with_name(f"{fname.stem}_selectedsources.pdf")
+        plot_name = Path(plot_dirs) / plot_name.name
         imageplot(fname, ext=0, title="Sources found",
                   line_profile="aperture", get_target=False,
                   centroid_list=centroids,
+                  save_plot=plot_name,
                   aperture_radii=aperture_radii)
     positions = Table()
     positions['x_0'] = sources[x_key]
