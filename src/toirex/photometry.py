@@ -93,7 +93,7 @@ def targetfind_auto(fname,
     xycoords : array-like or None, optional
         Initial source coordinates to use for detection. If `None`,
         sources are detected over the entire image.
-    showplot : bool, optional
+    show_plot : bool, optional
         If `True`, display the detected sources overlaid on the image.
         Default is `True`.
     plot_dirs : str or pathlib.Path

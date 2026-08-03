@@ -143,6 +143,10 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
     save_plot : str or pathlib.Path, optional
         Filename to save the displayed figure. If `None`, the figure is
         not saved. Default is `None`.
+    show_plot : bool, optional
+        If `True`, display the detected sources overlaid on the image.
+        Default is `True`.
+
     **kwargs
         Additional keyword arguments passed to
         `matplotlib.axes.Axes.imshow`.
