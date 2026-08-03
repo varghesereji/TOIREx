@@ -587,14 +587,16 @@ def photometry_extraction(config, dirname):
                     fwhm=fwhm,
                     threshold=threshold,
                     showplot=not editsource,
-                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1])
+                    plot_dirs=plot_dir,
+                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
                 )
 
                 if editsource:
                     centroids = targetfind_manual(
                         frametoextract,
                         centroids_0=table_to_centroids(centroids),
-                        aperture_radii=(radius, bkgwindows[0], bkgwindows[1])
+                        aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
+                        plot_dirs=plot_dir
                     )
 
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
