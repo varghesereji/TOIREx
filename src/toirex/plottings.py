@@ -280,6 +280,8 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
                                         bkgs=(bkg_in, bkg_out),
                                         get_target=get_target,
                                         centroids_list=centroid_list)
+    if save_plot is not None:
+        fig.savefig(save_plot)
     plt.show()
     return np.array(centroid_list)
 
