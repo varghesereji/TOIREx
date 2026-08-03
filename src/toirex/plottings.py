@@ -284,6 +284,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
                                         get_target=get_target,
                                         centroids_list=centroid_list)
     if save_plot is not None:
+        print("Plot saved", save_plot)
         fig.savefig(save_plot)
     plt.show()
     return np.array(centroid_list)
