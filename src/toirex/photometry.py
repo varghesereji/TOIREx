@@ -312,8 +312,8 @@ def make_epsf(
     epsf : 2D numpy array
         Oversampled effective PSF.
     """
-    psf_model = CircularGaussianSigmaPRF(flux=200,
-                                         sigma=10)
+    psf_model = CircularGaussianSigmaPRF(flux=1,
+                                         sigma=fwhm/2.355)
     # print("Select bright targets to generate Effective PSF")
     print("Building effective PSF")
     finder = _make_daostarfinder(
