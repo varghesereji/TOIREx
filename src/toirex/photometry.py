@@ -438,6 +438,7 @@ def psf_photometry_subrot(config, fname, positions,
         psf_model = make_epsf(data, err=error,
                               fwhm=fwhm,
                               threshold=threshold,
+                              fit_shape=fit_shape,
                               plot_fname=plot_fname)
 
     # background
