@@ -314,10 +314,13 @@ def make_epsf(
                                          sigma=10)
     # print("Select bright targets to generate Effective PSF")
     print("Building effective PSF")
-    finder = DAOStarFinder(200,
-                           10,
-                           xycoords=star_positions,
-                           min_separation=30)
+    finder = _make_daostarfinder(
+        10,
+        10,
+        n_brightest=10,
+        xycoords=star_positions,
+        min_separation=20)
+
     fit_shape = (15, 15)
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             finder=finder,
