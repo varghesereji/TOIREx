@@ -398,6 +398,8 @@ def psf_photometry_subrot(config, fname, positions,
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
 
+    fit_shape = ast.literal_eval(config['photometry']['FIT_SHAPE'])
+
     try:
         varext = int(varext)
     except ValueError:
@@ -453,7 +455,7 @@ def psf_photometry_subrot(config, fname, positions,
                                           bkg_estimator=bkgstat)
 
     # PSF photometry
-    fit_shape = ast.literal_eval(config['photometry']['FIT_SHAPE'])
+
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             local_bkg_estimator=local_bkg_estimator,
                             aperture_radius=radius,
