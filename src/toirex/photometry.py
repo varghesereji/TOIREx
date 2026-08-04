@@ -342,7 +342,7 @@ def make_epsf(
     epsf_stars = extract_stars(nddata, epsf_stars_tbl,
                                size=cutout_size)
 
-    epsf_builder = EPSFBuilder(oversampling=2,
+    epsf_builder = EPSFBuilder(oversampling=oversample,
                                smoothing_kernel='quadratic',
                                recentering_maxiters=10,
                                maxiters=10,
