@@ -428,9 +428,13 @@ def psf_photometry_subrot(config, fname, positions,
 
     elif config['photometry']['MODEL'] == 'EPSF':
         print("With effective PSF")
+        fwhm = float(config['photometry']['FWHM'])
+        threshold = float(config['photometry']['THRESHOLD'])
         plot_fname = fname.with_name(f"{fname.stem}_epsf.pdf")
         plot_fname = Path(plot_dirs) / plot_fname.name
         psf_model = make_epsf(data, err=error,
+                              fwhm=fwhm,
+                              threshold=threshold,
                               plot_fname=plot_fname)
 
     # background
