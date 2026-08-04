@@ -339,7 +339,8 @@ def make_epsf(
     epsf_stars_tbl['y'] = y[mask]
     nddata = NDData(data=frame,
                     uncertainty=StdDevUncertainty(err))
-    epsf_stars = extract_stars(nddata, epsf_stars_tbl, size=25)
+    epsf_stars = extract_stars(nddata, epsf_stars_tbl,
+                               size=cutout_size)
 
     epsf_builder = EPSFBuilder(oversampling=2,
                                smoothing_kernel='quadratic',
