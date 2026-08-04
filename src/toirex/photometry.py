@@ -73,7 +73,7 @@ def targetfind_auto(fname,
                     xycoords=None,
                     show_plot=True,
                     aperture_radii=(10, 15, 20),
-                    plot_dirs=".",):
+                    plot_dirs="."):
     """
     Automatically detect point sources in an image using DAOStarFinder.
 
