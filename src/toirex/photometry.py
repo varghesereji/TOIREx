@@ -586,7 +586,7 @@ def photometry_extraction(config, dirname):
                     frametoextract,
                     fwhm=fwhm,
                     threshold=threshold,
-                    showplot=not editsource,
+                    show_plot=not editsource,
                     plot_dirs=plot_dir,
                     aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
                 )
