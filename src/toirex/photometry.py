@@ -441,6 +441,7 @@ def psf_photometry_subrot(config, fname, positions,
                               fwhm=fwhm,
                               threshold=threshold,
                               fit_shape=fit_shape,
+                              aperture_radius=radius,
                               plot_fname=plot_fname)
 
     # background
