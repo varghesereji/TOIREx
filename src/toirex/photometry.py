@@ -400,6 +400,8 @@ def psf_photometry_subrot(config, fname, positions,
     varext = config['inputs']['VAREXT']
 
     fit_shape = ast.literal_eval(config['photometry']['FIT_SHAPE'])
+    radius = float(config['photometry']['RADIUS'])
+    bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
 
     try:
         varext = int(varext)
@@ -442,8 +444,6 @@ def psf_photometry_subrot(config, fname, positions,
                               plot_fname=plot_fname)
 
     # background
-    radius = float(config['photometry']['RADIUS'])
-    bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
 
     if radius >= bkgwindows[0]:
         raise ValueError("RADIUS must be smaller than inner_radius")
