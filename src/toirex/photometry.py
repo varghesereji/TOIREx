@@ -324,7 +324,6 @@ def make_epsf(
         xycoords=star_positions,
         min_separation=20)
 
-    fit_shape = (15, 15)
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             finder=finder,
                             aperture_radius=4)
