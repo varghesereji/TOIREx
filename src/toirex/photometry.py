@@ -287,6 +287,7 @@ def make_epsf(
         fwhm=7.0,
         threshold=50,
         cutout_size=25,
+        fit_shape=(15, 15),
         oversample=4,
         normalize=True,
         plot_fname="epsf_plot.pdf"
