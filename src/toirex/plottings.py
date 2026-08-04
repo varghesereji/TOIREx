@@ -104,6 +104,8 @@ def plot_epsf(epsf, fitted_stars, plot_fname="epsf_plot.pdf",
 def imageplot(fname, ext=0, title=None, line_profile='drawline',
               get_target=False, centroid_list=None,
               aperture_radii=(10, 15, 20),
+              save_plot=None,
+              show_plot=True,
               **kwargs):
     """
     Display a FITS image with interactive visualization tools.
@@ -138,6 +140,13 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
         radius, and background outer radius as
         ``(source_radius, bkg_inner, bkg_outer)``. Used only when
         ``line_profile='aperture'``. Default is ``(10, 15, 20)``.
+    save_plot : str or pathlib.Path, optional
+        Filename to save the displayed figure. If `None`, the figure is
+        not saved. Default is `None`.
+    show_plot : bool, optional
+        If `True`, display the detected sources overlaid on the image.
+        Default is `True`.
+
     **kwargs
         Additional keyword arguments passed to
         `matplotlib.axes.Axes.imshow`.
@@ -279,7 +288,16 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
                                         bkgs=(bkg_in, bkg_out),
                                         get_target=get_target,
                                         centroids_list=centroid_list)
-    plt.show()
+
+    if show_plot:
+        plt.show()
+    if save_plot is not None:
+        print("Plot saved", save_plot)
+        fig.savefig(save_plot)
+
+    if not show_plot:
+        plt.close(fig)
+
     return np.array(centroid_list)
 
 

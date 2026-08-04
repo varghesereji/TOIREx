@@ -71,8 +71,9 @@ def targetfind_auto(fname,
                     threshold=50,
                     n_brightest=None,
                     xycoords=None,
-                    showplot=True,
-                    aperture_radii=(10, 15, 20)):
+                    show_plot=True,
+                    aperture_radii=(10, 15, 20),
+                    plot_dirs="."):
     """
     Automatically detect point sources in an image using DAOStarFinder.
 
@@ -92,9 +93,11 @@ def targetfind_auto(fname,
     xycoords : array-like or None, optional
         Initial source coordinates to use for detection. If `None`,
         sources are detected over the entire image.
-    showplot : bool, optional
+    show_plot : bool, optional
         If `True`, display the detected sources overlaid on the image.
         Default is `True`.
+    plot_dirs : str or pathlib.Path
+        Path to save the plots. Default is ``.``.
     aperture_radii : tuple of float, optional
         Tuple specifying the source aperture radius, background inner
         radius, and background outer radius as
@@ -123,11 +126,14 @@ def targetfind_auto(fname,
     y_key = "y_centroid" if "y_centroid" in sources.colnames else "ycentroid"
 
     centroids = table_to_centroids(sources, keys=(y_key, x_key))
-    if showplot:
-        imageplot(fname, ext=0, title="Sources found",
-                  line_profile="aperture", get_target=False,
-                  centroid_list=centroids,
-                  aperture_radii=aperture_radii)
+    plot_name = fname.with_name(f"{fname.stem}_autoselectedsources.pdf")
+    plot_name = Path(plot_dirs) / plot_name.name
+    imageplot(fname, ext=0, title="Sources found",
+              line_profile="aperture", get_target=False,
+              centroid_list=centroids,
+              save_plot=plot_name,
+              show_plot=show_plot,
+              aperture_radii=aperture_radii)
     positions = Table()
     positions['x_0'] = sources[x_key]
     positions['y_0'] = sources[y_key]
@@ -136,7 +142,8 @@ def targetfind_auto(fname,
 
 def targetfind_manual(fname,
                       centroids_0,
-                      aperture_radii=(10, 15, 20)):
+                      aperture_radii=(10, 15, 20),
+                      plot_dirs="."):
     """
     Interactively review and modify source positions in an image.
 
@@ -151,6 +158,8 @@ def targetfind_manual(fname,
     aperture_radii : tuple of float, optional
         Radii of the circular apertures, in pixels, displayed around each
         source during interactive editing. Default is ``(10, 15, 20)``.
+    plot_dirs : str or pathlib.Path
+        Path to save the plots. Default is ``.``.
 
     Returns
     -------
@@ -158,9 +167,12 @@ def targetfind_manual(fname,
         Table containing the final source positions after interactive
         editing. The returned table has columns ``'x_0'`` and ``'y_0'``.
     """
+    plot_name = fname.with_name(f"{fname.stem}_selectedsources.pdf")
+    plot_name = Path(plot_dirs) / plot_name.name
     centroids = imageplot(fname, ext=0, title="Select sources",
                           line_profile="aperture", get_target=False,
                           centroid_list=centroids_0,
+                          save_plot=plot_name,
                           aperture_radii=aperture_radii)
     positions = Table()
     positions['x_0'] = centroids[:, 1]
@@ -356,6 +368,8 @@ def psf_photometry_subrot(config, fname, positions,
         Table containing the initial source positions for PSF fitting. The
         table must contain the columns required by
         `photutils.psf.PSFPhotometry`.
+    plot_dirs : str or pathlib.Path
+        Path to save the plots. Default is ``.``.
 
     Returns
     -------
@@ -572,15 +586,17 @@ def photometry_extraction(config, dirname):
                     frametoextract,
                     fwhm=fwhm,
                     threshold=threshold,
-                    showplot=not editsource,
-                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1])
+                    show_plot=not editsource,
+                    plot_dirs=plot_dir,
+                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
                 )
 
                 if editsource:
                     centroids = targetfind_manual(
                         frametoextract,
                         centroids_0=table_to_centroids(centroids),
-                        aperture_radii=(radius, bkgwindows[0], bkgwindows[1])
+                        aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
+                        plot_dirs=plot_dir
                     )
 
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
@@ -589,7 +605,8 @@ def photometry_extraction(config, dirname):
                 centroids = targetfind_manual(
                     frametoextract,
                     centroids_0=centroids_0,
-                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1])
+                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
+                    plot_dirs=plot_dir
                 )
 
             get_centroids(sources_txtfname, purpose='write',
