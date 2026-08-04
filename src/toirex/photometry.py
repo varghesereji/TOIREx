@@ -284,6 +284,8 @@ def make_epsf(
         frame,
         err=None,
         star_positions=None,
+        fwhm=7.0,
+        threshold=50,
         cutout_size=25,
         oversample=4,
         normalize=True,
@@ -315,8 +317,8 @@ def make_epsf(
     # print("Select bright targets to generate Effective PSF")
     print("Building effective PSF")
     finder = _make_daostarfinder(
-        10,
-        10,
+        fwhm,
+        threshold,
         n_brightest=10,
         xycoords=star_positions,
         min_separation=20)
