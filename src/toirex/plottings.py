@@ -101,16 +101,42 @@ def plot_epsf(epsf, fitted_stars, plot_fname="epsf_plot.pdf",
     print("ePSF saved as:", plot_fname)
 
 
-def save_residualimg(data, residue, fname="Residue_plot.pdf",
+def save_residualimg(data, residual, fname="Residual_plot.pdf",
                      show_plot=True):
+    """
+    Save a comparison plot of the data, model, and residual image.
+
+    The figure contains three panels showing the original data, the fitted
+    model (computed as ``data - residue``), and the residual image. All
+    panels are displayed using the same intensity scale for direct
+    comparison, with a shared colourbar.
+
+    Parameters
+    ----------
+    data : ndarray
+        Original image data.
+    residue : ndarray
+        Residual image, defined as the difference between the data and the
+        fitted model.
+    fname : str or pathlib.Path, optional
+        Filename for the output figure. The default is
+        ``"Residue_plot.pdf"``.
+    show_plot : bool, optional
+        If `True`, display the figure after saving. Otherwise, close the
+        figure without displaying it.
+
+    Returns
+    -------
+    None
+    """
     vmin = np.nanmean(data) - 2.0 * np.nanstd(data)
     vmax = np.nanmean(data) + 2.0 * np.nanstd(data)
 
     fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(18, 5))
     fig.subplots_adjust(right=0.88)
     im = ax[0].imshow(data, vmin=vmin, vmax=vmax, origin='lower')
-    ax[1].imshow(data - residue, vmin=vmin, vmax=vmax, origin='lower')
-    ax[2].imshow(residue, vmin=vmin, vmax=vmax, origin='lower')
+    ax[1].imshow(data - residual, vmin=vmin, vmax=vmax, origin='lower')
+    ax[2].imshow(residual, vmin=vmin, vmax=vmax, origin='lower')
     ax[0].set_title("Data")
     ax[1].set_title("Model")
     ax[2].set_title("Residual Image")
