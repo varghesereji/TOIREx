@@ -115,7 +115,7 @@ def save_residualimg(data, residual, fname="Residual_plot.pdf",
     ----------
     data : ndarray
         Original image data.
-    residue : ndarray
+    residual : ndarray
         Residual image, defined as the difference between the data and the
         fitted model.
     fname : str or pathlib.Path, optional
