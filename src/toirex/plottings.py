@@ -643,15 +643,23 @@ def select_aperture(fig,
         # Plotting profile
         ax_profile = ax[0]
 
-        rp.plot(ax=ax_profile, label="Radial Profile")
+        ax_profile.axvline(x=radius, color='red', label="Radius")
+        ax_profile.axvline(x=bkgs[0], color='green', label="Background")
+        ax_profile.axvline(x=bkgs[1], color='green')
+        ax_profile.axvline(x=rp.gaussian_fwhm/2, linestyle='--', color='crimson')
+        rp.plot(ax=ax_profile, label="Radial Profile", color='k')
         rp.plot_error(ax=ax_profile)
 
+        gwidth = rp.gaussian_fwhm / 2
+        mwidth = rp.moffat_fwhm / 2
         ax_profile.plot(rp.radius,
                         rp.gaussian_profile,
-                        label=f"Gaussian Fit\n gFWHM={rp.gaussian_fwhm:.3f}")
+                        label=f"Gaussian Fit\n gFWHM={gwidth:.3f}",
+                        color='teal')
         ax_profile.plot(rp.radius,
                         rp.moffat_profile,
-                        label=f"Moffat Fit\n mFWHM={rp.moffat_fwhm:.3f}")
+                        label=f"Moffat Fit\n mFWHM={mwidth:.3f}",
+                        color='magenta')
 
         ax_profile.grid(alpha=0.3)
 
