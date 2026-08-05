@@ -311,8 +311,8 @@ def make_epsf(
         Default is ``None``.
     star_positions : array-like, optional
         Initial estimates of the stellar positions. If provided, these are
-        passed to the source finder as initial coordinates. Default is
-        ``None``.
+        passed directly to `PSFPhotometry` as the initial source positions.
+        If `None`, sources are detected automatically using DAOStarFinder.
     aperture_radius : float, optional
         Radius of the circular aperture, in pixels, used to estimate the
         initial stellar fluxes during PSF photometry. Default is ``4``.
