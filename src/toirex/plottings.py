@@ -22,6 +22,7 @@ from .utils import read_fits_header
 from .utils import fit_gaussian_profile
 from .image_utils import select_source
 from .image_utils import get_radial_profile
+from .image_utils import make_cutout
 from .io_utils import launch_simbad_gui
 
 
@@ -650,6 +651,14 @@ def select_aperture(fig,
                         label=f"Moffat Fit\n {rp.moffat_fwhm:.3f}")
 
         ax_profile.grid(alpha=0.3)
+
+        cutout_size = int(2 * (bkgs[1] + 10))
+        cutout = make_cutout(
+            image,
+            (x_center, y_center),
+            (cutout_size, cutout_size)
+        )
+
         ax_profile.legend()
         plt.tight_layout()
         plt.show()
