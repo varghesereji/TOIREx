@@ -21,6 +21,8 @@ from .utils import read_fits_data
 from .utils import read_fits_header
 from .utils import fit_gaussian_profile
 from .image_utils import select_source
+from .image_utils import get_radial_profile
+from .image_utils import make_cutout
 from .io_utils import launch_simbad_gui
 
 
@@ -321,6 +323,8 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
             title = title.name
         title = title + "\n Press Ctrl and click on apertures to select them"
         title += "\n Press Shift and click to remove selected apertures"
+        title += "\n Press 'r' to view the radial profile of the"
+        title += " last selected source."
         axs.set_title(title, loc="left")
         if len(aperture_radii) != 3:
 
@@ -619,6 +623,74 @@ def select_aperture(fig,
         for patch in (source, bkg_in, bkg_out):
             patch.remove()
 
+    def show_profile():
+        """Display the radial profile of the most recently selected source."""
+
+        if not centroids_list:
+            print("No source selected.")
+            return
+
+        y_center, x_center = centroids_list[-1][:2]
+
+        edge_radii = np.arange(bkgs[1] + 10)
+
+        rp = get_radial_profile(
+            image,
+            (x_center, y_center),
+            edge_radii=edge_radii,
+        )
+
+        fig_profile, ax = plt.subplots(1, 2, figsize=(10, 5))
+
+        # Plotting profile
+        ax_profile = ax[0]
+
+        ax_profile.axvline(x=radius, color='red', label="Radius",
+                           alpha=0.5)
+        ax_profile.axvline(x=bkgs[0], color='green', label="Background",
+                           alpha=0.5)
+        ax_profile.axvline(x=bkgs[1], color='green',
+                           alpha=0.5)
+        ax_profile.axvline(x=rp.gaussian_fwhm/2, linestyle='--',
+                           color='crimson', alpha=0.5)
+        rp.plot(ax=ax_profile, label="Radial Profile", color='k')
+        rp.plot_error(ax=ax_profile)
+
+        gwidth = rp.gaussian_fwhm / 2
+        mwidth = rp.moffat_fwhm / 2
+        ax_profile.plot(rp.radius,
+                        rp.gaussian_profile,
+                        label=f"Gaussian Fit\n gFWHM={gwidth:.3f}",
+                        color='teal')
+        ax_profile.plot(rp.radius,
+                        rp.moffat_profile,
+                        label=f"Moffat Fit\n mFWHM={mwidth:.3f}",
+                        color='magenta')
+
+        ax_profile.grid(alpha=0.3)
+
+        # Plotting the cutout image
+        ax_cutout = ax[1]
+        cutout_size = int(2 * (bkgs[1] + 10))
+        cutout = make_cutout(
+            image,
+            (x_center, y_center),
+            (cutout_size, cutout_size)
+        )
+
+        cutout_frame = cutout.data
+        ax_cutout.imshow(cutout_frame, origin='lower',
+                         cmap='gray')
+
+        mark_source(ax_cutout,
+                    (cutout_size//2, cutout_size//2),
+                    radius=radius,
+                    bkgs=bkgs)
+
+        ax_profile.legend()
+        plt.tight_layout()
+        plt.show()
+
     def onclick(event):
         # nonlocal line_coords
         toolbar = fig.canvas.toolbar
@@ -640,7 +712,22 @@ def select_aperture(fig,
 
         fig.canvas.draw_idle()
 
+    def onkeypress(event):
+        """Handle keyboard shortcuts."""
+
+        toolbar = fig.canvas.toolbar
+
+        if toolbar.mode != "":
+            return
+
+        if event.key is None:
+            return
+
+        if event.key.lower() == "r":
+            show_profile()
+
     fig.canvas.mpl_connect("button_press_event", onclick)
+    fig.canvas.mpl_connect("key_press_event", onkeypress)
 
     return centroids_list
 

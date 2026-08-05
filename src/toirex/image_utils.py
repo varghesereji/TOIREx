@@ -1,13 +1,76 @@
 #!/usr/bin/env python3
 
 from photutils.centroids import centroid_2dg
+from photutils.profiles import RadialProfile
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy.wcs.utils import fit_wcs_from_points
 from astropy.time import Time
+from astropy.nddata import Cutout2D
 import astropy.units as u
 
 from .obscatalog import read_catalog
+
+
+def get_radial_profile(image,
+                       xypos,
+                       edge_radii):
+    """
+    Compute the radial profile of a source.
+
+    Parameters
+    ----------
+    image : ndarray
+        Input image.
+    xypos : tuple of float
+        Source centre as ``(x, y)``.
+    edge_radii : array_like
+        Radii defining the annular bin edges.
+
+    Returns
+    -------
+    photutils.profiles.RadialProfile
+        Radial profile object.
+    """
+
+    return RadialProfile(
+        image,
+        xypos,
+        radii=edge_radii
+        )
+
+
+def make_cutout(image,
+                center,
+                size=(20, 20)):
+    """
+    Create a cutout of an image centred on a specified position.
+
+    Parameters
+    ----------
+    image : ndarray
+        Two-dimensional image array.
+    center : tuple of float
+        Centre of the cutout given as ``(x_center, y_center)`` in pixel
+        coordinates.
+    size : int or tuple of int, optional
+        Size of the cutout in pixels. If an integer is supplied, a square
+        cutout is created. If a tuple is supplied, it should specify the
+        cutout size as ``(ny, nx)``. Default is ``(20, 20)``.
+
+    Returns
+    -------
+    astropy.nddata.Cutout2D
+        Cutout object containing the extracted image region together with
+        the coordinate transformation between the original image and the
+        cutout.
+    """
+    cutout = Cutout2D(
+        image,
+        center,
+        size
+    )
+    return cutout
 
 
 def select_source(data, error=None, mask=None):
