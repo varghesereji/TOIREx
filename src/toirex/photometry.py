@@ -514,7 +514,7 @@ def psf_photometry_subrot(config, fname, positions,
                             progress_bar=True)
 
     phot = psfphot(data, error=error, init_params=positions)
-    resplot_fname = fname.with_name(f"{fname.stem}_residue.pdf")
+    resplot_fname = fname.with_name(f"{fname.stem}_psfresidue.pdf")
     resplot_fname = Path(plot_dirs) / resplot_fname.name
 
     save_residualimg(data,
