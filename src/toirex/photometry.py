@@ -3,6 +3,7 @@
 from pathlib import Path
 import numpy as np
 import ast
+import warnings
 from astropy.io import fits
 from astropy.table import Table
 from astropy.stats import sigma_clipped_stats
@@ -310,8 +311,8 @@ def make_epsf(
         Default is ``None``.
     star_positions : array-like, optional
         Initial estimates of the stellar positions. If provided, these are
-        passed to the source finder as initial coordinates. Default is
-        ``None``.
+        passed directly to `PSFPhotometry` as the initial source positions.
+        If `None`, sources are detected automatically using DAOStarFinder.
     aperture_radius : float, optional
         Radius of the circular aperture, in pixels, used to estimate the
         initial stellar fluxes during PSF photometry. Default is ``4``.
@@ -343,21 +344,32 @@ def make_epsf(
                                          sigma=fwhm/2.355)
     # print("Select bright targets to generate Effective PSF")
     print("Building effective PSF")
-    finder = _make_daostarfinder(
-        fwhm,
-        threshold,
-        n_brightest=10,
-        xycoords=star_positions,
-        min_separation=20)
+    finder = None
+    if star_positions is None:
+        print("Finding the sources for ePSF automatically")
+        finder = _make_daostarfinder(
+            fwhm,
+            threshold,
+            n_brightest=10,
+            min_separation=10)
 
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             finder=finder,
                             aperture_radius=aperture_radius)
-    phot = psfphot(frame)
-    init_flux = np.array(phot['flux_init'])
+
+    phot = psfphot(frame,
+                   error=err,
+                   init_params=star_positions)
+    good = phot["flags"] == 0
+    phot = phot[good]
+
+    if len(phot) == 0:
+        raise ValueError("No stars available for ePSF construction.")
+
+    init_flux = np.asarray(phot['flux_init'])
     x = phot['x_fit']
     y = phot['y_fit']
-    mask = init_flux > np.percentile(init_flux, 70)
+    mask = init_flux > np.percentile(init_flux, 90)
 
     epsf_stars_tbl = Table()
     epsf_stars_tbl['x'] = x[mask]
@@ -366,6 +378,15 @@ def make_epsf(
                     uncertainty=StdDevUncertainty(err))
     epsf_stars = extract_stars(nddata, epsf_stars_tbl,
                                size=cutout_size)
+    if len(epsf_stars) < 5:
+        warnings.warn(
+            f"Only {len(epsf_stars)} bright star(s) were selected for ePSF "
+            "construction. The resulting ePSF may be unreliable. "
+            "Consider using a Gaussian PSF "
+            "model or selecting more bright, isolated stars.",
+            UserWarning,
+            stacklevel=2,
+        )
 
     epsf_builder = EPSFBuilder(oversampling=oversample,
                                smoothing_kernel='quadratic',
@@ -464,6 +485,7 @@ def psf_photometry_subrot(config, fname, positions,
         plot_fname = fname.with_name(f"{fname.stem}_epsf.pdf")
         plot_fname = Path(plot_dirs) / plot_fname.name
         psf_model = make_epsf(data, err=error,
+                              star_positions=positions,
                               fwhm=fwhm,
                               threshold=threshold,
                               fit_shape=fit_shape,
