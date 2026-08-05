@@ -21,6 +21,7 @@ from .utils import read_fits_data
 from .utils import read_fits_header
 from .utils import fit_gaussian_profile
 from .image_utils import select_source
+from .image_utils import get_radial_profile
 from .io_utils import launch_simbad_gui
 
 
@@ -630,12 +631,11 @@ def select_aperture(fig,
 
         edge_radii = np.arange(bkgs[1] + 10)
 
-        rp = RadialProfile(
+        rp = get_radial_profile(
             image,
             (x_center, y_center),
             edge_radii=edge_radii,
         )
-
         fig_profile, ax_profile = plt.subplots(figsize=(6, 5))
 
         ax_profile.plot(
@@ -669,15 +669,27 @@ def select_aperture(fig,
         elif event.key == "shift":
             remove_source(event.xdata, event.ydata)
 
-        if event.key.lower() == "p":
-            show_profile()
-
         else:
             return
 
         fig.canvas.draw_idle()
 
+    def onkeypress(event):
+        """Handle keyboard shortcuts."""
+
+        toolbar = fig.canvas.toolbar
+
+        if toolbar.mode != "":
+            return
+
+        if event.key is None:
+            return
+
+        if event.key.lower() == "p":
+            show_profile()
+
     fig.canvas.mpl_connect("button_press_event", onclick)
+    fig.canvas.mpl_connect("key_press_event", onkeypress)
 
     return centroids_list
 
