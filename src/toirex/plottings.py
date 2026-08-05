@@ -323,7 +323,7 @@ def imageplot(fname, ext=0, title=None, line_profile='drawline',
             title = title.name
         title = title + "\n Press Ctrl and click on apertures to select them"
         title += "\n Press Shift and click to remove selected apertures"
-        title += "\n Press P to view the radial profile of the"
+        title += "\n Press 'r' to view the radial profile of the"
         title += " last selected source."
         axs.set_title(title, loc="left")
         if len(aperture_radii) != 3:
