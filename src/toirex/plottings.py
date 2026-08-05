@@ -641,6 +641,14 @@ def select_aperture(fig,
 
         rp.plot(ax=ax_profile, label="Radial Profile")
         rp.plot_error(ax=ax_profile)
+
+        ax_profile.plot(rp.radius,
+                        rp.gaussian_profile,
+                        label=f"Gaussian Fit\n {rp.gaussian_fwhm:.3f}")
+        ax_profile.plot(rp.radius,
+                        rp.moffat_profile,
+                        label=f"Moffat Fit\n {rp.moffat_fwhm:.3f}")
+
         ax_profile.grid(alpha=0.3)
         ax_profile.legend()
         plt.tight_layout()
