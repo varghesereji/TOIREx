@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from photutils.centroids import centroid_2dg
+from photutils.profiles import RadialProfile
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy.wcs.utils import fit_wcs_from_points
@@ -8,6 +9,34 @@ from astropy.time import Time
 import astropy.units as u
 
 from .obscatalog import read_catalog
+
+
+def get_radial_profile(image,
+                       xypos,
+                       edge_radii):
+    """
+    Compute the radial profile of a source.
+
+    Parameters
+    ----------
+    image : ndarray
+        Input image.
+    xypos : tuple of float
+        Source centre as ``(x, y)``.
+    edge_radii : array_like
+        Radii defining the annular bin edges.
+
+    Returns
+    -------
+    photutils.profiles.RadialProfile
+        Radial profile object.
+    """
+
+    return RadialProfile(
+        image,
+        xypos,
+        radii=edge_radii
+        )
 
 
 def select_source(data, error=None, mask=None):
