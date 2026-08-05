@@ -635,6 +635,9 @@ def select_aperture(fig,
         elif event.key == "shift":
             remove_source(event.xdata, event.ydata)
 
+        if event.key.lower() == "p":
+            show_profile()
+
         else:
             return
 
