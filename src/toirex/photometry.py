@@ -36,6 +36,7 @@ from .utils import read_txt_file
 from .utils import table_to_centroids
 from .plottings import imageplot
 from .plottings import plot_epsf
+from .plottings import save_residualimg
 from .io_utils import convert_radec
 
 # Detect whether the installed Photutils version supports the
@@ -513,6 +514,14 @@ def psf_photometry_subrot(config, fname, positions,
                             progress_bar=True)
 
     phot = psfphot(data, error=error, init_params=positions)
+    resplot_fname = fname.with_name(f"{fname.stem}_residue.pdf")
+    resplot_fname = Path(plot_dirs) / resplot_fname
+
+    save_residualimg(data,
+                     psfphot.make_residual_image(data),
+                     fname=resplot_fname,
+                     show_plot=True)
+
     opfname = save_photometry(
         fname, phot,
         history='PSF photometry table added on file update.',
