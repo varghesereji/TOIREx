@@ -6,6 +6,7 @@ from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy.wcs.utils import fit_wcs_from_points
 from astropy.time import Time
+from astropy.nddata import Cutout2D
 import astropy.units as u
 
 from .obscatalog import read_catalog
@@ -37,6 +38,17 @@ def get_radial_profile(image,
         xypos,
         radii=edge_radii
         )
+
+
+def make_cutout(image,
+                center,
+                size=(20, 20)):
+    cutout = Cutout2D(
+        image,
+        center,
+        size
+    )
+    return cutout
 
 
 def select_source(data, error=None, mask=None):
