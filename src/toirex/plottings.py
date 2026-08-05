@@ -101,6 +101,25 @@ def plot_epsf(epsf, fitted_stars, plot_fname="epsf_plot.pdf",
     print("ePSF saved as:", plot_fname)
 
 
+def save_residualimg(data, residue, fname="Residue_plot.pdf",
+                     show_plot=True):
+
+    fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+
+    ax[0].imshow(data, origin='lower')
+    ax[1].imshow(data - residue, origin='lower')
+    ax[2].imshow(residue, origin='lower')
+    ax[0].set_title("Data")
+    ax[1].set_title("Model")
+    ax[2].set_title("Residual Image")
+    fig.tight_layout()
+    plt.savefig(fname)
+    if show_plot:
+        plt.show()
+    else:
+        plt.close()
+
+
 def imageplot(fname, ext=0, title=None, line_profile='drawline',
               get_target=False, centroid_list=None,
               aperture_radii=(10, 15, 20),
