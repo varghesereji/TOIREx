@@ -638,26 +638,30 @@ def select_aperture(fig,
             edge_radii=edge_radii,
         )
 
-        fig_profile, ax_profile = plt.subplots(figsize=(6, 5))
+        fig_profile, ax = plt.subplots(1, 2, figsize=(10, 5))
+
+        ax_profile = ax[0]
 
         rp.plot(ax=ax_profile, label="Radial Profile")
         rp.plot_error(ax=ax_profile)
 
         ax_profile.plot(rp.radius,
                         rp.gaussian_profile,
-                        label=f"Gaussian Fit\n {rp.gaussian_fwhm:.3f}")
+                        label=f"Gaussian Fit\n gFWHM={rp.gaussian_fwhm:.3f}")
         ax_profile.plot(rp.radius,
                         rp.moffat_profile,
-                        label=f"Moffat Fit\n {rp.moffat_fwhm:.3f}")
+                        label=f"Moffat Fit\n mFWHM={rp.moffat_fwhm:.3f}")
 
         ax_profile.grid(alpha=0.3)
 
+        ax_cutout = ax[1]
         cutout_size = int(2 * (bkgs[1] + 10))
         cutout = make_cutout(
             image,
             (x_center, y_center),
             (cutout_size, cutout_size)
         )
+        ax_cutout.imshow(cutout.data, origin='lower')
 
         ax_profile.legend()
         plt.tight_layout()
