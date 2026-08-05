@@ -639,18 +639,10 @@ def select_aperture(fig,
 
         fig_profile, ax_profile = plt.subplots(figsize=(6, 5))
 
-        ax_profile.plot(
-            rp.radius,
-            rp.profile,
-            marker="o",
-        )
-
-        ax_profile.set_xlabel("Radius (pixels)")
-        ax_profile.set_ylabel("Mean Counts")
-        ax_profile.set_title("Radial Profile")
-
+        rp.plot(ax=ax_profile, label="Radial Profile")
+        rp.plot_error(ax=ax_profile)
         ax_profile.grid(alpha=0.3)
-
+        ax_profile.legend()
         plt.tight_layout()
         plt.show()
 
