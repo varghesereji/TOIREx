@@ -636,6 +636,7 @@ def select_aperture(fig,
             (x_center, y_center),
             edge_radii=edge_radii,
         )
+
         fig_profile, ax_profile = plt.subplots(figsize=(6, 5))
 
         ax_profile.plot(
@@ -685,7 +686,7 @@ def select_aperture(fig,
         if event.key is None:
             return
 
-        if event.key.lower() == "p":
+        if event.key.lower() == "r":
             show_profile()
 
     fig.canvas.mpl_connect("button_press_event", onclick)
