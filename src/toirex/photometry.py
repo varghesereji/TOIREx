@@ -469,6 +469,7 @@ def psf_photometry_subrot(config, fname, positions,
         plot_fname = fname.with_name(f"{fname.stem}_epsf.pdf")
         plot_fname = Path(plot_dirs) / plot_fname.name
         psf_model = make_epsf(data, err=error,
+                              star_positions=positions,
                               fwhm=fwhm,
                               threshold=threshold,
                               fit_shape=fit_shape,
