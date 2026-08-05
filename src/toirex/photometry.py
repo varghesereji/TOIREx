@@ -366,7 +366,7 @@ def make_epsf(
     if len(phot) == 0:
         raise ValueError("No stars available for ePSF construction.")
 
-    init_flux = np.array(phot['flux_init'])
+    init_flux = np.asarray(phot['flux_init'])
     x = phot['x_fit']
     y = phot['y_fit']
     mask = init_flux > np.percentile(init_flux, 90)
