@@ -356,7 +356,9 @@ def make_epsf(
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             finder=finder,
                             aperture_radius=aperture_radius)
-    phot = psfphot(frame)
+    phot = psfphot(frame,
+                   error=err,
+                   init_params=star_positions)
     init_flux = np.array(phot['flux_init'])
     x = phot['x_fit']
     y = phot['y_fit']
