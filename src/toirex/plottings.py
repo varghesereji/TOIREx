@@ -103,12 +103,14 @@ def plot_epsf(epsf, fitted_stars, plot_fname="epsf_plot.pdf",
 
 def save_residualimg(data, residue, fname="Residue_plot.pdf",
                      show_plot=True):
+    vmin = np.nanmean(data) - 2.0 * np.nanstd(data)
+    vmax = np.nanmean(data) + 2.0 * np.nanstd(data)
 
     fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
 
-    ax[0].imshow(data, origin='lower')
-    ax[1].imshow(data - residue, origin='lower')
-    ax[2].imshow(residue, origin='lower')
+    ax[0].imshow(data, vmin=vmin, vmax=vmax, origin='lower')
+    ax[1].imshow(data - residue, vmin=vmin, vmax=vmax, origin='lower')
+    ax[2].imshow(residue, vmin=vmin, vmax=vmax, origin='lower')
     ax[0].set_title("Data")
     ax[1].set_title("Model")
     ax[2].set_title("Residual Image")
