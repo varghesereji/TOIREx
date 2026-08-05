@@ -363,6 +363,9 @@ def make_epsf(
     good = phot["flags"] == 0
     phot = phot[good]
 
+    if len(phot) == 0:
+        raise ValueError("No stars available for ePSF construction.")
+
     init_flux = np.array(phot['flux_init'])
     x = phot['x_fit']
     y = phot['y_fit']
