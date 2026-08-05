@@ -673,7 +673,8 @@ def select_aperture(fig,
         )
 
         cutout_frame = cutout.data
-        ax_cutout.imshow(cutout_frame, origin='lower')
+        ax_cutout.imshow(cutout_frame, origin='lower',
+                         cmap='gray')
 
         mark_source(ax_cutout,
                     (cutout_size//2, cutout_size//2),
