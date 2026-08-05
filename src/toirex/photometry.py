@@ -3,6 +3,7 @@
 from pathlib import Path
 import numpy as np
 import ast
+import warnings
 from astropy.io import fits
 from astropy.table import Table
 from astropy.stats import sigma_clipped_stats
@@ -370,6 +371,15 @@ def make_epsf(
                     uncertainty=StdDevUncertainty(err))
     epsf_stars = extract_stars(nddata, epsf_stars_tbl,
                                size=cutout_size)
+    if len(epsf_stars) < 5:
+        warnings.warn(
+            f"Only {len(epsf_stars)} bright star(s) were selected for ePSF "
+            "construction. The resulting ePSF may be unreliable. "
+            "Consider using a Gaussian PSF "
+            "model or selecting more bright, isolated stars.",
+            UserWarning,
+            stacklevel=2,
+        )
 
     epsf_builder = EPSFBuilder(oversampling=oversample,
                                smoothing_kernel='quadratic',
