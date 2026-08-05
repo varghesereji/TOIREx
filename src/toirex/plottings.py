@@ -619,6 +619,40 @@ def select_aperture(fig,
         for patch in (source, bkg_in, bkg_out):
             patch.remove()
 
+    def show_profile():
+        """Display the radial profile of the most recently selected source."""
+
+        if not centroids_list:
+            print("No source selected.")
+            return
+
+        y_center, x_center = centroids_list[-1][:2]
+
+        edge_radii = np.arange(bkgs[1] + 10)
+
+        rp = RadialProfile(
+            image,
+            (x_center, y_center),
+            edge_radii=edge_radii,
+        )
+
+        fig_profile, ax_profile = plt.subplots(figsize=(6, 5))
+
+        ax_profile.plot(
+            rp.radius,
+            rp.profile,
+            marker="o",
+        )
+
+        ax_profile.set_xlabel("Radius (pixels)")
+        ax_profile.set_ylabel("Mean Counts")
+        ax_profile.set_title("Radial Profile")
+
+        ax_profile.grid(alpha=0.3)
+
+        plt.tight_layout()
+        plt.show()
+
     def onclick(event):
         # nonlocal line_coords
         toolbar = fig.canvas.toolbar
