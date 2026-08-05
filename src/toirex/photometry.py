@@ -362,7 +362,7 @@ def make_epsf(
     init_flux = np.array(phot['flux_init'])
     x = phot['x_fit']
     y = phot['y_fit']
-    mask = init_flux > np.percentile(init_flux, 70)
+    mask = init_flux > np.percentile(init_flux, 90)
 
     epsf_stars_tbl = Table()
     epsf_stars_tbl['x'] = x[mask]
