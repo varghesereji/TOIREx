@@ -640,6 +640,7 @@ def select_aperture(fig,
 
         fig_profile, ax = plt.subplots(1, 2, figsize=(10, 5))
 
+        # Plotting profile
         ax_profile = ax[0]
 
         rp.plot(ax=ax_profile, label="Radial Profile")
@@ -654,6 +655,7 @@ def select_aperture(fig,
 
         ax_profile.grid(alpha=0.3)
 
+        # Plotting the cutout image
         ax_cutout = ax[1]
         cutout_size = int(2 * (bkgs[1] + 10))
         cutout = make_cutout(
@@ -661,7 +663,14 @@ def select_aperture(fig,
             (x_center, y_center),
             (cutout_size, cutout_size)
         )
-        ax_cutout.imshow(cutout.data, origin='lower')
+
+        cutout_frame = cutout.data
+        ax_cutout.imshow(cutout_frame, origin='lower')
+
+        mark_source(ax_cutout,
+                    (cutout_size//2, cutout_size//2),
+                    radius=radius,
+                    bkgs=bkgs)
 
         ax_profile.legend()
         plt.tight_layout()
