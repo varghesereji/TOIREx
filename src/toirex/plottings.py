@@ -114,6 +114,7 @@ def save_residualimg(data, residue, fname="Residue_plot.pdf",
     ax[2].set_title("Residual Image")
     fig.tight_layout()
     plt.savefig(fname)
+    print(f"Saving the residual image as {fname}")
     if show_plot:
         plt.show()
     else:
