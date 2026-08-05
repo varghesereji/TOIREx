@@ -106,15 +106,20 @@ def save_residualimg(data, residue, fname="Residue_plot.pdf",
     vmin = np.nanmean(data) - 2.0 * np.nanstd(data)
     vmax = np.nanmean(data) + 2.0 * np.nanstd(data)
 
-    fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(15, 5))
-
-    ax[0].imshow(data, vmin=vmin, vmax=vmax, origin='lower')
+    fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(18, 5))
+    fig.subplots_adjust(right=0.88)
+    im = ax[0].imshow(data, vmin=vmin, vmax=vmax, origin='lower')
     ax[1].imshow(data - residue, vmin=vmin, vmax=vmax, origin='lower')
     ax[2].imshow(residue, vmin=vmin, vmax=vmax, origin='lower')
     ax[0].set_title("Data")
     ax[1].set_title("Model")
     ax[2].set_title("Residual Image")
-    fig.tight_layout()
+
+    # Create a dedicated axis for the colorbar
+    cax = fig.add_axes([0.90, 0.15, 0.02, 0.70])
+    fig.colorbar(im, cax=cax)
+
+    # fig.tight_layout()
     plt.savefig(fname)
     print(f"Saving the residual image as {fname}")
     if show_plot:
