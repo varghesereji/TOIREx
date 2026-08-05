@@ -343,12 +343,15 @@ def make_epsf(
                                          sigma=fwhm/2.355)
     # print("Select bright targets to generate Effective PSF")
     print("Building effective PSF")
-    finder = _make_daostarfinder(
-        fwhm,
-        threshold,
-        n_brightest=10,
-        xycoords=star_positions,
-        min_separation=20)
+    finder = None
+    if star_positions is None:
+        print("Finding the sources for ePSF automatically")
+        finder = _make_daostarfinder(
+            fwhm,
+            threshold,
+            n_brightest=10,
+            xycoords=star_positions,
+            min_separation=10)
 
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             finder=finder,
