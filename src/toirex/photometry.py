@@ -350,7 +350,6 @@ def make_epsf(
             fwhm,
             threshold,
             n_brightest=10,
-            xycoords=star_positions,
             min_separation=10)
 
     psfphot = PSFPhotometry(psf_model, fit_shape,
