@@ -643,10 +643,14 @@ def select_aperture(fig,
         # Plotting profile
         ax_profile = ax[0]
 
-        ax_profile.axvline(x=radius, color='red', label="Radius")
-        ax_profile.axvline(x=bkgs[0], color='green', label="Background")
-        ax_profile.axvline(x=bkgs[1], color='green')
-        ax_profile.axvline(x=rp.gaussian_fwhm/2, linestyle='--', color='crimson')
+        ax_profile.axvline(x=radius, color='red', label="Radius",
+                           alpha=0.5)
+        ax_profile.axvline(x=bkgs[0], color='green', label="Background",
+                           alpha=0.5)
+        ax_profile.axvline(x=bkgs[1], color='green',
+                           alpha=0.5)
+        ax_profile.axvline(x=rp.gaussian_fwhm/2, linestyle='--',
+                           color='crimson', alpha=0.5)
         rp.plot(ax=ax_profile, label="Radial Profile", color='k')
         rp.plot_error(ax=ax_profile)
 
