@@ -284,44 +284,75 @@ def make_epsf(
         frame,
         err=None,
         star_positions=None,
+        aperture_radius=4,
+        fwhm=7.0,
+        threshold=50,
         cutout_size=25,
+        fit_shape=(15, 15),
         oversample=4,
-        normalize=True,
         plot_fname="epsf_plot.pdf"
 ):
     """
-    Build an effective PSF (ePSF) from a single image frame.
+    Build an effective point spread function (ePSF) from bright stars in an
+    image.
+
+    Bright stars are first refined using PSF photometry and then used to
+    construct an oversampled ePSF with ``EPSFBuilder``. The resulting ePSF
+    can be used as the PSF model for subsequent PSF photometry.
 
     Parameters
     ----------
-    frame : 2D numpy array
-        Image containing stars.
-    star_positions : list of tuples
-        List of (x, y) pixel positions of manually selected stars.
-    cutout_size : int
-        Size of square cutout (in pixels).
-    oversample : int
-        Oversampling factor for the ePSF grid.
-    normalize : bool
-        Normalize each star to unit flux.
+    frame : ndarray
+        Two-dimensional image array containing the stellar sources.
+    err : ndarray, optional
+        Two-dimensional array containing the 1-sigma uncertainty for each
+        pixel. If provided, it is used when extracting stellar cutouts.
+        Default is ``None``.
+    star_positions : array-like, optional
+        Initial estimates of the stellar positions. If provided, these are
+        passed to the source finder as initial coordinates. Default is
+        ``None``.
+    aperture_radius : float, optional
+        Radius of the circular aperture, in pixels, used to estimate the
+        initial stellar fluxes during PSF photometry. Default is ``4``.
+    fwhm : float, optional
+        Approximate full width at half maximum (FWHM) of the stellar PSF, in
+        pixels. This is used to define both the initial Gaussian PSF model
+        and the source finder. Default is ``7.0``.
+    threshold : float, optional
+        Detection threshold above the background, in image units, used by the
+        source finder. Default is ``50``.
+    cutout_size : int, optional
+        Size of the square cutout, in pixels, extracted around each selected
+        star for ePSF construction. Default is ``25``.
+    fit_shape : tuple of int, optional
+        Shape of the fitting region used for PSF photometry, given as
+        ``(ny, nx)``. Default is ``(15, 15)``.
+    oversample : int, optional
+        Oversampling factor of the output ePSF. Default is ``4``.
+    plot_fname : str or pathlib.Path, optional
+        Filename of the output diagnostic plot showing the constructed ePSF.
+        Default is ``"epsf_plot.pdf"``.
 
     Returns
     -------
-    epsf : 2D numpy array
-        Oversampled effective PSF.
+    photutils.psf.ImagePSF
+        The constructed oversampled effective point spread function.
     """
-    psf_model = CircularGaussianSigmaPRF(flux=200,
-                                         sigma=10)
+    psf_model = CircularGaussianSigmaPRF(flux=1,
+                                         sigma=fwhm/2.355)
     # print("Select bright targets to generate Effective PSF")
     print("Building effective PSF")
-    finder = DAOStarFinder(200,
-                           10,
-                           xycoords=star_positions,
-                           min_separation=30)
-    fit_shape = (15, 15)
+    finder = _make_daostarfinder(
+        fwhm,
+        threshold,
+        n_brightest=10,
+        xycoords=star_positions,
+        min_separation=20)
+
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             finder=finder,
-                            aperture_radius=4)
+                            aperture_radius=aperture_radius)
     phot = psfphot(frame)
     init_flux = np.array(phot['flux_init'])
     x = phot['x_fit']
@@ -333,9 +364,10 @@ def make_epsf(
     epsf_stars_tbl['y'] = y[mask]
     nddata = NDData(data=frame,
                     uncertainty=StdDevUncertainty(err))
-    epsf_stars = extract_stars(nddata, epsf_stars_tbl, size=25)
+    epsf_stars = extract_stars(nddata, epsf_stars_tbl,
+                               size=cutout_size)
 
-    epsf_builder = EPSFBuilder(oversampling=2,
+    epsf_builder = EPSFBuilder(oversampling=oversample,
                                smoothing_kernel='quadratic',
                                recentering_maxiters=10,
                                maxiters=10,
@@ -393,6 +425,10 @@ def psf_photometry_subrot(config, fname, positions,
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
 
+    fit_shape = ast.literal_eval(config['photometry']['FIT_SHAPE'])
+    radius = float(config['photometry']['RADIUS'])
+    bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
+
     try:
         varext = int(varext)
     except ValueError:
@@ -423,14 +459,18 @@ def psf_photometry_subrot(config, fname, positions,
 
     elif config['photometry']['MODEL'] == 'EPSF':
         print("With effective PSF")
+        fwhm = float(config['photometry']['FWHM'])
+        threshold = float(config['photometry']['THRESHOLD'])
         plot_fname = fname.with_name(f"{fname.stem}_epsf.pdf")
         plot_fname = Path(plot_dirs) / plot_fname.name
         psf_model = make_epsf(data, err=error,
+                              fwhm=fwhm,
+                              threshold=threshold,
+                              fit_shape=fit_shape,
+                              aperture_radius=radius,
                               plot_fname=plot_fname)
 
     # background
-    radius = float(config['photometry']['RADIUS'])
-    bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
 
     if radius >= bkgwindows[0]:
         raise ValueError("RADIUS must be smaller than inner_radius")
@@ -444,7 +484,7 @@ def psf_photometry_subrot(config, fname, positions,
                                           bkg_estimator=bkgstat)
 
     # PSF photometry
-    fit_shape = ast.literal_eval(config['photometry']['FIT_SHAPE'])
+
     psfphot = PSFPhotometry(psf_model, fit_shape,
                             local_bkg_estimator=local_bkg_estimator,
                             aperture_radius=radius,
