@@ -43,6 +43,28 @@ def get_radial_profile(image,
 def make_cutout(image,
                 center,
                 size=(20, 20)):
+    """
+    Create a cutout of an image centred on a specified position.
+
+    Parameters
+    ----------
+    image : ndarray
+        Two-dimensional image array.
+    center : tuple of float
+        Centre of the cutout given as ``(x_center, y_center)`` in pixel
+        coordinates.
+    size : int or tuple of int, optional
+        Size of the cutout in pixels. If an integer is supplied, a square
+        cutout is created. If a tuple is supplied, it should specify the
+        cutout size as ``(ny, nx)``. Default is ``(20, 20)``.
+
+    Returns
+    -------
+    astropy.nddata.Cutout2D
+        Cutout object containing the extracted image region together with
+        the coordinate transformation between the original image and the
+        cutout.
+    """
     cutout = Cutout2D(
         image,
         center,
