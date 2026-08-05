@@ -290,7 +290,6 @@ def make_epsf(
         cutout_size=25,
         fit_shape=(15, 15),
         oversample=4,
-        normalize=True,
         plot_fname="epsf_plot.pdf"
 ):
     """
@@ -331,9 +330,6 @@ def make_epsf(
         ``(ny, nx)``. Default is ``(15, 15)``.
     oversample : int, optional
         Oversampling factor of the output ePSF. Default is ``4``.
-    normalize : bool, optional
-        Whether to normalize the extracted stellar cutouts before building
-        the ePSF. Currently unused. Default is ``True``.
     plot_fname : str or pathlib.Path, optional
         Filename of the output diagnostic plot showing the constructed ePSF.
         Default is ``"epsf_plot.pdf"``.
