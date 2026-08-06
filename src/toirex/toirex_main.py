@@ -133,7 +133,7 @@ def combframe_flatcorr(config):
     logger = get_logger("main")
     print("Running Task 4")
     for datadir in all_datadirs:
-        logger.info(f"Running Task 3 for the directory {datadir}")
+        logger.info(f"Running Task 4 for the directory {datadir}")
         print("Working on ", datadir)
         frame_correction(config, datadir)
 
@@ -148,7 +148,7 @@ def frame_dithercombine(config):
     logger = get_logger("main")
     print("Running Task 5")
     for datadir in all_datadirs:
-        logger.info(f"Running Task 3 for the directory {datadir}")
+        logger.info(f"Running Task 5 for the directory {datadir}")
         if config['inits']['TODO'] == "S":
             subtract_dithers(config, datadir)
         elif config['inits']['TODO'] == "P":
@@ -167,7 +167,7 @@ def data_extraction(config):
     # data_dir = resources.files("toirex").joinpath("data")
     # print(data_dir / "TANSPEC")
     for datadir in all_datadirs:
-        logger.info(f"Running Task 3 for the directory {datadir}")
+        logger.info(f"Running Task 6 for the directory {datadir}")
         if config['inits']['TODO'] == "S":
             spectral_reduction(config, datadir)
         elif config['inits']['TODO'] == "P":
