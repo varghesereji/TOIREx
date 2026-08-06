@@ -263,7 +263,7 @@ def main():
     elif config['inits']['MODE'] == 'AUTO':
         print("The pipeline running in automatic mode")
         task_list = list(tasks_dict.keys())
-    logger.info("Entered tasks:{}".format(task_list))
+    logger.info("Entered task(s):{}".format(" ".join(task_list)))
     for onetask in task_list:
         print('\n')
         tasks_dict[int(onetask)]['function'](config)
@@ -271,6 +271,8 @@ def main():
         print('*'*50)
         with open(Path(opdir) / "StepsFinished", 'a') as stepsover:
             stepsover.write(str(onetask) + " ")
+        logger.info(f"Finished task {onetask}")
+    logger.info("Finished all given tasks")
 
 
 tasks_dict = {
