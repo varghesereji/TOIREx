@@ -31,6 +31,7 @@ def setup_logger_from_config(config: dict,
 
     logger = logging.getLogger(logger_name)
     logger.setLevel(level)
+    logger.propagate = False
 
     if not logger.handlers:  # avoid duplicate handlers
         formatter = logging.Formatter(
