@@ -387,6 +387,7 @@ def pairsubtraction(pair, group,
         Assumes existence of helper function `read_dither_txtfile` to load
         dither frame info, and `operate_process` to compute subtraction.
     """
+    logger = get_logger("dither")
     first_dithers = read_dither_txtfile(pair[0],
                                         group,
                                         opdir)
@@ -417,10 +418,12 @@ def pairsubtraction(pair, group,
             frame_1 = opdir / frame_1
             frame_2 = opdir / frame_2
             op_fname = opdir / filename
+            logger.info("Dither subtraction")
             operate_process(frame_1, frame_2,
                             op_fname, '-',
                             fluxext=fluxext,
                             varext=varext)
+            logger.info(f"{frame_1} - {frame_2} = {op_fname}")
 
 
 def subtract_dithers(config, datadir):
@@ -454,6 +457,7 @@ def subtract_dithers(config, datadir):
         Single-letter instructions copy frames; two-letter instructions
         perform subtractions. Interactive input required.
     """
+    logger = get_logger("dither")
     opdir = Path(config['outputs']['OP_DIR']) / datadir
     groups_dithers = get_dithers(opdir)
 
@@ -470,6 +474,7 @@ def subtract_dithers(config, datadir):
     print("\n")
     for groups, dithers in groups_dithers.items():
         print("Running for group", groups)
+        logger.info(f"Running for group {groups}")
         outfileprefix = get_filename(groups, opdir)
         dithers.sort()
         writeto = open(opdir / "ReadyToReduce_group{}.txt".format(groups), 'w')
@@ -492,12 +497,14 @@ def subtract_dithers(config, datadir):
                                    opdir,
                                    opfname,
                                    writeto)
+                logger.info("No dither frames")
                 continue
             print("Doing for Group {}".format(groups))
             subpairs = input("Pairs to process:")
             subpairs = subpairs.split()
-
+            logger.info(f"User entered {subpairs}")
             for instr in subpairs:
+                logger.info(f"Running for pair: {instr}")
                 if len(instr) == 1:
                     opfname = outfileprefix + "_" + instr
                     copy_nopair_frames(instr,
@@ -506,6 +513,7 @@ def subtract_dithers(config, datadir):
                                        opfname,
                                        writeto)
                 elif len(instr) == 2:
+                    logger.info(f"Pair subtraction: {instr} {groups}")
                     pairsubtraction(instr, groups, opdir, outfileprefix,
                                     writeto)
         writeto.close()
