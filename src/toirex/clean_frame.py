@@ -182,6 +182,9 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
             fluxext=fluxexts,
             varext=varexts,
             mask=mask)
+        logger.info(f"Combining: {objects}")
+        logger.info(f"Saved as: {op_path}")
+        logger.info(f"Mask: {mask}")
         # Creating masterflat
         flats_cals_list = flats_cals.strip().split(" ")
         comb_flat_fname = flats_cals_list[0]
@@ -190,6 +193,7 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
                 Path(op_path) / comb_filename
             )
             print("Using master flat:", smooth_flat_path)
+            logger.info(f"Using master flat: {smooth_flat_path}")
             smooth_flat = Path(smooth_flat_path).name
             target = Path(op_path) / smooth_flat
             link = Path(smooth_flat_path)
@@ -212,6 +216,7 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
                 instruments[dictkw]['masterflat'],
                 fluxext=fluxexts, varext=varexts
             )
+            logger.info(f"Created smooth flat {smooth_flat}")
         flats_cals_list[0] = smooth_flat
         updated_flats_cals = " ".join(flats_cals_list)
         writetotxt.write(comb_filename + " " + updated_flats_cals)
