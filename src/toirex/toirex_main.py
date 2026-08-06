@@ -288,7 +288,11 @@ def main():
     elif config['inits']['MODE'] == 'AUTO':
         print("The pipeline running in automatic mode")
         task_list = list(tasks_dict.keys())
-    logger.info("Entered task(s):{}".format(" ".join(task_list)))
+    logger.info(
+        "Entered task(s):{}".format(
+            " ".join(map(str, task_list))
+        )
+    )
     for onetask in task_list:
         print('\n')
         logger.info(f"Starting task {onetask}")
