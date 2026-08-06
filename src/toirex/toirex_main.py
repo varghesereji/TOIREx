@@ -82,6 +82,7 @@ def select_files(config):
             selected_group_fnames = groups_dict[int(group)]
             if len(selected_group_fnames['OBJECT']) > 0:
                 feed_to_txt_file(selected_group_fnames, config, datadir, group)
+        logger.info("Selection of frames DONE")
 
 
 def manual_inspect_obj(config):
@@ -99,6 +100,7 @@ def manual_inspect_obj(config):
         if config['inputs']['SKY'] == 'Y':
             manual_inspection_flats(config, datadir,
                                     framecat="SKY")
+        logger.info("Manual inspection of frames DONE")
 
 
 def manual_inspect_cal(config):
@@ -113,8 +115,10 @@ def manual_inspect_cal(config):
         logger.info(f"Running Task 3 for the directory {datadir}")
         print("Working on ", datadir)
         manual_inspection_flats(config, datadir)
+        logger.info("Manual inspection of flats DONE")
         if config['inits']['TODO'] == 'S':
             manual_inspection_cals(config, datadir)
+            logger.info("Manual inspection of lamps DONE")
 
 
 def combframe_flatcorr(config):
