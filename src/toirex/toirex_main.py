@@ -9,6 +9,7 @@ from .setups import create_dir
 from .setups import read_dirs
 from .setups import add_dict_keywords
 from .setups import setup_logger_from_config
+from .setups import log_separator
 
 from .obscatalog import create_catalog
 from .grouping_frames import grouping_items, grouping_with_re
@@ -274,6 +275,7 @@ def main():
             stepsover.write(str(onetask) + " ")
         logger.info(f"Finished task {onetask}")
     logger.info("Finished all given tasks")
+    log_separator()
 
 
 tasks_dict = {
