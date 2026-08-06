@@ -64,7 +64,7 @@ def select_files(config):
     for datadir in all_datadirs:
         # Grouping files
         print("Running for the directory {}".format(datadir))
-        logger.info(f"Running for the directory {datadir}")
+        logger.info(f"Running Task 1 for the directory {datadir}")
         groups_dict = grouping_items(config, datadir)
         print("Use a space if you have more than one group.")
         print("Press 'n' if you want to enter the filename regular expression")
@@ -90,8 +90,10 @@ def manual_inspect_obj(config):
     Visually inspect the object files.
     """
     opdir, all_datadirs = get_directories(config)
+    logger = get_logger("main")
     print("Running Task 2")
     for datadir in all_datadirs:
+        logger.info(f"Running Task 2 for the directory {datadir}")
         print("Working on ", datadir)
         manual_inspection_obj(config, datadir)
         if config['inputs']['SKY'] == 'Y':
@@ -105,8 +107,10 @@ def manual_inspect_cal(config):
     Visually inspect the flat/cal files.
     """
     opdir, all_datadirs = get_directories(config)
+    logger = get_logger("main")
     print("Running Task 3")
     for datadir in all_datadirs:
+        logger.info(f"Running Task 3 for the directory {datadir}")
         print("Working on ", datadir)
         manual_inspection_flats(config, datadir)
         if config['inits']['TODO'] == 'S':
@@ -122,8 +126,10 @@ def combframe_flatcorr(config):
     flat correction.
     """
     opdir, all_datadirs = get_directories(config)
+    logger = get_logger("main")
     print("Running Task 4")
     for datadir in all_datadirs:
+        logger.info(f"Running Task 3 for the directory {datadir}")
         print("Working on ", datadir)
         frame_correction(config, datadir)
 
@@ -135,8 +141,10 @@ def frame_dithercombine(config):
     the output files
     """
     opdir, all_datadirs = get_directories(config)
+    logger = get_logger("main")
     print("Running Task 5")
     for datadir in all_datadirs:
+        logger.info(f"Running Task 3 for the directory {datadir}")
         if config['inits']['TODO'] == "S":
             subtract_dithers(config, datadir)
         elif config['inits']['TODO'] == "P":
@@ -150,10 +158,12 @@ def data_extraction(config):
     Data extraction
     """
     opdir, all_datadirs = get_directories(config)
+    logger = get_logger("main")
     print("Running Task 6")
     # data_dir = resources.files("toirex").joinpath("data")
     # print(data_dir / "TANSPEC")
     for datadir in all_datadirs:
+        logger.info(f"Running Task 3 for the directory {datadir}")
         if config['inits']['TODO'] == "S":
             spectral_reduction(config, datadir)
         elif config['inits']['TODO'] == "P":
