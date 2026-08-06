@@ -401,7 +401,7 @@ def make_epsf(
             f"Only {len(epsf_stars)} bright star(s) were selected for ePSF "
             "construction. The resulting ePSF may be unreliable. "
             "Consider using a Gaussian PSF "
-            "model or selecting more bright, isolated stars.",
+            "model or selecting more bright, isolated stars."
             )
         warnings.warn(
             msg,
