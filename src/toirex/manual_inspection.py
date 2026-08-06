@@ -94,7 +94,7 @@ def manual_inspection_obj(config, dirname):
 
       where the shifts are rounded to the nearest integer pixel.
     """
-    logger = get_logger("manual_inspect")
+    logger = get_logger("inspect_obj")
     dictkw = config['inits']['DICTKW']
     txtfile_re = "Objects_flats_group*.txt"
     txt_path = Path(config['outputs']['OP_DIR']) / \
@@ -141,10 +141,11 @@ def manual_inspection_obj(config, dirname):
                 UserInput = "aa"
             if UserInput == 'r':
                 print("Removing", target)
-                # targets_name.remove(target)
+                logger.info(f"Removed: {target}")
                 continue
             elif UserInput == 'aa':
                 print("Accepting", target)
+                logger.info(f"Accepted: {target}")
                 line_to_txt = target
                 if config['dither']['DITHERING'] == 'Y':
                     if reference_frame is None:
