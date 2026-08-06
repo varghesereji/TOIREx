@@ -397,21 +397,26 @@ def make_epsf(
     epsf_stars = extract_stars(nddata, epsf_stars_tbl,
                                size=cutout_size)
     if len(epsf_stars) < 5:
-        warnings.warn(
+        msg = (
             f"Only {len(epsf_stars)} bright star(s) were selected for ePSF "
             "construction. The resulting ePSF may be unreliable. "
             "Consider using a Gaussian PSF "
             "model or selecting more bright, isolated stars.",
+            )
+        warnings.warn(
+            msg,
             UserWarning,
             stacklevel=2,
         )
-
+        logger.warning(msg)
+    logger.info("Building ePSF")
     epsf_builder = EPSFBuilder(oversampling=oversample,
                                smoothing_kernel='quadratic',
                                recentering_maxiters=10,
                                maxiters=10,
                                progress_bar=True)
     epsf, fitted_stars = epsf_builder(epsf_stars)
+    logger.info(f"ePSF plot saved as {plot_fname}")
     plot_epsf(epsf, fitted_stars, plot_fname=plot_fname)
     return epsf
 
