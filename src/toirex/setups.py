@@ -65,7 +65,7 @@ def get_logger(name=None) -> logging.Logger:
         raise RuntimeError(
             "Logger not set up. Call setup_logger_from_config first.")
     if name:
-        return logging.getLogger(f"{_logger.name}.{name}")
+        return _logger.getChild(name)
     return _logger
 
 
