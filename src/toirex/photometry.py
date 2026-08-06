@@ -201,7 +201,7 @@ def aperture_photometry_subrot(config, fname, positions):
     logger.info(f"Using {config['photometry']['APERTURE']}")
     logger.info(f"Annulus: {config['photometry']['ANNULUS']}")
     logger.info(f"Radius: {config['photometry']['RADIUS']}")
-    logger.info(f"Radius: {config['photometry']['BKGWINDOWS']}")
+    logger.info(f"Bkg Annulus: {config['photometry']['BKGWINDOWS']}")
 
     # Aperture
     if config['photometry']['APERTURE'] == 'CircularAperture':
@@ -251,7 +251,7 @@ def aperture_photometry_subrot(config, fname, positions):
         varext = int(varext)
     except ValueError:
         print("Using flux array as variance")
-        logger.info("No variance array. Using flux array as variance")
+        logger.warning("No variance array. Using flux array as variance")
         varext = flext
 
     data = fits.getdata(fname, ext=flext)
@@ -465,6 +465,8 @@ def psf_photometry_subrot(config, fname, positions,
     `photutils.background.MMMBackground` within the annulus defined by
     ``BKGWINDOWS``. The returned PSF fluxes are background-subtracted.
     """
+    logger = get_logger("photometry")
+
     print("Doing PSF Photometry")
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
@@ -472,11 +474,14 @@ def psf_photometry_subrot(config, fname, positions,
     fit_shape = ast.literal_eval(config['photometry']['FIT_SHAPE'])
     radius = float(config['photometry']['RADIUS'])
     bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
-
+    logger.info(f"Radius: {config['photometry']['RADIUS']}")
+    logger.info(f"Bkg Annulus: {config['photometry']['BKGWINDOWS']}")
+    logger.info(f"fit_shape: {fit_shape}")
     try:
         varext = int(varext)
     except ValueError:
         print("Using flux array as variance")
+        logger.warning("No variance array. Using flux array as variance")
         varext = flext
 
     # Reading data
@@ -484,6 +489,7 @@ def psf_photometry_subrot(config, fname, positions,
     var = fits.getdata(fname, ext=varext)
     error = np.sqrt(var)
 
+    logger.info(f"PSF model: {config['photometry']['MODEL']}")
     # Making PSF
     if config['photometry']['MODEL'] == 'CircularGaussianPSF':
         fwhm = float(config['photometry']['FWHM'])
@@ -518,11 +524,16 @@ def psf_photometry_subrot(config, fname, positions,
     # background
 
     if radius >= bkgwindows[0]:
-        raise ValueError("RADIUS must be smaller than inner_radius")
+        msg = "RADIUS must be smaller than inner_radius"
+        logger.error(msg)
+        raise ValueError(msg)
 
     if bkgwindows[0] >= bkgwindows[1]:
-        raise ValueError("BKGWINDOWS must be (inner_radius, outer_radius).")
+        msg = "BKGWINDOWS must be (inner_radius, outer_radius)."
+        logger.error(msg)
+        raise ValueError(msg)
 
+    logger.info("Using MMMBackground")
     bkgstat = MMMBackground()
     local_bkg_estimator = LocalBackground(bkgwindows[0],
                                           bkgwindows[1],
@@ -549,7 +560,7 @@ def psf_photometry_subrot(config, fname, positions,
         history='PSF photometry table added on file update.',
         flext=flext
     )
-
+    logger.info("PSF Photometry DONE")
     return opfname
 
 
