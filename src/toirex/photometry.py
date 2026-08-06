@@ -32,6 +32,8 @@ from photutils.aperture import aperture_photometry
 
 import inspect
 
+from .setups import get_logger
+
 from .utils import read_txt_file
 from .utils import table_to_centroids
 from .plottings import imageplot
@@ -111,7 +113,8 @@ def targetfind_auto(fname,
         Table containing the detected source positions with columns
         ``'x_0'`` and ``'y_0'`` which are the x and y coordinates.
     """
-
+    logger = get_logger("photometry")
+    logger.info(f"Auto Finding sources in {fname}")
     data = fits.getdata(fname, ext=0)
     _, median, _ = sigma_clipped_stats(data)
     daofind = _make_daostarfinder(
@@ -169,6 +172,8 @@ def targetfind_manual(fname,
         Table containing the final source positions after interactive
         editing. The returned table has columns ``'x_0'`` and ``'y_0'``.
     """
+    logger = get_logger("photometry")
+    logger.info(f"Manual finding sources in {str(fname)}")
     plot_name = fname.with_name(f"{fname.stem}_selectedsources.pdf")
     plot_name = Path(plot_dirs) / plot_name.name
     centroids = imageplot(fname, ext=0, title="Select sources",
@@ -188,8 +193,16 @@ def targetfind_manual(fname,
 
 
 def aperture_photometry_subrot(config, fname, positions):
+    logger = get_logger("photometry")
     positions = np.array([positions['x_0'],
                           positions['y_0']]).T
+
+    logger.info("Doing Aperture photometry")
+    logger.info(f"Using {config['photometry']['APERTURE']}")
+    logger.info(f"Annulus: {config['photometry']['ANNULUS']}")
+    logger.info(f"Radius: {config['photometry']['RADIUS']}")
+    logger.info(f"Bkg Annulus: {config['photometry']['BKGWINDOWS']}")
+
     # Aperture
     if config['photometry']['APERTURE'] == 'CircularAperture':
         radius = float(config['photometry']['RADIUS'])
@@ -206,6 +219,7 @@ def aperture_photometry_subrot(config, fname, positions):
             a, b = aper_qtys
         else:
             a, b, theta = aper_qtys
+            logger.info(f"Angle {theta}")
         apertures = EllipticalAperture(positions, a=a, b=b, theta=theta)
     # Annulus
     annulus = list(float(x)
@@ -237,6 +251,7 @@ def aperture_photometry_subrot(config, fname, positions):
         varext = int(varext)
     except ValueError:
         print("Using flux array as variance")
+        logger.warning("No variance array. Using flux array as variance")
         varext = flext
 
     data = fits.getdata(fname, ext=flext)
@@ -273,7 +288,7 @@ def aperture_photometry_subrot(config, fname, positions):
         history="Aperture photometry table added on file update.",
         flext=flext
         )
-
+    logger.info("Aperture Photometry DONE")
     return opfname
 
 
@@ -341,6 +356,8 @@ def make_epsf(
     photutils.psf.ImagePSF
         The constructed oversampled effective point spread function.
     """
+    logger = get_logger("photometry")
+    logger.info("Building ePSF")
     psf_model = CircularGaussianSigmaPRF(flux=1,
                                          sigma=fwhm/2.355)
     # print("Select bright targets to generate Effective PSF")
@@ -380,21 +397,26 @@ def make_epsf(
     epsf_stars = extract_stars(nddata, epsf_stars_tbl,
                                size=cutout_size)
     if len(epsf_stars) < 5:
-        warnings.warn(
+        msg = (
             f"Only {len(epsf_stars)} bright star(s) were selected for ePSF "
             "construction. The resulting ePSF may be unreliable. "
             "Consider using a Gaussian PSF "
-            "model or selecting more bright, isolated stars.",
+            "model or selecting more bright, isolated stars."
+            )
+        warnings.warn(
+            msg,
             UserWarning,
             stacklevel=2,
         )
-
+        logger.warning(msg)
+    logger.info("Building ePSF")
     epsf_builder = EPSFBuilder(oversampling=oversample,
                                smoothing_kernel='quadratic',
                                recentering_maxiters=10,
                                maxiters=10,
                                progress_bar=True)
     epsf, fitted_stars = epsf_builder(epsf_stars)
+    logger.info(f"ePSF plot saved as {plot_fname}")
     plot_epsf(epsf, fitted_stars, plot_fname=plot_fname)
     return epsf
 
@@ -443,6 +465,8 @@ def psf_photometry_subrot(config, fname, positions,
     `photutils.background.MMMBackground` within the annulus defined by
     ``BKGWINDOWS``. The returned PSF fluxes are background-subtracted.
     """
+    logger = get_logger("photometry")
+
     print("Doing PSF Photometry")
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
@@ -450,11 +474,14 @@ def psf_photometry_subrot(config, fname, positions,
     fit_shape = ast.literal_eval(config['photometry']['FIT_SHAPE'])
     radius = float(config['photometry']['RADIUS'])
     bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
-
+    logger.info(f"Radius: {config['photometry']['RADIUS']}")
+    logger.info(f"Bkg Annulus: {config['photometry']['BKGWINDOWS']}")
+    logger.info(f"fit_shape: {fit_shape}")
     try:
         varext = int(varext)
     except ValueError:
         print("Using flux array as variance")
+        logger.warning("No variance array. Using flux array as variance")
         varext = flext
 
     # Reading data
@@ -462,6 +489,7 @@ def psf_photometry_subrot(config, fname, positions,
     var = fits.getdata(fname, ext=varext)
     error = np.sqrt(var)
 
+    logger.info(f"PSF model: {config['photometry']['MODEL']}")
     # Making PSF
     if config['photometry']['MODEL'] == 'CircularGaussianPSF':
         fwhm = float(config['photometry']['FWHM'])
@@ -496,11 +524,16 @@ def psf_photometry_subrot(config, fname, positions,
     # background
 
     if radius >= bkgwindows[0]:
-        raise ValueError("RADIUS must be smaller than inner_radius")
+        msg = "RADIUS must be smaller than inner_radius"
+        logger.error(msg)
+        raise ValueError(msg)
 
     if bkgwindows[0] >= bkgwindows[1]:
-        raise ValueError("BKGWINDOWS must be (inner_radius, outer_radius).")
+        msg = "BKGWINDOWS must be (inner_radius, outer_radius)."
+        logger.error(msg)
+        raise ValueError(msg)
 
+    logger.info("Using MMMBackground")
     bkgstat = MMMBackground()
     local_bkg_estimator = LocalBackground(bkgwindows[0],
                                           bkgwindows[1],
@@ -527,7 +560,7 @@ def psf_photometry_subrot(config, fname, positions,
         history='PSF photometry table added on file update.',
         flext=flext
     )
-
+    logger.info("PSF Photometry DONE")
     return opfname
 
 
@@ -630,6 +663,8 @@ def get_centroids(filename, purpose='read', new_centroids=None):
 
 def photometry_extraction(config, dirname):
     # dictkw = config['inits']['DICTKW']
+    logger = get_logger("photometry")
+    logger.info("Doing photometry")
     opdir = Path(config['outputs']['OP_DIR']) / dirname
     reduce_txtfname = "Readytoextract_group*.txt"
     txtfiles_groups = opdir.glob(reduce_txtfname)
@@ -645,12 +680,14 @@ def photometry_extraction(config, dirname):
 
     for groupfile in txtfiles_groups:
         txtfile_full = read_txt_file(groupfile)
+        logger.info(f"Running for files in {groupfile}")
         for txtline in txtfile_full:
             frametoextract = txtline[0]
             frametoextract = opdir / frametoextract
             sources_txtfname = opdir / config['photometry']['SOURCELIST']
             editsource = config['photometry']['EDITSOURCE'] == 'YES'
             if config['photometry']['FINDSOURCE'] == 'AUTO':
+                logger.info("Finding source AUTO")
                 fwhm = float(config['photometry']['FWHM'])
                 threshold = float(config['photometry']['THRESHOLD'])
                 centroids = targetfind_auto(
@@ -663,6 +700,7 @@ def photometry_extraction(config, dirname):
                 )
 
                 if editsource:
+                    logger.info("Editing the sources found")
                     centroids = targetfind_manual(
                         frametoextract,
                         centroids_0=table_to_centroids(centroids),
@@ -671,7 +709,7 @@ def photometry_extraction(config, dirname):
                     )
 
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
-
+                logger.info("Finding source MANUAL")
                 centroids_0 = get_centroids(sources_txtfname, purpose='read')
                 centroids = targetfind_manual(
                     frametoextract,
@@ -684,6 +722,7 @@ def photometry_extraction(config, dirname):
                           new_centroids=centroids)
             # Doing photometry
             if config['photometry']['METHOD'] == 'PSF':
+                logger.info("Doing PSF Photometry")
                 withphot = psf_photometry_subrot(config, frametoextract,
                                                  positions=centroids,
                                                  plot_dirs=plot_dir)
@@ -691,4 +730,6 @@ def photometry_extraction(config, dirname):
                 withphot = aperture_photometry_subrot(config, frametoextract,
                                                       positions=centroids)
             print("Photometry data saved to {}".format(withphot))
+            logger.info(f"Output saved as {withphot}")
             save_to_wcs(withphot)
+            logger.info(f"WCS correction on {withphot}")

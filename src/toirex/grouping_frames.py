@@ -4,6 +4,8 @@ import numpy as np
 from pathlib import Path
 import re
 
+from .setups import get_logger
+
 from .obscatalog import read_catalog
 from .instrument import instruments
 from .utils import open_in_editor
@@ -306,6 +308,8 @@ def grouping_items(config, dirname, catalogue_dict=None,
     >>> sorted(groups.keys())
     [0, 1, 2]
     """
+    logger = get_logger("grouping")
+    logger.info("Automatic grouping of frames")
     if catalogue_dict is None:
         catalogue_dict = read_catalog(dirname, config)
     catalog_fnames = np.array(catalogue_dict['FNAME'])
@@ -427,7 +431,7 @@ def grouping_with_re(config, dirname):
     >>> print(grouped.keys())
     dict_keys(['FNAME', 'SLIT', 'FILTER', 'GRATING', ...])
     """
-
+    logger = get_logger("grouping_re")
     catalogue_dict = read_catalog(dirname, config)
     fnames_full = catalogue_dict['FNAME']
     fnums_full = catalogue_dict['FNUM']
@@ -439,10 +443,12 @@ def grouping_with_re(config, dirname):
     print('all the objects lines which has "M31" in it.')
     print('NB: Even you enter the regular expression, the objects', end=" ")
     print('will be grouped based on SLIT, GRATING, FILTER etc')
-    enter_object = input("Enter the regular expression for SCIECNE frames:")
+    enter_object = input("Enter the regular expression for SCIENCE frames:")
+    logger.info(f"User entered: {enter_object}")
     object_re, object_fnums = reading_re(enter_object)
     re_dict = {object_re: object_fnums}
     enter_flats = input("Enter the regular expression for FLAT frames:")
+    logger.info(f"User entered: {enter_flats}")
     flats_re, flat_fnums = reading_re(enter_flats)
 
     re_dict[flats_re] = flat_fnums
@@ -454,6 +460,7 @@ def grouping_with_re(config, dirname):
             enter_lamp = input(
                 "Enter the regular expression for {} frames:".format(lamp)
             )
+            logger.info(f"User entered: {enter_lamp}")
             lamp_re, lamp_fnums = reading_re(enter_lamp)
             re_dict[lamp_re] = lamp_fnums
     selected_objects_dict = defaultdict(list)

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
+from .setups import get_logger
+
 from .utils import open_in_editor
 from .instrument import instruments
 
@@ -58,7 +60,7 @@ def feed_to_txt_file(grouped_files, config, dirname, group):
       is provided by the instrument class (instrument.flat_kw,
     instrument.lamp_kw).
     """
-
+    logger = get_logger("selectingframes")
     dictkw = config['inits']['DICTKW']
     instrument = instruments[dictkw]
 
@@ -85,6 +87,7 @@ def feed_to_txt_file(grouped_files, config, dirname, group):
     for lset, txtfile in enumerate(txt_fnames):
         txtfile_path = Path(config['outputs']['OP_DIR']) / \
                             dirname / txtfile
+        logger.info(f"Writing {txtfile}")
         lampset = lsets[lset]
         txtfile = open(txtfile_path, 'w')
         for obj_fname in objects:

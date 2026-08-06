@@ -3,6 +3,8 @@ import re
 from pathlib import Path
 from astropy.io import ascii
 
+from .setups import get_logger
+
 from .instrument import instruments
 from .utils import write_asciitable
 
@@ -37,6 +39,7 @@ def create_catalog(dirname, config):
     dirname: Name of the directory.
     config: The main config file.
     '''
+    logger = get_logger("obscatalog")
     catalog_name = config['outputs']['CATALOGUE_NAME']
     op_path = Path(config['outputs']['OP_DIR']) / dirname
     file_path = op_path / catalog_name
@@ -45,6 +48,7 @@ def create_catalog(dirname, config):
     # Else, create a new one.
     print("Catalog name: {}".format(file_path))
     if file_path.exists():
+        logger.info("Catalog already exists. Task skipped.")
         print("Catalog for this directory already exists. Skipping...")
         return
 
@@ -87,6 +91,7 @@ def create_catalog(dirname, config):
                      file_path,
                      headers=catalog_headers_full
                      )
+    logger.info(f"Catalog written: {file_path}")
 
 
 def read_catalog(dirname, config=None, showcatname=True):

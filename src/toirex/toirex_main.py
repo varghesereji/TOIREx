@@ -9,6 +9,8 @@ from .setups import create_dir
 from .setups import read_dirs
 from .setups import add_dict_keywords
 from .setups import setup_logger_from_config
+from .setups import log_separator
+from .setups import get_logger
 
 from .obscatalog import create_catalog
 from .grouping_frames import grouping_items, grouping_with_re
@@ -57,24 +59,30 @@ def select_files(config):
     Main config.
     '''
     opdir, all_datadirs = get_directories(config)
+    logger = get_logger("main")
     print("Running Task 1")
     for datadir in all_datadirs:
         # Grouping files
         print("Running for the directory {}".format(datadir))
+        logger.info(f"Running Task 1 for the directory {datadir}")
         groups_dict = grouping_items(config, datadir)
         print("Use a space if you have more than one group.")
         print("Press 'n' if you want to enter the filename regular expression")
         selected_groups = input("Enter the group number you want to reduce:")
+        logger.info(f"User entered {selected_groups}")
         if selected_groups == 'n':
+            logger.info("Selecting files using regular expression")
             groups_dict = grouping_with_re(config, datadir)
             selected_groups = list(groups_dict.keys())
         else:
             selected_groups = selected_groups.strip().split(" ")
             print("You selected the group(s)", " ".join(selected_groups))
         for group in selected_groups:
+            logger.info(f"Running for group {group}")
             selected_group_fnames = groups_dict[int(group)]
             if len(selected_group_fnames['OBJECT']) > 0:
                 feed_to_txt_file(selected_group_fnames, config, datadir, group)
+        logger.info("Selection of frames DONE")
 
 
 def manual_inspect_obj(config):
@@ -83,13 +91,16 @@ def manual_inspect_obj(config):
     Visually inspect the object files.
     """
     opdir, all_datadirs = get_directories(config)
+    logger = get_logger("main")
     print("Running Task 2")
     for datadir in all_datadirs:
+        logger.info(f"Running Task 2 for the directory {datadir}")
         print("Working on ", datadir)
         manual_inspection_obj(config, datadir)
         if config['inputs']['SKY'] == 'Y':
             manual_inspection_flats(config, datadir,
                                     framecat="SKY")
+        logger.info("Manual inspection of frames DONE")
 
 
 def manual_inspect_cal(config):
@@ -98,12 +109,16 @@ def manual_inspect_cal(config):
     Visually inspect the flat/cal files.
     """
     opdir, all_datadirs = get_directories(config)
+    logger = get_logger("main")
     print("Running Task 3")
     for datadir in all_datadirs:
+        logger.info(f"Running Task 3 for the directory {datadir}")
         print("Working on ", datadir)
         manual_inspection_flats(config, datadir)
+        logger.info("Manual inspection of flats DONE")
         if config['inits']['TODO'] == 'S':
             manual_inspection_cals(config, datadir)
+            logger.info("Manual inspection of lamps DONE")
 
 
 def combframe_flatcorr(config):
@@ -115,10 +130,13 @@ def combframe_flatcorr(config):
     flat correction.
     """
     opdir, all_datadirs = get_directories(config)
+    logger = get_logger("main")
     print("Running Task 4")
     for datadir in all_datadirs:
+        logger.info(f"Running Task 4 for the directory {datadir}")
         print("Working on ", datadir)
         frame_correction(config, datadir)
+    logger.info("Frame Cleaning DONE")
 
 
 def frame_dithercombine(config):
@@ -128,13 +146,16 @@ def frame_dithercombine(config):
     the output files
     """
     opdir, all_datadirs = get_directories(config)
+    logger = get_logger("main")
     print("Running Task 5")
     for datadir in all_datadirs:
+        logger.info(f"Running Task 5 for the directory {datadir}")
         if config['inits']['TODO'] == "S":
             subtract_dithers(config, datadir)
         elif config['inits']['TODO'] == "P":
             # print("Function to combine dither frames")
             combine_dithers(config, datadir)
+    logger.info("Dither combination DONE")
 
 
 def data_extraction(config):
@@ -143,14 +164,17 @@ def data_extraction(config):
     Data extraction
     """
     opdir, all_datadirs = get_directories(config)
+    logger = get_logger("main")
     print("Running Task 6")
     # data_dir = resources.files("toirex").joinpath("data")
     # print(data_dir / "TANSPEC")
     for datadir in all_datadirs:
+        logger.info(f"Running Task 6 for the directory {datadir}")
         if config['inits']['TODO'] == "S":
             spectral_reduction(config, datadir)
         elif config['inits']['TODO'] == "P":
             photometry_extraction(config, datadir)
+    logger.info("Data Reduction DONE")
 
 
 def main():
@@ -162,7 +186,8 @@ def main():
     instrument = config['inits']['INSTRUMENT']
 
     logger = setup_logger_from_config(config)
-    logger.info("Pipline started")
+    logger = get_logger("main")
+    logger.info("Pipeline started")
 
     print_banner()
     print("\n You are reducting data observed with {}".format(instrument))
@@ -263,14 +288,23 @@ def main():
     elif config['inits']['MODE'] == 'AUTO':
         print("The pipeline running in automatic mode")
         task_list = list(tasks_dict.keys())
-    logger.info("Entered tasks:{}".format(task_list))
+    logger.info(
+        "Entered task(s):{}".format(
+            " ".join(map(str, task_list))
+        )
+    )
     for onetask in task_list:
         print('\n')
+        logger.info(f"Starting task {onetask}")
         tasks_dict[int(onetask)]['function'](config)
         print('\nTask {} over'.format(onetask))
         print('*'*50)
         with open(Path(opdir) / "StepsFinished", 'a') as stepsover:
             stepsover.write(str(onetask) + " ")
+        logger.info(f"Finished task {onetask}")
+        log_separator("-")
+    logger.info("Finished all given tasks")
+    log_separator()
 
 
 tasks_dict = {

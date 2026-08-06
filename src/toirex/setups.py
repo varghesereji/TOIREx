@@ -31,6 +31,7 @@ def setup_logger_from_config(config: dict,
 
     logger = logging.getLogger(logger_name)
     logger.setLevel(level)
+    logger.propagate = False
 
     if not logger.handlers:  # avoid duplicate handlers
         formatter = logging.Formatter(
@@ -64,8 +65,21 @@ def get_logger(name=None) -> logging.Logger:
         raise RuntimeError(
             "Logger not set up. Call setup_logger_from_config first.")
     if name:
-        return logging.getLogger(f"{_logger.name}.{name}")
+        return _logger.getChild(name)
     return _logger
+
+
+def log_separator(char="=", length=60):
+    logger = get_logger()
+
+    for handler in logger.handlers:
+        if isinstance(handler, logging.FileHandler):
+            handler.acquire()
+            try:
+                handler.stream.write(char * length + "\n")
+                handler.flush()
+            finally:
+                handler.release()
 
 
 '''

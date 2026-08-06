@@ -9,10 +9,11 @@ from ariastrotools import operate_process
 from ariastrotools import remove_cosmic_rays
 from ariastrotools import combine_process
 
+from .setups import get_logger
+
 from .utils import extract_number_from_fname
 from .utils import combine_frames
 from .utils import read_txt_file
-from .setups import get_logger
 from .instrument import instruments
 
 
@@ -181,6 +182,9 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
             fluxext=fluxexts,
             varext=varexts,
             mask=mask)
+        logger.info(f"Combining: {objects}")
+        logger.info(f"Saved as: {op_path}")
+        logger.info(f"Mask: {mask}")
         # Creating masterflat
         flats_cals_list = flats_cals.strip().split(" ")
         comb_flat_fname = flats_cals_list[0]
@@ -189,6 +193,7 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
                 Path(op_path) / comb_filename
             )
             print("Using master flat:", smooth_flat_path)
+            logger.info(f"Using master flat: {smooth_flat_path}")
             smooth_flat = Path(smooth_flat_path).name
             target = Path(op_path) / smooth_flat
             link = Path(smooth_flat_path)
@@ -211,6 +216,7 @@ def join_frames_create_masterflat(dithergroup_dict, op_path, write_txtfname,
                 instruments[dictkw]['masterflat'],
                 fluxext=fluxexts, varext=varexts
             )
+            logger.info(f"Created smooth flat {smooth_flat}")
         flats_cals_list[0] = smooth_flat
         updated_flats_cals = " ".join(flats_cals_list)
         writetotxt.write(comb_filename + " " + updated_flats_cals)
@@ -290,6 +296,7 @@ def frame_operation(dithergroup_txtfname,
     Exception
         If processing fails in `operate_process` or `remove_cosmic_rays`.
     """
+    logger = get_logger("clean_frame")
     dithergroups = read_txt_file(dithergroup_txtfname)
     # Going through each dither group
     fluxexts = list(config['inputs']['FLUXEXT'])
@@ -305,15 +312,19 @@ def frame_operation(dithergroup_txtfname,
             op_fname = sci_fname.stem + "_FC.fits"
             operation = "/"
             secondframe_fname = op_path / dgroup[1]
+            logger.info("Flat correction")
         elif required == "Sky":
             op_fname = sci_fname.stem + "_Skysubtr.fits"
             operation = "-"
             secondframe_fname = op_path / dgroup[-1]
+            logger.info("Sky subtraction")
         op_fname = op_path / op_fname
         print(sci_fname.name, operation,
               secondframe_fname.name, "=",
               op_fname.name)
-
+        logger.info(
+            f"{sci_fname} {operation} {secondframe_fname} = {op_fname}"
+        )
         operate_process(str(sci_fname), str(secondframe_fname),
                         op_fname, operation=operation,
                         fluxext=fluxexts,
@@ -323,6 +334,7 @@ def frame_operation(dithergroup_txtfname,
             if (config['inputs']['REMOVECR'] == 'Y'):
                 crop_fname = op_fname.stem+"_CR.fits"
                 crop_fname = op_path / crop_fname
+                logger.info(f"CR Removal. Saved as {crop_fname}")
                 remove_cosmic_rays(op_fname,
                                    crop_fname,
                                    fluxext=fluxexts,
@@ -347,6 +359,7 @@ def frame_operation(dithergroup_txtfname,
 
 
 def mediancomb_sky_subtr(frames_list, opdir, config, group):
+    logger = get_logger("clean_frame")
     frames_list = [opdir / i for i in frames_list]
     # print(frames_list)
     combkg_fname = opdir / "mediancomb_bkg{}.fits".format(group)
@@ -356,12 +369,14 @@ def mediancomb_sky_subtr(frames_list, opdir, config, group):
                     fluxext=list(config['inputs']['FLUXEXT']),
                     varext=list(config['inputs']['VAREXT'])
                     )
+    logger.info(f"Median combined sky frame: {combkg_fname}")
     for dframe in frames_list:
         operate_process(str(dframe), str(combkg_fname),
                         dframe, operation='-',
                         fluxext=list(config['inputs']['FLUXEXT']),
                         varext=list(config['inputs']['VAREXT'])
                         )
+        logger.info(f"Skysubtracted: {str(dframe)}")
 
 
 def frame_correction(config, dirname):
@@ -405,9 +420,9 @@ def frame_correction(config, dirname):
     - For each dither group, the function calls
       :func:`group_files_for_flatsandcals` to form associations between
       dither frames and their flat/calibration frames.
-    - The logger name used is ``"flat_corr"``.
+    - The logger name used is ``"clean_frame"``.
     """
-    logger = get_logger("flat_corr")
+    logger = get_logger("clean_frame")
     txtfile_re = "ObjectsToCombine_group*.txt"
     op_path = Path(config['outputs']['OP_DIR']) / \
         dirname
@@ -475,6 +490,7 @@ def frame_correction(config, dirname):
                                           config)
             if config['inputs']['SKY'] == 'Y':
                 # Sky subtraction
+                logger.info("Doing Sky Subtraction")
                 skysubtr_txtfname = "Skysubtr_frame_group{}_d{}.txt".format(
                     number[0], n)
                 skysubtr_txtfname = op_path / skysubtr_txtfname
@@ -505,15 +521,18 @@ def frame_correction(config, dirname):
                     comb_dither_fname = "+".join(fname_stems) + ".fits"
                     # adding path to each frame name
                     fnames_path = [op_path / i for i in txtfile_line]
+                    logger.info(f"Combining frames {txtfile_line}")
                     combine_process(fnames_path,
                                     op_path / comb_dither_fname,
                                     method=config['inputs']['FRAMECOMBINE'],
                                     fluxext=list(config['inputs']['FLUXEXT']),
                                     varext=list(config['inputs']['VAREXT'])
                                     )
+                    logger.info(f"Saved as {op_path / comb_dither_fname}")
                     full_lines = comb_dither_fname
                 else:
                     full_lines = txtfile_line[0]
+                    logger.info(f"One frame only: {full_lines}")
                 allditherpos_list.append(full_lines.strip())
                 full_lines = 'd{} : '.format(n) + full_lines
             else:
@@ -525,6 +544,7 @@ def frame_correction(config, dirname):
         if config['inits']['TODO'] == 'P':
             # For photometry, the text editor was open before the for loop.
             # That is closed here.
+            logger.info("Doing sky subtraction with median combined frames")
             mediancomb_sky_subtr(allditherpos_list, op_path, config, number[0])
             writetotxt_cleanframe.close()
 
