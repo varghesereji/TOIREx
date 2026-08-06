@@ -266,6 +266,7 @@ def main():
     logger.info("Entered task(s):{}".format(" ".join(task_list)))
     for onetask in task_list:
         print('\n')
+        logger.info(f"Starting task {onetask}")
         tasks_dict[int(onetask)]['function'](config)
         print('\nTask {} over'.format(onetask))
         print('*'*50)
