@@ -694,7 +694,7 @@ def combine_dithers(config, datadir):
       ``Readytoextract_group<group>.txt`` for use by the spectral extraction
       stage.
     """
-
+    logger = get_logger("dither")
     opdir = Path(config['outputs']['OP_DIR']) / datadir
     groups_dithers = get_dithers(opdir, mode="P")
     print("\n")
@@ -705,6 +705,7 @@ def combine_dithers(config, datadir):
 
     for groups in groups_dithers:
         print("Running for group", groups)
+        logger.info(f"Running for group {groups}")
         outfileprefix = get_filename(groups, opdir)
         dither_dict = text_to_dict(
             txtfname=opdir / f"Clean_frame_group{groups}_dFull.txt"
@@ -714,7 +715,7 @@ def combine_dithers(config, datadir):
             print("Single image. Nothing to combine")
             ditherkey = list(dither_dict.keys())[0]
             outfilename = opdir / dither_dict[ditherkey]
-
+            logger.info(f"One frame. saved as {outfilename}")
         else:
             outfilename = opdir / f"{outfileprefix}.fits"
             print("outfilename", outfilename)
@@ -729,10 +730,13 @@ def combine_dithers(config, datadir):
             else:
                 shift_dict = get_dither_shift_auto(dither_dict, opdir,
                                                    config)
-
+            logger.info(f"Aligning {dither_dict}, {shift_dict}")
             aligned_fnames = align_frames(
                 dither_dict, shift_dict, opdir,
                 config)
+            logger.info(f"Aligned combined as {aligned_fnames}")
+            logger.info("Combining aligned frames")
+            logger.info(f"Saving as {outfilename}")
             combine_process(aligned_fnames,
                             outfilename,
                             method='mean',
@@ -741,6 +745,7 @@ def combine_dithers(config, datadir):
                             )
 
         print("Running WCS correction")
+        logger.info("WCS correction")
         tar_wcs_fname_suggestion = f"{outfilename.stem}_wcstargets.txt"
         print("If you have a list of WCS targets created in a previous trial,")
         print("enter that filename here. Otherwise, press Enter.")
@@ -751,6 +756,7 @@ def combine_dithers(config, datadir):
         if tar_wcs_fname.exists():
             print(tar_wcs_fname, "already exists.")
             print("Using that for WCS correction")
+            logger.info(f"Using {tar_wcs_fname} for WCS correction.")
         else:
             centroids_list = imageplot(outfilename,
                                        title=outfilename,
@@ -760,11 +766,13 @@ def combine_dithers(config, datadir):
             write_asciitable(centroids_list,
                              tar_wcs_fname,
                              headers=headers)
+            logger.info(f"{tar_wcs_fname} saved for WCS correction")
         print("Opening the text editor with the target centroid")
         print("and their wcs information.")
         print("You can make changes in this if necessary.")
         print(tar_wcs_fname)
         open_in_editor(tar_wcs_fname, config)
+        logger.info("Running WCS correction")
         wcs_correction(outfilename, tar_wcs_fname, config)
 
         finalframes_fname = opdir / f"Readytoextract_group{groups}.txt"
