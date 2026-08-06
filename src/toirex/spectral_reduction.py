@@ -788,6 +788,7 @@ def spectral_reduction(
     combine_spectra
         Combine multiple reduced spectra into a single spectrum.
     """
+    logger = get_logger("spectral")
     dictkw = config['inits']['DICTKW']
     opdir = Path(config['outputs']['OP_DIR']) / dirname
     reduce_txtfname = "ReadyToReduce_group*.txt"
@@ -795,17 +796,23 @@ def spectral_reduction(
     instrument = instruments[dictkw]
     for groupfile in txtfiles_groups:
         txtfile_full = read_txt_file(groupfile)
+        logger.info(f"Running for {groupfile}")
         reduced_spectra = []
         for txtline in txtfile_full:
+            logger.info(f"Spectral extraction {txtline}")
             optxt_line = extract_obj_lamp(txtline, config, opdir,
                                           instrument['select_trace'])
+            logger.info(f"Wavelength calibration on {optxt_line}")
             wlsolved_fname = wavelength_calibration(optxt_line, config,
                                                     opdir, instrument)
+            logger.info(f"Wavelength calibrated {wlsolved_fname}")
             plot_sky(wlsolved_fname, opdir, instrument['get_stdsky'])
             reduced_spectra.append(wlsolved_fname)
             if config['spectral_extraction']['SUBTRACT_BKG'] == 'Y':
+                logger.info(f"Backround subtraction on: {wlsolved_fname}")
                 subtract_background(opdir / wlsolved_fname, config)
             if config['spectral_extraction']['FLUX_CALIB'] == 'Y':
+                logger.info(f"Flux calibration on: {wlsolved_fname}")
                 flux_calibration(opdir / wlsolved_fname, config, instrument)
         if (
                 len(reduced_spectra) > 1
@@ -814,9 +821,11 @@ def spectral_reduction(
             opfilename = Path(reduced_spectra[0]).stem + '.avg.fits'
             opfilename = opdir / opfilename
             reduced_spectra = [opdir / i for i in reduced_spectra]
+            logger.info(f"Combining spectra {reduced_spectra}")
             combine_spectra(reduced_spectra,
                             opfilename=opfilename,
                             method=config['inputs']['FRAMECOMBINE'],
                             fluxext=[0, 1, 2],
                             varext=[3, 4, 5],
                             wlext=[6, 6, 6])
+            logger.info(f"Output: {opfilename}")
