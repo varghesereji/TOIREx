@@ -69,6 +69,15 @@ def get_logger(name=None) -> logging.Logger:
     return _logger
 
 
+def log_separator(char="=", length=60):
+    logger = get_logger()
+
+    for handler in logger.handlers:
+        if isinstance(handler, logging.FileHandler):
+            handler.stream.write(char * length + "\n")
+            handler.flush()
+
+
 '''
 ===== Initial setups =====
 '''
