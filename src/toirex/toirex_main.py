@@ -295,6 +295,7 @@ def main():
         with open(Path(opdir) / "StepsFinished", 'a') as stepsover:
             stepsover.write(str(onetask) + " ")
         logger.info(f"Finished task {onetask}")
+        log_separator("-")
     logger.info("Finished all given tasks")
     log_separator()
 
