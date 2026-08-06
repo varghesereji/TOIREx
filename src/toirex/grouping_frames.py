@@ -308,6 +308,8 @@ def grouping_items(config, dirname, catalogue_dict=None,
     >>> sorted(groups.keys())
     [0, 1, 2]
     """
+    logger = get_logger("grouping")
+    logger.info("Automatic grouping of frames")
     if catalogue_dict is None:
         catalogue_dict = read_catalog(dirname, config)
     catalog_fnames = np.array(catalogue_dict['FNAME'])
