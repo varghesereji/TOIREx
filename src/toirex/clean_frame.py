@@ -420,7 +420,7 @@ def frame_correction(config, dirname):
     - For each dither group, the function calls
       :func:`group_files_for_flatsandcals` to form associations between
       dither frames and their flat/calibration frames.
-    - The logger name used is ``"flat_corr"``.
+    - The logger name used is ``"clean_frame"``.
     """
     logger = get_logger("clean_frame")
     txtfile_re = "ObjectsToCombine_group*.txt"
