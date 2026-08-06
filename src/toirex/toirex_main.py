@@ -10,6 +10,7 @@ from .setups import read_dirs
 from .setups import add_dict_keywords
 from .setups import setup_logger_from_config
 from .setups import log_separator
+from .setups import get_logger
 
 from .obscatalog import create_catalog
 from .grouping_frames import grouping_items, grouping_with_re
@@ -58,21 +59,26 @@ def select_files(config):
     Main config.
     '''
     opdir, all_datadirs = get_directories(config)
+    logger = get_logger("main")
     print("Running Task 1")
     for datadir in all_datadirs:
         # Grouping files
         print("Running for the directory {}".format(datadir))
+        logger.info(f"Running for the directory {datadir}")
         groups_dict = grouping_items(config, datadir)
         print("Use a space if you have more than one group.")
         print("Press 'n' if you want to enter the filename regular expression")
         selected_groups = input("Enter the group number you want to reduce:")
+        logger.info(f"User entered {selected_groups}")
         if selected_groups == 'n':
+            logger.info("Selecting files using regular expression")
             groups_dict = grouping_with_re(config, datadir)
             selected_groups = list(groups_dict.keys())
         else:
             selected_groups = selected_groups.strip().split(" ")
             print("You selected the group(s)", " ".join(selected_groups))
         for group in selected_groups:
+            logger.info(f"Running for group {group}")
             selected_group_fnames = groups_dict[int(group)]
             if len(selected_group_fnames['OBJECT']) > 0:
                 feed_to_txt_file(selected_group_fnames, config, datadir, group)
@@ -163,6 +169,7 @@ def main():
     instrument = config['inits']['INSTRUMENT']
 
     logger = setup_logger_from_config(config)
+    logger = get_logger("main")
     logger.info("Pipline started")
 
     print_banner()
