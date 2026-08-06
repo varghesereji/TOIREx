@@ -632,6 +632,8 @@ def get_centroids(filename, purpose='read', new_centroids=None):
 
 def photometry_extraction(config, dirname):
     # dictkw = config['inits']['DICTKW']
+    logger = get_logger("photometry")
+    logger.info("Doing photometry")
     opdir = Path(config['outputs']['OP_DIR']) / dirname
     reduce_txtfname = "Readytoextract_group*.txt"
     txtfiles_groups = opdir.glob(reduce_txtfname)
@@ -647,12 +649,14 @@ def photometry_extraction(config, dirname):
 
     for groupfile in txtfiles_groups:
         txtfile_full = read_txt_file(groupfile)
+        logger.info(f"Running for files in {groupfile}")
         for txtline in txtfile_full:
             frametoextract = txtline[0]
             frametoextract = opdir / frametoextract
             sources_txtfname = opdir / config['photometry']['SOURCELIST']
             editsource = config['photometry']['EDITSOURCE'] == 'YES'
             if config['photometry']['FINDSOURCE'] == 'AUTO':
+                logger.info("Finding source AUTO")
                 fwhm = float(config['photometry']['FWHM'])
                 threshold = float(config['photometry']['THRESHOLD'])
                 centroids = targetfind_auto(
@@ -665,6 +669,7 @@ def photometry_extraction(config, dirname):
                 )
 
                 if editsource:
+                    logger.info("Editing the sources found")
                     centroids = targetfind_manual(
                         frametoextract,
                         centroids_0=table_to_centroids(centroids),
@@ -673,7 +678,7 @@ def photometry_extraction(config, dirname):
                     )
 
             elif config['photometry']['FINDSOURCE'] == 'MANUAL':
-
+                logger.info("Finding source MANUAL")
                 centroids_0 = get_centroids(sources_txtfname, purpose='read')
                 centroids = targetfind_manual(
                     frametoextract,
@@ -686,11 +691,15 @@ def photometry_extraction(config, dirname):
                           new_centroids=centroids)
             # Doing photometry
             if config['photometry']['METHOD'] == 'PSF':
+                logger.info("Doing PSF Photometry")
                 withphot = psf_photometry_subrot(config, frametoextract,
                                                  positions=centroids,
                                                  plot_dirs=plot_dir)
             elif config['photometry']['METHOD'] == 'Aperture':
+                logger.info("Doing Aperture photometry")
                 withphot = aperture_photometry_subrot(config, frametoextract,
                                                       positions=centroids)
             print("Photometry data saved to {}".format(withphot))
+            logger.info(f"Output saved as {withphot}")
             save_to_wcs(withphot)
+            logger.info(f"WCS correction on {withphot}")
