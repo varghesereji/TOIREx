@@ -187,7 +187,7 @@ def main():
 
     logger = setup_logger_from_config(config)
     logger = get_logger("main")
-    logger.info("Pipline started")
+    logger.info("Pipeline started")
 
     print_banner()
     print("\n You are reducting data observed with {}".format(instrument))
