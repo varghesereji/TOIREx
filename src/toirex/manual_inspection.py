@@ -138,6 +138,8 @@ def manual_inspection_obj(config, dirname):
             if UserInput == "acceptall":
                 acceptall = True
                 print("Accepting every single remaining images of this night")
+                logger.info("User entered 'acceptall'.")
+                logger.info("Accepting everything")
                 UserInput = "aa"
             if UserInput == 'r':
                 print("Removing", target)
@@ -148,6 +150,7 @@ def manual_inspection_obj(config, dirname):
                 logger.info(f"Accepted: {target}")
                 line_to_txt = target
                 if config['dither']['DITHERING'] == 'Y':
+                    logger.info("Finding dithers")
                     if reference_frame is None:
                         reference_frame = target_fname
                         line_to_txt += " 0 0"
@@ -178,6 +181,7 @@ def manual_inspection_obj(config, dirname):
                         if distance > 3 * shift_err:
                             reference_frame = target_fname
                             Obj2Comb_txt.write("\n")
+                    logger.info("Dithering DONE")
                 Obj2Comb_txt.write(line_to_txt+"\n")
             if add_space:
                 Obj2Comb_txt.write("\n")
@@ -186,10 +190,11 @@ def manual_inspection_obj(config, dirname):
         print("Add space between the lines which you do not want to group")
         print("Remove the space if you want to combine")
         open_in_editor(Obj2Comb_fname, config)
+        logger.info(f"Targets to combine saved in {Obj2Comb_fname}")
 
 
 def manual_inspection_flats(config, dirname, framecat="FLATS"):
-    logger = get_logger("manual_inspect")
+    logger = get_logger("inspect_flat")
     dictkw = config['inits']['DICTKW']
 
     if framecat == "FLATS":
@@ -288,16 +293,19 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
                 elif UserInput == 'r':
                     # flats_list.remove(target)
                     print("Rejecting", target)
-
+                    logger.info(f"Rejected: {target}")
                 elif UserInput == 'acceptall':
                     acceptall = True
                     print(
                         "Accepting every single remaining images of this night"
                     )
+                    logger.info("User entered 'acceptall'.")
+                    logger.info("Accepting everything")
                     selected_flats.append(target)
                 else:
                     # 'a' or any other input
                     print("Accepting", target)
+                    logger.info(f"Accepting {target}")
                     selected_flats.append(target)
 
             flats_list = selected_flats
@@ -323,6 +331,8 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
                 else:
                     # if isinstance(config['inputs']['BADPIXMASK'], str):
                     mask = config['inputs']['BADPIXMASK']
+                logger.info("Combining flat frames")
+                logger.info(f"Bad Pixel Mask: {mask}")
                 comb_framename = combine_frames(
                     flats_list, op_path,
                     instruments[dictkw]['sort_filename_key'],
@@ -331,12 +341,15 @@ def manual_inspection_flats(config, dirname, framecat="FLATS"):
                     fluxext=fluxexts,
                     varext=varexts,
                     mask=mask)
+                logger.info(f"Combined file name: {comb_framename}")
                 object_frame_list = (
                     f"{object_name} {comb_framename}\n"
                     )
             else:
                 print("No flats available in the night")
                 print("Using master flat instead")
+                logger.info("No flats available in the night")
+                logger.info("Using MasterFlat")
                 object_frame_list = (
                     f"{object_name} MasterFlat\n"
                     )
@@ -395,7 +408,7 @@ def manual_inspection_cals(config, dirname):
     acceptance of the remaining frames is selected.
     """
 
-    logger = get_logger("manual_inspect")
+    logger = get_logger("inspect_cal")
     dictkw = config['inits']['DICTKW']
     txtfile_re = "Objects_lamps_group*.txt"
     op_path = Path(config['outputs']['OP_DIR']) / \
@@ -451,13 +464,16 @@ def manual_inspection_cals(config, dirname):
                         ) or 'acceptall'
                     if UserInput == 'ra':
                         print("Completely Removing", target)
+                        logger.info(f"Removed: {target}")
                         filenames.remove(target)
                         always_reject_list.append(target)
                     elif UserInput == 'aa':
                         print("Always Accepting", target)
+                        logger.info(f"Accepting {target}")
                         always_accept_list.append(target)
                     elif UserInput == 'r':
                         filenames.remove(target)
+                        logger.info(f"Removed: {target}")
                     elif UserInput == 'acceptall':
                         acceptall = True
                         print(
@@ -470,6 +486,7 @@ def manual_inspection_cals(config, dirname):
                 logger.info("Flux extensions: {}".format(fluxexts))
                 logger.info("Variance extensions: {}".format(varexts))
 
+                logger.info("Combining lamp frames")
                 comb_filename = combine_frames(
                     filenames, op_path,
                     instruments[dictkw]['sort_filename_key'],
@@ -477,6 +494,7 @@ def manual_inspection_cals(config, dirname):
                     op_prefix="Comb_lamp_"+lamp.lower() + "_",
                     fluxext=fluxexts,
                     varext=varexts)
+                logger.info(f"Combined file name: {comb_filename}")
 
                 txtfile_line.append(comb_filename)
             object_cal_list = " ".join(txtfile_line) + "\n"
