@@ -6,6 +6,7 @@ from collections import defaultdict
 
 
 from .setups import get_logger
+
 from .utils import extract_number_from_fname
 from .obscatalog import read_catalog
 from .utils import open_in_editor

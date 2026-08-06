@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
+from .setups import get_logger
+
 from .utils import open_in_editor
 from .instrument import instruments
 

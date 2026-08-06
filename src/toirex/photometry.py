@@ -32,6 +32,8 @@ from photutils.aperture import aperture_photometry
 
 import inspect
 
+from .setups import get_logger
+
 from .utils import read_txt_file
 from .utils import table_to_centroids
 from .plottings import imageplot

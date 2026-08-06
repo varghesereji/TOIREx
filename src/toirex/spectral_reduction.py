@@ -24,6 +24,8 @@ from WavelengthCalibrationTool import recalibrate
 
 from astropy.io import fits
 
+from .setups import get_logger
+
 from .instrument import instruments
 from .utils import get_pkgpath
 from .utils import read_txt_file

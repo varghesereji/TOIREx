@@ -9,10 +9,11 @@ from ariastrotools import operate_process
 from ariastrotools import remove_cosmic_rays
 from ariastrotools import combine_process
 
+from .setups import get_logger
+
 from .utils import extract_number_from_fname
 from .utils import combine_frames
 from .utils import read_txt_file
-from .setups import get_logger
 from .instrument import instruments
 
 

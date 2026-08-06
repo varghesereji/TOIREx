@@ -3,6 +3,8 @@ import re
 from pathlib import Path
 from astropy.io import ascii
 
+from .setups import get_logger
+
 from .instrument import instruments
 from .utils import write_asciitable
 

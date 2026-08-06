@@ -45,6 +45,7 @@ from ariastrotools import combine_process
 from ariastrotools import shifting_frame
 from ariastrotools import masking_frame
 
+from .setups import get_logger
 
 from .utils import read_fits_data
 from .utils import text_to_dict
