@@ -356,6 +356,8 @@ def make_epsf(
     photutils.psf.ImagePSF
         The constructed oversampled effective point spread function.
     """
+    logger = get_logger("photometry")
+    logger.info("Building ePSF")
     psf_model = CircularGaussianSigmaPRF(flux=1,
                                          sigma=fwhm/2.355)
     # print("Select bright targets to generate Effective PSF")
