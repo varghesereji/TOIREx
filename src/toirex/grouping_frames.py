@@ -443,7 +443,7 @@ def grouping_with_re(config, dirname):
     print('all the objects lines which has "M31" in it.')
     print('NB: Even you enter the regular expression, the objects', end=" ")
     print('will be grouped based on SLIT, GRATING, FILTER etc')
-    enter_object = input("Enter the regular expression for SCIECNE frames:")
+    enter_object = input("Enter the regular expression for SCIENCE frames:")
     logger.info(f"User entered: {enter_object}")
     object_re, object_fnums = reading_re(enter_object)
     re_dict = {object_re: object_fnums}
