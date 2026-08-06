@@ -136,6 +136,7 @@ def combframe_flatcorr(config):
         logger.info(f"Running Task 4 for the directory {datadir}")
         print("Working on ", datadir)
         frame_correction(config, datadir)
+    logger.info("Frame Cleaning DONE")
 
 
 def frame_dithercombine(config):
@@ -154,6 +155,7 @@ def frame_dithercombine(config):
         elif config['inits']['TODO'] == "P":
             # print("Function to combine dither frames")
             combine_dithers(config, datadir)
+    logger.info("Dither combination DONE")
 
 
 def data_extraction(config):
@@ -172,6 +174,7 @@ def data_extraction(config):
             spectral_reduction(config, datadir)
         elif config['inits']['TODO'] == "P":
             photometry_extraction(config, datadir)
+    logger.info("Data Reduction DONE")
 
 
 def main():
