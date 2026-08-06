@@ -113,7 +113,8 @@ def targetfind_auto(fname,
         Table containing the detected source positions with columns
         ``'x_0'`` and ``'y_0'`` which are the x and y coordinates.
     """
-
+    logger = get_logger("photometry")
+    logger.info(f"Auto Finding sources in {fname}")
     data = fits.getdata(fname, ext=0)
     _, median, _ = sigma_clipped_stats(data)
     daofind = _make_daostarfinder(
@@ -171,6 +172,8 @@ def targetfind_manual(fname,
         Table containing the final source positions after interactive
         editing. The returned table has columns ``'x_0'`` and ``'y_0'``.
     """
+    logger = get_logger("photometry")
+    logger.info(f"Manual finding sources in {str(fname)}")
     plot_name = fname.with_name(f"{fname.stem}_selectedsources.pdf")
     plot_name = Path(plot_dirs) / plot_name.name
     centroids = imageplot(fname, ext=0, title="Select sources",
@@ -190,8 +193,16 @@ def targetfind_manual(fname,
 
 
 def aperture_photometry_subrot(config, fname, positions):
+    logger = get_logger("photometry")
     positions = np.array([positions['x_0'],
                           positions['y_0']]).T
+
+    logger.info("Doing Aperture photometry")
+    logger.info(f"Using {config['photometry']['APERTURE']}")
+    logger.info(f"Annulus: {config['photometry']['ANNULUS']}")
+    logger.info(f"Radius: {config['photometry']['RADIUS']}")
+    logger.info(f"Radius: {config['photometry']['BKGWINDOWS']}")
+
     # Aperture
     if config['photometry']['APERTURE'] == 'CircularAperture':
         radius = float(config['photometry']['RADIUS'])
@@ -208,6 +219,7 @@ def aperture_photometry_subrot(config, fname, positions):
             a, b = aper_qtys
         else:
             a, b, theta = aper_qtys
+            logger.info(f"Angle {theta}")
         apertures = EllipticalAperture(positions, a=a, b=b, theta=theta)
     # Annulus
     annulus = list(float(x)
@@ -239,6 +251,7 @@ def aperture_photometry_subrot(config, fname, positions):
         varext = int(varext)
     except ValueError:
         print("Using flux array as variance")
+        logger.info("No variance array. Using flux array as variance")
         varext = flext
 
     data = fits.getdata(fname, ext=flext)
@@ -275,7 +288,7 @@ def aperture_photometry_subrot(config, fname, positions):
         history="Aperture photometry table added on file update.",
         flext=flext
         )
-
+    logger.info("Aperture Photometry DONE")
     return opfname
 
 
@@ -696,7 +709,6 @@ def photometry_extraction(config, dirname):
                                                  positions=centroids,
                                                  plot_dirs=plot_dir)
             elif config['photometry']['METHOD'] == 'Aperture':
-                logger.info("Doing Aperture photometry")
                 withphot = aperture_photometry_subrot(config, frametoextract,
                                                       positions=centroids)
             print("Photometry data saved to {}".format(withphot))
