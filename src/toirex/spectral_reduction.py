@@ -226,6 +226,8 @@ def subtract_background(
     --------
     astropy.io.fits.open : Open a FITS file for reading or updating.
     """
+    logger = get_logger("spectral")
+    logger.info(f"Background subtraction on: {str(fname)}")
     hdul = fits.open(fname, mode='update')
     flux = hdul[0].data
     bkg1 = hdul[1].data
@@ -237,6 +239,8 @@ def subtract_background(
     bkg_window = ast.literal_eval(
         config['spectral_extraction']['BKGWINDOWS']
         )
+    logger.info(f"Aperture size: {aperture_window}")
+    logger.info(f"Background size: {bkg_window}")
     aperture_width = float(aperture_window[1]) - float(aperture_window[0])
     bkg_width1 = float(bkg_window[0][1]) - float(bkg_window[0][0])
     bkg_width2 = float(bkg_window[1][1]) - float(bkg_window[1][0])
@@ -347,17 +351,22 @@ def wavelength_calibration(
     instrument['get_template']
         Return the reference wavelength template for an aperture.
     """
+    logger = get_logger("spectral")
     op_fname = opdir / txtline[0]
     arclamp1 = opdir / txtline[1]
+    logger.info(f"Wavelength calibration on {op_fname}")
     calculate_pixel_offset = instrument['pixel_offset']
     if calculate_pixel_offset is None:
         offset = 0
     else:
         offset = calculate_pixel_offset(arclamp1)
+    logger.info(f"Pixel offset calculated: {offset}")
     if len(txtline) > 1:
         comb_lampname = Path(op_fname).stem + "_combarc.fits"
         comb_lampname = opdir / comb_lampname
         lamps_list = [opdir / i for i in txtline[1:]]
+        logger.info(f"Combining lamps {lamps_list}")
+        logger.info(f"Saved as {comb_lampname}")
         combine_process(lamps_list,
                         comb_lampname,
                         method='mean',
@@ -368,6 +377,7 @@ def wavelength_calibration(
     hdu_arcdata = fits.getdata(comb_lampname, ext=0)
     wlsoln = None
     for index, lampflux in enumerate(hdu_arcdata):
+        logger.info(f"Wavelength calibration on Aperture {index}")
         lamp = hdu_arcdata[index]
         template = instrument['get_template'](comb_lampname, index)
         soln, shift = recalibrate.ReCalibrateDispersionSolution(
@@ -406,6 +416,7 @@ def wavelength_calibration(
     soln_fname = op_fname.stem + ".wlc.fits"
     soln_fname = opdir / soln_fname
     op_hdul.writeto(soln_fname)
+    logger.info(f"WL calibrated file Saved as {str(soln_fname)}")
     return soln_fname.name
 
 # ---------------------------
@@ -459,13 +470,16 @@ def flux_calibration(
         Perform arithmetic operations between FITS files while propagating
         variances.
     """
+    logger = get_logger("spectral")
     response_name = instrument['inst_response'](fname)
     print(
         "Doing flux calibration with response curves: {}".format(
             response_name)
     )
+    logger.info("Flux calibration")
     opname = fname.stem + ".flc.fits"
     opname = Path(fname.parent) / opname
+    logger.info(f"{str(fname)} / {response_name} = {str(opname)}")
     operate_process(str(fname), str(response_name),
                     opfilename=opname,
                     operation='/',
@@ -605,6 +619,7 @@ def extraction(
     specextractor.main
         Perform spectral extraction using the SpectrumExtractor package.
     """
+    logger = get_logger("spectral")
     if isinstance(fname, str):
         fname = Path(fname)
     opdir = Path(fname.parent)
@@ -612,11 +627,14 @@ def extraction(
         op_fname = fname.stem + ".ms.fits"
         op_fname = opdir / op_fname
     print("Extracting spectrum from", fname)
+    logger.info(f"Extracting spectra from {fname}")
     outputobjspec, avg_xd_shift, pixdomain = specextractor.main(
         [str(fname),
          str(extraction_config),
          str(op_fname)]
     )
+    logger.info(f"output file name: {str(op_fname)}")
+    logger.info(f"Config used: {str(extraction_config)}")
     return outputobjspec, avg_xd_shift, pixdomain
 
 
@@ -680,6 +698,7 @@ def extract_obj_lamp(
     extraction
         Extract a one-dimensional spectrum from a two-dimensional image.
     """
+    logger = get_logger("spectral")
     data_fname = opdir / txtline[0]
 
     extraction_config = config_for_extraction(data_fname,
@@ -698,7 +717,7 @@ def extract_obj_lamp(
             x.item() if isinstance(x, np.generic) else x for x in pixdomain
         ),
     )
-
+    logger.info(f"Refit aperture: {refit_aperture_in_xd}")
     # Extracting lamps
     # We want to extract the lamp spectra from the same place where
     # science spectra was extracted.
@@ -709,6 +728,7 @@ def extract_obj_lamp(
                                         trace_selection,
                                         for_lamp=lamp_entries
                                         )
+    logger.info(f"Config for lamp: {lamp_config}")
     lamp_fnames = txtline[1:]
 
     for n, lamps in enumerate(lamp_fnames):
@@ -802,17 +822,13 @@ def spectral_reduction(
             logger.info(f"Spectral extraction {txtline}")
             optxt_line = extract_obj_lamp(txtline, config, opdir,
                                           instrument['select_trace'])
-            logger.info(f"Wavelength calibration on {optxt_line}")
             wlsolved_fname = wavelength_calibration(optxt_line, config,
                                                     opdir, instrument)
-            logger.info(f"Wavelength calibrated {wlsolved_fname}")
             plot_sky(wlsolved_fname, opdir, instrument['get_stdsky'])
             reduced_spectra.append(wlsolved_fname)
             if config['spectral_extraction']['SUBTRACT_BKG'] == 'Y':
-                logger.info(f"Backround subtraction on: {wlsolved_fname}")
                 subtract_background(opdir / wlsolved_fname, config)
             if config['spectral_extraction']['FLUX_CALIB'] == 'Y':
-                logger.info(f"Flux calibration on: {wlsolved_fname}")
                 flux_calibration(opdir / wlsolved_fname, config, instrument)
         if (
                 len(reduced_spectra) > 1
