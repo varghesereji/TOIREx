@@ -164,6 +164,7 @@ def manual_inspection_obj(config, dirname):
                             # Assume a filename or Path was provided in the
                             # config
                             badpixelmask = mask_cfg
+                        logger.info(f"{reference_frame} vs {target_fname}")
                         img_shift = find_shift(
                             reference_frame, target_fname,
                             config,
@@ -181,7 +182,7 @@ def manual_inspection_obj(config, dirname):
                         if distance > 3 * shift_err:
                             reference_frame = target_fname
                             Obj2Comb_txt.write("\n")
-                    logger.info("Dithering DONE")
+                        logger.info(f"Shift found {shift}")
                 Obj2Comb_txt.write(line_to_txt+"\n")
             if add_space:
                 Obj2Comb_txt.write("\n")
