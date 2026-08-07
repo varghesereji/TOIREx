@@ -779,11 +779,15 @@ def combine_dithers(config, datadir):
                              tar_wcs_fname,
                              headers=headers)
             logger.info(f"{tar_wcs_fname} saved for WCS correction")
-        print("Opening the text editor with the target centroid")
-        print("and their wcs information.")
-        print("You can make changes in this if necessary.")
-        print(tar_wcs_fname)
-        open_in_editor(tar_wcs_fname, config)
+        if config['wcs']['DISPLAY_FILE'] == 'T':
+            logger.info("User like to see the text editor")
+            logger.info("It was set in the config file")
+            print("Opening the text editor with the target centroid")
+            print("and their wcs information.")
+            print("You can make changes in this if necessary.")
+            print(tar_wcs_fname)
+            open_in_editor(tar_wcs_fname, config)
+
         logger.info("Running WCS correction")
         wcs_correction(outfilename, tar_wcs_fname, config)
 
