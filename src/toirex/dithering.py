@@ -747,12 +747,20 @@ def combine_dithers(config, datadir):
         print("Running WCS correction")
         logger.info("WCS correction")
         config_wcs_fname = config['wcs']['WCS_POSITIONS']
-        tar_wcs_fname_suggestion = f"{outfilename.stem}_wcstargets.txt"
-        print("If you have a list of WCS targets created in a previous trial,")
-        print("enter that filename here. Otherwise, press Enter.")
-        tar_wcs_fname = input(
-            "Enter the WCS list filename here:"
+        if len(config_wcs_fname) == 0:
+            tar_wcs_fname_suggestion = f"{outfilename.stem}_wcstargets.txt"
+            print(
+                "If you have a list of WCS targets created",
+                "in a previous trial,"
+            )
+            print("enter that filename here. Otherwise, press Enter.")
+            tar_wcs_fname = input(
+                "Enter the WCS list filename here:"
             ) or tar_wcs_fname_suggestion
+            logger.info(f"User entered {tar_wcs_fname}")
+        else:
+            logger.info("Taking WCS initial condition from config")
+            tar_wcs_fname = config_wcs_fname
         tar_wcs_fname = opdir / tar_wcs_fname
         if tar_wcs_fname.exists():
             print(tar_wcs_fname, "already exists.")
