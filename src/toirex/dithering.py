@@ -771,7 +771,10 @@ def combine_dithers(config, datadir):
                                        title=outfilename,
                                        line_profile='aperture',
                                        get_target=True)
-            headers = ['Y', 'X', 'Target', 'RA', 'Dec', 'pmRA', 'pmDec']
+            headers = ['y_init', 'x_init',
+                       'Target',
+                       'RA', 'Dec',
+                       'pmRA', 'pmDec']
             write_asciitable(centroids_list,
                              tar_wcs_fname,
                              headers=headers)
