@@ -746,8 +746,10 @@ def combine_dithers(config, datadir):
 
         print("Running WCS correction")
         logger.info("WCS correction")
-        config_wcs_fname = config['wcs']['WCS_POSITIONS']
-        if len(config_wcs_fname) == 0:
+        config_wcs_fname = config['wcs'].get(
+            'WCS_POSITIONS',
+            fallback='').strip()
+        if not config_wcs_fname:
             tar_wcs_fname_suggestion = f"{outfilename.stem}_wcstargets.txt"
             print(
                 "If you have a list of WCS targets created",
