@@ -81,8 +81,8 @@ def select_source(data, error=None, mask=None):
 
 def wcs_correction(frame_name, cat_name, config):
     catalog = read_catalog(cat_name)
-    xy = (catalog['X'],
-          catalog['Y'])
+    xy = (catalog['x_init'],
+          catalog['y_init'])
     ra_hms = list(catalog['RA'])
     dec_dms = list(catalog['Dec'])
     pmra = list(catalog['pmRA'])

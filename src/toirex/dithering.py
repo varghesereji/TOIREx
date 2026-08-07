@@ -746,12 +746,23 @@ def combine_dithers(config, datadir):
 
         print("Running WCS correction")
         logger.info("WCS correction")
-        tar_wcs_fname_suggestion = f"{outfilename.stem}_wcstargets.txt"
-        print("If you have a list of WCS targets created in a previous trial,")
-        print("enter that filename here. Otherwise, press Enter.")
-        tar_wcs_fname = input(
-            "Enter the WCS list filename here:"
+        config_wcs_fname = config['wcs'].get(
+            'WCS_POSITIONS',
+            fallback='').strip()
+        if not config_wcs_fname:
+            tar_wcs_fname_suggestion = f"{outfilename.stem}_wcstargets.txt"
+            print(
+                "If you have a list of WCS targets created",
+                "in a previous trial,"
+            )
+            print("enter that filename here. Otherwise, press Enter.")
+            tar_wcs_fname = input(
+                "Enter the WCS list filename here:"
             ) or tar_wcs_fname_suggestion
+            logger.info(f"User entered {tar_wcs_fname}")
+        else:
+            logger.info("Taking WCS initial condition from config")
+            tar_wcs_fname = config_wcs_fname
         tar_wcs_fname = opdir / tar_wcs_fname
         if tar_wcs_fname.exists():
             print(tar_wcs_fname, "already exists.")
@@ -762,16 +773,23 @@ def combine_dithers(config, datadir):
                                        title=outfilename,
                                        line_profile='aperture',
                                        get_target=True)
-            headers = ['Y', 'X', 'Target', 'RA', 'Dec', 'pmRA', 'pmDec']
+            headers = ['y_init', 'x_init',
+                       'Target',
+                       'RA', 'Dec',
+                       'pmRA', 'pmDec']
             write_asciitable(centroids_list,
                              tar_wcs_fname,
                              headers=headers)
             logger.info(f"{tar_wcs_fname} saved for WCS correction")
-        print("Opening the text editor with the target centroid")
-        print("and their wcs information.")
-        print("You can make changes in this if necessary.")
-        print(tar_wcs_fname)
-        open_in_editor(tar_wcs_fname, config)
+        if config['wcs']['DISPLAY_FILE'] == 'T':
+            logger.info("User like to see the text editor")
+            logger.info("It was set in the config file")
+            print("Opening the text editor with the target centroid")
+            print("and their wcs information.")
+            print("You can make changes in this if necessary.")
+            print(tar_wcs_fname)
+            open_in_editor(tar_wcs_fname, config)
+
         logger.info("Running WCS correction")
         wcs_correction(outfilename, tar_wcs_fname, config)
 
