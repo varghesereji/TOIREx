@@ -358,7 +358,8 @@ def frame_operation(dithergroup_txtfname,
     return txtfile_line
 
 
-def mediancomb_sky_subtr(frames_list, opdir, config, group):
+def mediancomb_sky_subtr(frames_list, opdir, config, group,
+                         txtfile):
     logger = get_logger("clean_frame")
     frames_list = [opdir / i for i in frames_list]
     # print(frames_list)
@@ -370,8 +371,14 @@ def mediancomb_sky_subtr(frames_list, opdir, config, group):
                     varext=list(config['inputs']['VAREXT'])
                     )
     logger.info(f"Median combined sky frame: {combkg_fname}")
-    for dframe in frames_list:
+
+    # Clearing the text file
+    txtfile.seek(0)
+    txtfile.truncate()
+    for dpos, dframe in enumerate(frames_list):
         op_name = dframe.with_suffix(".skysub.fits")
+        txt_line = f'd{dpos} : ' + str(op_name.name) + '\n'
+        txtfile.write(txt_line)
         operate_process(str(dframe), str(combkg_fname),
                         op_name, operation='-',
                         fluxext=list(config['inputs']['FLUXEXT']),
@@ -546,7 +553,8 @@ def frame_correction(config, dirname):
             # For photometry, the text editor was open before the for loop.
             # That is closed here.
             logger.info("Doing sky subtraction with median combined frames")
-            mediancomb_sky_subtr(allditherpos_list, op_path, config, number[0])
+            mediancomb_sky_subtr(allditherpos_list, op_path, config, number[0],
+                                 writetotxt_cleanframe)
             writetotxt_cleanframe.close()
 
 # End
