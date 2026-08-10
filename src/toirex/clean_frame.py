@@ -371,12 +371,13 @@ def mediancomb_sky_subtr(frames_list, opdir, config, group):
                     )
     logger.info(f"Median combined sky frame: {combkg_fname}")
     for dframe in frames_list:
+        op_name = dframe.with_suffix(".skysub.fits")
         operate_process(str(dframe), str(combkg_fname),
-                        dframe, operation='-',
+                        op_name, operation='-',
                         fluxext=list(config['inputs']['FLUXEXT']),
                         varext=list(config['inputs']['VAREXT'])
                         )
-        logger.info(f"Skysubtracted: {str(dframe)}")
+        logger.info(f"Skysubtracted: {str(op_name)}")
 
 
 def frame_correction(config, dirname):
