@@ -367,6 +367,7 @@ def mediancomb_sky_subtr(frames_list, opdir, config, group,
     combine_process(frames_list,
                     combkg_fname,
                     method='median',
+                    scale='p50',
                     fluxext=list(config['inputs']['FLUXEXT']),
                     varext=list(config['inputs']['VAREXT'])
                     )
