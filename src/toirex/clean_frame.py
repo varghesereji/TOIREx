@@ -418,12 +418,25 @@ def mediancomb_sky_subtr(frames_list, opdir, config, group,
     frames_list = [opdir / i for i in frames_list]
     # print(frames_list)
     combkg_fname = opdir / "mediancomb_bkg{}.fits".format(group)
+    dictkw = config['inits']['DICTKW']
+    if config['inputs']['BADPIXMASK'] == 'N':
+        mask = None
+    elif config['inputs']['BADPIXMASK'] == 'Y':
+        mask = instruments[dictkw]['badpixelmask']
+        if mask is not None:
+            mask = mask()
+        else:
+            if isinstance(config['inputs']['BADPIXMASK'], str):
+                mask = config['inputs']['BADPIXMASK']
+
     combine_process(frames_list,
                     combkg_fname,
                     method='median',
                     scale='p50',
                     fluxext=list(config['inputs']['FLUXEXT']),
-                    varext=list(config['inputs']['VAREXT'])
+                    varext=list(config['inputs']['VAREXT']),
+                    mask=mask,
+                    mask_method='nan'
                     )
     logger.info(f"Median combined sky frame: {combkg_fname}")
 
