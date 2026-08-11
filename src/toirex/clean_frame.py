@@ -382,8 +382,14 @@ def mediancomb_sky_subtr(frames_list, opdir, config, group,
         Configuration containing the input FITS extensions used for flux
         and variance data. The following keys are required:
 
+        - ``config['inits']['DICTKW']``
         - ``config['inputs']['FLUXEXT']``
         - ``config['inputs']['VAREXT']``
+        - ``config['inputs']['BADPIXMASK']``
+
+       If ``BADPIXMASK`` is ``'Y'``, the instrument-specific bad-pixel mask
+       is used during sky-frame combination. Masked pixels are replaced
+       with ``NaN``.
 
     group : str or int
         Identifier used to construct the output filename of the
@@ -413,6 +419,10 @@ def mediancomb_sky_subtr(frames_list, opdir, config, group,
     The sky combination uses ``method='median'`` and ``scale='p50'``.
     The ``p50`` scaling uses the 50th percentile (median) of each frame
     to normalize the frames before combination.
+
+    When a bad-pixel mask is enabled, masked pixels are replaced with
+    ``NaN`` during the sky combination. This prevents bad pixels from
+    contributing to the median sky estimate.
     """
     logger = get_logger("clean_frame")
     frames_list = [opdir / i for i in frames_list]
