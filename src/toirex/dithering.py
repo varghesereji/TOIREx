@@ -675,12 +675,16 @@ def align_frames(dither_dict, shift_dict, opdir, config):
         opfname = opdir / opfname
         alighed_fnames.append(opfname)
         shifting_pos = shift_dict[dither]
+
         logger.info(f"Shifting {fname} to {shifting_pos}")
+
         shifting_frame(opdir / fname,
                        opfname,
                        shifttoapply=shifting_pos,
                        fluxext=list(config['inputs']['FLUXEXT']),
                        varext=list(config['inputs']['VAREXT']))
+        logger.info(f"saved as {opfname.name}")
+
     return alighed_fnames
 
 
