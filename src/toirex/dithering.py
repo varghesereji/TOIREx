@@ -299,6 +299,7 @@ def show_ditherpos(dither_dict, shift_dict,
             new_shift_dict[line_items[0]] = pos
     return new_dither_dict, new_shift_dict
 
+
 # ----------------------------- #
 # Subtract dithers in spectra   #
 # ----------------------------- #
@@ -760,8 +761,12 @@ def combine_dithers(config, datadir):
 
             dither_txtfname = opdir / f"ditherpos_group{groups}.txt"
 
-            show_ditherpos(dither_dict, shift_dict, dither_txtfname,
-                           config)
+            dtiher_dict, shift_dict = show_ditherpos(
+                dither_dict,
+                shift_dict,
+                dither_txtfname,
+                config
+            )
 
             aligned_fnames = align_frames(
                 dither_dict, shift_dict, opdir,
