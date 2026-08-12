@@ -274,16 +274,20 @@ def get_dithers(opdir, mode="S"):
 
 
 def show_ditherpos(dither_dict, shift_dict,
-                   txtfilename):
+                   txtfilename, config):
     print(dither_dict)
     print(shift_dict)
     dither_txt = open(txtfilename, "w")
     for dpos, dfile in dither_dict.items():
         # print(dpos, dfile, shift_dict[dpos])
         dither_shifts = shift_dict[dpos]
-        line = f"{dpos} {dfile} {dither_shifts[0]} {dither_shifts[1]}\n"
+        line = f"{dpos} {dfile}"
+        line += f" {int(dither_shifts[0])} {int(dither_shifts[1])}\n"
         dither_txt.write(line)
     dither_txt.close()
+
+    open_in_editor(txtfilename, config)
+
 
 # ----------------------------- #
 # Subtract dithers in spectra   #
@@ -746,7 +750,8 @@ def combine_dithers(config, datadir):
 
             dither_txtfname = opdir / f"ditherpos_group{groups}.txt"
 
-            show_ditherpos(dither_dict, shift_dict, dither_txtfname)
+            show_ditherpos(dither_dict, shift_dict, dither_txtfname,
+                           config)
 
             aligned_fnames = align_frames(
                 dither_dict, shift_dict, opdir,
