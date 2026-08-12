@@ -322,7 +322,8 @@ def show_ditherpos(dither_dict, shift_dict,
         dither_txt.write(line)
     dither_txt.close()
 
-    open_in_editor(txtfilename, config)
+    if config['dither']['SHOW_DITHERPOS'] == 'Y':
+        open_in_editor(txtfilename, config)
 
     new_dither_dict = {}
     new_shift_dict = {}
@@ -804,13 +805,12 @@ def combine_dithers(config, datadir):
 
             dither_txtfname = opdir / f"ditherpos_group{groups}.txt"
 
-            if config['dither']['SHOW_DITHERPOS'] == 'Y':
-                dtiher_dict, shift_dict = show_ditherpos(
-                    dither_dict,
-                    shift_dict,
-                    dither_txtfname,
-                    config
-                )
+            dtiher_dict, shift_dict = show_ditherpos(
+                dither_dict,
+                shift_dict,
+                dither_txtfname,
+                config
+            )
 
             aligned_fnames = align_frames(
                 dither_dict, shift_dict, opdir,
