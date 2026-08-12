@@ -273,6 +273,11 @@ def get_dithers(opdir, mode="S"):
         return dithers_and_groups(groups_dithers)
 
 
+def show_ditherpos(dither_dict, shift_dict):
+    print(dither_dict)
+    print(shift_dict)
+
+
 # ----------------------------- #
 # Subtract dithers in spectra   #
 # ----------------------------- #
@@ -731,6 +736,9 @@ def combine_dithers(config, datadir):
                 shift_dict = get_dither_shift_auto(dither_dict, opdir,
                                                    config)
             logger.info(f"Aligning {dither_dict}, {shift_dict}")
+
+            show_ditherpos(dither_dict, shift_dict)
+
             aligned_fnames = align_frames(
                 dither_dict, shift_dict, opdir,
                 config)
