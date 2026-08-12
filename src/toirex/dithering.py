@@ -281,8 +281,8 @@ def show_ditherpos(dither_dict, shift_dict,
     for dpos, dfile in dither_dict.items():
         # print(dpos, dfile, shift_dict[dpos])
         dither_shifts = shift_dict[dpos]
-        line = f"{dpos} {dfile} {dither_shifts[0]} {dither_shifts[1]}"
-        print(line)
+        line = f"{dpos} {dfile} {dither_shifts[0]} {dither_shifts[1]}\n"
+        dither_txt.write(line)
     dither_txt.close()
 
 # ----------------------------- #
@@ -744,7 +744,9 @@ def combine_dithers(config, datadir):
                                                    config)
             logger.info(f"Aligning {dither_dict}, {shift_dict}")
 
-            show_ditherpos(dither_dict, shift_dict, "test_ditherpos.txt")
+            dither_txtfname = opdir / f"ditherpos_group{groups}.txt"
+
+            show_ditherpos(dither_dict, shift_dict, dither_txtfname)
 
             aligned_fnames = align_frames(
                 dither_dict, shift_dict, opdir,
