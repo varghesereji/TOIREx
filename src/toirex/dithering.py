@@ -275,6 +275,44 @@ def get_dithers(opdir, mode="S"):
 
 def show_ditherpos(dither_dict, shift_dict,
                    txtfilename, config):
+    """
+    Display and manually edit dither positions and their corresponding shifts.
+
+    The dither positions, filenames, and initial shifts are written to a text
+    file. The file is then opened in an editor using ``open_in_editor()`` so
+    that the user can inspect or modify the shifts manually. After editing,
+    the file is read back and the dither positions and shifts are reconstructed
+    into dictionaries.
+
+    Parameters
+    ----------
+    dither_dict : dict
+        Dictionary mapping dither position identifiers to the corresponding
+        frame filenames.
+
+    shift_dict : dict
+        Dictionary mapping dither position identifiers to their corresponding
+        ``(x, y)`` shifts.
+
+    txtfilename : str or pathlib.Path
+        Path to the temporary text file used to display and edit the dither
+        positions and shifts.
+
+    config : dict or object
+        Configuration passed to ``open_in_editor()`` to determine how the
+        text file is opened.
+
+    Returns
+    -------
+    new_dither_dict : dict
+        Dictionary mapping dither position identifiers to frame filenames,
+        reconstructed from the edited text file.
+
+    new_shift_dict : dict
+        Dictionary mapping dither position identifiers to manually specified
+        ``(x, y)`` integer shifts.
+    """
+
     dither_txt = open(txtfilename, "w")
     for dpos, dfile in dither_dict.items():
         # print(dpos, dfile, shift_dict[dpos])
