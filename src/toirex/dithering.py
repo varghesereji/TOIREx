@@ -292,7 +292,7 @@ def show_ditherpos(dither_dict, shift_dict,
 
     shift_dict : dict
         Dictionary mapping dither position identifiers to their corresponding
-        ``(x, y)`` shifts.
+        ``[y_shift, x_shift]`` shifts.
 
     txtfilename : str or pathlib.Path
         Path to the temporary text file used to display and edit the dither
