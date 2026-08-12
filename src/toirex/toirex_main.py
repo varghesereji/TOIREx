@@ -280,31 +280,41 @@ def main():
     print('-'*50)
     # Calling tasks.
     print('\n')
-    if config['inits']['MODE'] == 'MANUAL':
-        print("Enter the serial numbers", end="")
-        print("(Space separated if more than one task in succession).")
-        task = input("Enter the tasks you want to run:")
-        task_list = task.strip().split(' ')
-    elif config['inits']['MODE'] == 'AUTO':
-        print("The pipeline running in automatic mode")
-        task_list = list(tasks_dict.keys())
-    logger.info(
-        "Entered task(s):{}".format(
-            " ".join(map(str, task_list))
+
+    try:
+        if config['inits']['MODE'] == 'MANUAL':
+            print("Enter the serial numbers", end="")
+            print("(Space separated if more than one task in succession).")
+            task = input("Enter the tasks you want to run:")
+            task_list = task.strip().split(' ')
+        elif config['inits']['MODE'] == 'AUTO':
+            print("The pipeline running in automatic mode")
+            task_list = list(tasks_dict.keys())
+        logger.info(
+            "Entered task(s):{}".format(
+                " ".join(map(str, task_list))
+            )
         )
-    )
-    for onetask in task_list:
-        print('\n')
-        logger.info(f"Starting task {onetask}")
-        tasks_dict[int(onetask)]['function'](config)
-        print('\nTask {} over'.format(onetask))
-        print('*'*50)
-        with open(Path(opdir) / "StepsFinished", 'a') as stepsover:
-            stepsover.write(str(onetask) + " ")
-        logger.info(f"Finished task {onetask}")
-        log_separator("-")
-    logger.info("Finished all given tasks")
-    log_separator()
+        for onetask in task_list:
+            print('\n')
+            logger.info(f"Starting task {onetask}")
+            tasks_dict[int(onetask)]['function'](config)
+            print('\nTask {} over'.format(onetask))
+            print('*'*50)
+            with open(Path(opdir) / "StepsFinished", 'a') as stepsover:
+                stepsover.write(str(onetask) + " ")
+            logger.info(f"Finished task {onetask}")
+            log_separator("-")
+
+    except KeyboardInterrupt:
+        logger.error("Pipeline interrupted by user (Ctrl+C).")
+        logger.info("Process stopped.")
+        print("\nPipeline interrupted by user by pressing Ctrl+C")
+        print("Stopping the reduction abruptly...")
+
+    else:
+        logger.info("Finished all given tasks")
+        log_separator()
 
 
 tasks_dict = {
