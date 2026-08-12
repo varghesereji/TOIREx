@@ -804,12 +804,13 @@ def combine_dithers(config, datadir):
 
             dither_txtfname = opdir / f"ditherpos_group{groups}.txt"
 
-            dtiher_dict, shift_dict = show_ditherpos(
-                dither_dict,
-                shift_dict,
-                dither_txtfname,
-                config
-            )
+            if config['dither']['SHOW_DITHERPOS'] == 'Y':
+                dtiher_dict, shift_dict = show_ditherpos(
+                    dither_dict,
+                    shift_dict,
+                    dither_txtfname,
+                    config
+                )
 
             aligned_fnames = align_frames(
                 dither_dict, shift_dict, opdir,
