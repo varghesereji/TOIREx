@@ -307,7 +307,7 @@ def main():
             log_separator("-")
 
     except KeyboardInterrupt:
-        logger.info("Pipeline interrupted by user (Ctrl+C).")
+        logger.error("Pipeline interrupted by user (Ctrl+C).")
         logger.info("Process stopped.")
         print("\nPipeline interrupted by user by pressing Ctrl+C")
         print("Stopping the reduction abruptly...")
