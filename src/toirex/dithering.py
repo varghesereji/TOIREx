@@ -275,8 +275,6 @@ def get_dithers(opdir, mode="S"):
 
 def show_ditherpos(dither_dict, shift_dict,
                    txtfilename, config):
-    print(dither_dict)
-    print(shift_dict)
     dither_txt = open(txtfilename, "w")
     for dpos, dfile in dither_dict.items():
         # print(dpos, dfile, shift_dict[dpos])
@@ -288,6 +286,18 @@ def show_ditherpos(dither_dict, shift_dict,
 
     open_in_editor(txtfilename, config)
 
+    new_dither_dict = {}
+    new_shift_dict = {}
+    with open(txtfilename, "r") as dithers:
+        for line in dithers:
+            line_items = line.strip().split(" ")
+
+            new_dither_dict[line_items[0]] = line_items[1]
+
+            pos = [int(line_items[2]), int(line_items[3])]
+
+            new_shift_dict[line_items[0]] = pos
+    return new_dither_dict, new_shift_dict
 
 # ----------------------------- #
 # Subtract dithers in spectra   #
