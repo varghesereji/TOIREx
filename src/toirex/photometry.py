@@ -734,6 +734,48 @@ def get_centroids(filename, purpose='read', new_centroids=None):
 # Magnitude
 # -----------------------------
 def calculate_magnitude(phot_table):
+    """
+    Calculate instrumental magnitudes and their uncertainties.
+
+    The function supports both aperture and PSF photometry. For aperture
+    photometry, the net flux is taken from ``flux_net`` and its uncertainty
+    is calculated from the variance ``var_net``. For PSF photometry, the
+    fitted flux and its uncertainty are taken from ``flux_fit`` and
+    ``flux_err``, respectively.
+
+    The instrumental magnitude is calculated as
+
+    .. math::
+
+        m = -2.5 \\log_{10}(F),
+
+    and its uncertainty is propagated from the flux uncertainty as
+
+    .. math::
+
+        \\sigma_m = \\frac{2.5}{\\ln(10)}
+        \\frac{\\sigma_F}{F}.
+
+    Parameters
+    ----------
+    phot_table : astropy.table.Table
+        Photometry table containing either the aperture photometry columns
+        ``flux_net`` and ``var_net``, or the PSF photometry columns
+        ``flux_fit`` and ``flux_err``.
+
+    Returns
+    -------
+    astropy.table.Table
+        The input photometry table with two additional columns,
+        ``mag`` and ``mag_err``, containing the instrumental magnitude
+        and its uncertainty.
+
+    Raises
+    ------
+    ValueError
+        If the photometry table does not contain the expected columns for
+        either aperture or PSF photometry.
+    """
 
     # Case in aperture photometry
     if "flux_net" in phot_table.colnames:
