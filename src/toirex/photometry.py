@@ -574,6 +574,11 @@ def save_to_wcs(final_fname):
 
     with fits.open(final_fname) as hdul:
         primary_header = hdul[0].header
+
+        primary_header.add_history(
+            "RA and Dec coordinates added to photometry table"
+            )
+
         w = WCS(primary_header)
         phot_table = Table(hdul['PHOTOMETRY'].data)
         # print(phot_table)
