@@ -282,12 +282,16 @@ def aperture_photometry_subrot(config, fname, positions):
     phot['var_net'] = phot['aperture_sum_err'] ** 2 + phot['bkg_var_sum']
     phot.rename_column('xcenter', 'x_fit')
     phot.rename_column('ycenter', 'y_fit')
-    # print(phot)
+
+    save_magnitude = config['photometry']['SAVE_MAGNITUDE'] == 'Y'
+
     opfname = save_photometry(
         fname, phot,
         history="Aperture photometry table added on file update.",
+        save_magnitude=save_magnitude,
         flext=flext
         )
+
     logger.info("Aperture Photometry DONE")
     return opfname
 
