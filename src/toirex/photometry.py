@@ -805,7 +805,11 @@ def calculate_magnitude(phot_table):
 
     # If not both of these cases
     else:
-        errormsg = "Could not identify photometry type from photometry table"
+        phot_cols = phot_table.colnames
+        errormsg = "Could not identify photometry type from photometry table;"
+        errormsg += " expected aperture columns ('flux_net', 'var_net') or PSF"
+        errormsg += " columns ('flux_fit', 'flux_err'), but got columns: "
+        errormsg += f"{phot_cols}"
 
         logger.error(errormsg)
         raise ValueError(
