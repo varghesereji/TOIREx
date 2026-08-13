@@ -776,6 +776,9 @@ def calculate_magnitude(phot_table):
         If the photometry table does not contain the expected columns for
         either aperture or PSF photometry.
     """
+    logger = get_logger("photometry")
+
+    logger.info("Calculating instrument magnitude")
 
     # Case in aperture photometry
     if "flux_net" in phot_table.colnames:
@@ -790,8 +793,11 @@ def calculate_magnitude(phot_table):
 
     # If not both of these cases
     else:
+        errormsg = "Could not identify photometry type from photometry table"
+
+        logger.error(errormsg)
         raise ValueError(
-            "Could not identify photometry type from photometry table."
+            errormsg
         )
 
     # Magnitude calculation
