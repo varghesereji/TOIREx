@@ -581,14 +581,14 @@ def save_to_wcs(final_fname):
 
         w = WCS(primary_header)
         phot_table = Table(hdul['PHOTOMETRY'].data)
-        # print(phot_table)
+
         x = phot_table['x_fit']
         y = phot_table['y_fit']
-        # print(x)
+
         ra, dec = w.wcs_pix2world(x, y, 0)
-        # print(ra, dec)
+
         ra, dec = convert_radec(ra, dec)
-        # print(ra, dec)
+
         colnames = phot_table.colnames
         reordered = Table()
         reordered[colnames[0]] = phot_table[colnames[0]]
@@ -596,9 +596,9 @@ def save_to_wcs(final_fname):
         reordered['Dec'] = dec
         for name in colnames[1:]:
             reordered[name] = phot_table[name]
-        # print(reordered)
+
         out_table_name = final_fname.stem + ".wcs.fits"
-        # out_table_path = final_fname.parent
+
         out_table_name = opdir / out_table_name
         hdu = fits.BinTableHDU(data=reordered, header=primary_header,
                                name='PHOTOMETRY')
