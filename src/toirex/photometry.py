@@ -782,6 +782,7 @@ def calculate_magnitude(phot_table):
     logger = get_logger("photometry")
 
     logger.info("Calculating instrument magnitude")
+    print("Calculating instrument magnitudes")
 
     # Case in aperture photometry
     if "flux_net" in phot_table.colnames:
