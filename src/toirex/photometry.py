@@ -680,7 +680,6 @@ def save_photometry(fname, phot_table, history="Photometry table added",
 
     table_hdu = fits.BinTableHDU(phot_table, name="PHOTOMETRY")
 
-
     header.add_history(history)
 
     primary_hdu = fits.PrimaryHDU(
