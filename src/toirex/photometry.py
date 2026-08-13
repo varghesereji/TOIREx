@@ -609,6 +609,7 @@ def save_to_wcs(final_fname):
 
 def save_photometry(fname, phot_table, history="Photometry table added",
                     flext=0):
+    logger = get_logger("photometry")
 
     table_hdu = fits.BinTableHDU(phot_table, name="PHOTOMETRY")
 
@@ -626,6 +627,8 @@ def save_photometry(fname, phot_table, history="Photometry table added",
     opfname = opdir / opfname
 
     hdul.writeto(opfname, overwrite=True)
+
+    logger.info(f"Photometry file saved as {opfname}")
 
     return opfname
 
