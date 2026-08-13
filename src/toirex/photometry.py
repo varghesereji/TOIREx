@@ -609,15 +609,24 @@ def save_to_wcs(final_fname):
 
 def save_photometry(fname, phot_table, history="Photometry table added",
                     flext=0):
+
     table_hdu = fits.BinTableHDU(phot_table, name="PHOTOMETRY")
+
+    header = fits.getheader(fname, ext=flext)
+    header.add_history(history)
+
     primary_hdu = fits.PrimaryHDU(
-        header=fits.getheader(fname, ext=flext)
+        header=header
         )
+
     hdul = fits.HDUList([primary_hdu, table_hdu])
+
     opdir = Path(fname.parent)
     opfname = fname.stem + ".phot.fits"
     opfname = opdir / opfname
+
     hdul.writeto(opfname, overwrite=True)
+
     return opfname
 
 
