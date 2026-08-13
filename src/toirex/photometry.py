@@ -570,6 +570,29 @@ def psf_photometry_subrot(config, fname, positions,
 
 
 def save_to_wcs(final_fname):
+    """
+    Add WCS coordinates to the photometry table and save the result.
+
+    The fitted pixel coordinates (``x_fit`` and ``y_fit``) from the
+    ``PHOTOMETRY`` extension are converted to celestial coordinates
+    (RA and Dec) using the WCS information in the primary HDU header.
+    The resulting RA and Dec columns are added to the photometry table,
+    and the updated table is saved to a new FITS file with a ``.wcs.fits``
+    suffix.
+
+    A history entry is also added to the primary FITS header to record
+    the addition of the WCS coordinates.
+
+    Parameters
+    ----------
+    final_fname : pathlib.Path
+        Path to the input photometry FITS file.
+
+    Returns
+    -------
+    None
+        The WCS-coordinate photometry table is written to a new FITS file.
+    """
     opdir = Path(final_fname.parent)
 
     with fits.open(final_fname) as hdul:
