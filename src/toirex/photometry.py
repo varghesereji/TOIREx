@@ -571,7 +571,7 @@ def psf_photometry_subrot(config, fname, positions,
 
 def save_to_wcs(final_fname):
     opdir = Path(final_fname.parent)
-    print(opdir)
+
     with fits.open(final_fname) as hdul:
         primary_header = hdul[0].header
         w = WCS(primary_header)
@@ -599,7 +599,7 @@ def save_to_wcs(final_fname):
                                name='PHOTOMETRY')
         hdul_out = fits.HDUList([fits.PrimaryHDU(header=primary_header), hdu])
         hdul_out.writeto(out_table_name, overwrite=True)
-        print("{} saved with WCS coordinates".format(out_table_name))
+    print("{} saved with WCS coordinates".format(out_table_name))
 
 
 # -----------------------------
