@@ -593,6 +593,8 @@ def save_to_wcs(final_fname):
     None
         The WCS-coordinate photometry table is written to a new FITS file.
     """
+    logger = get_logger("photometry")
+
     opdir = Path(final_fname.parent)
 
     with fits.open(final_fname) as hdul:
@@ -633,7 +635,7 @@ def save_to_wcs(final_fname):
         hdul_out.writeto(out_table_name, overwrite=True)
 
     print("{} saved with WCS coordinates".format(out_table_name))
-
+    logger.info("Photometry data saved with WCS coordinates")
 
 # -----------------------------
 # File Saving
