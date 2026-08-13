@@ -282,12 +282,16 @@ def aperture_photometry_subrot(config, fname, positions):
     phot['var_net'] = phot['aperture_sum_err'] ** 2 + phot['bkg_var_sum']
     phot.rename_column('xcenter', 'x_fit')
     phot.rename_column('ycenter', 'y_fit')
-    # print(phot)
+
+    save_magnitude = config['photometry']['SAVE_MAGNITUDE'] == 'Y'
+
     opfname = save_photometry(
         fname, phot,
         history="Aperture photometry table added on file update.",
+        save_magnitude=save_magnitude,
         flext=flext
         )
+
     logger.info("Aperture Photometry DONE")
     return opfname
 
@@ -555,9 +559,12 @@ def psf_photometry_subrot(config, fname, positions,
                      fname=resplot_fname,
                      show_plot=True)
 
+    save_magnitude = config['photometry']['SAVE_MAGNITUDE'] == 'Y'
+
     opfname = save_photometry(
         fname, phot,
         history='PSF photometry table added on file update.',
+        save_magnitude=save_magnitude,
         flext=flext
     )
     logger.info("PSF Photometry DONE")
@@ -643,6 +650,7 @@ def save_to_wcs(final_fname):
 
 
 def save_photometry(fname, phot_table, history="Photometry table added",
+                    save_magnitude=True,
                     flext=0):
     """
     Save a photometry table to a new FITS file.
@@ -672,9 +680,13 @@ def save_photometry(fname, phot_table, history="Photometry table added",
     """
     logger = get_logger("photometry")
 
+    header = fits.getheader(fname, ext=flext)
+    if save_magnitude:
+        calculate_magnitude(phot_table)
+        header.add_history("Calculated instrument magnitude")
+
     table_hdu = fits.BinTableHDU(phot_table, name="PHOTOMETRY")
 
-    header = fits.getheader(fname, ext=flext)
     header.add_history(history)
 
     primary_hdu = fits.PrimaryHDU(
@@ -728,6 +740,87 @@ def get_centroids(filename, purpose='read', new_centroids=None):
         targets_txt.close()
         print("Updated the selected sources list")
 
+
+# -----------------------------
+# Magnitude
+# -----------------------------
+def calculate_magnitude(phot_table):
+    """
+    Calculate instrumental magnitudes and their uncertainties.
+
+    The function supports both aperture and PSF photometry. For aperture
+    photometry, the net flux is taken from ``flux_net`` and its uncertainty
+    is calculated from the variance ``var_net``. For PSF photometry, the
+    fitted flux and its uncertainty are taken from ``flux_fit`` and
+    ``flux_err``, respectively.
+
+    The instrumental magnitude is calculated as
+
+    .. math::
+
+        m = -2.5 \\log_{10}(F),
+
+    and its uncertainty is propagated from the flux uncertainty as
+
+    .. math::
+
+        \\sigma_m = \\frac{2.5}{\\ln(10)}
+        \\frac{\\sigma_F}{F}.
+
+    Parameters
+    ----------
+    phot_table : astropy.table.Table
+        Photometry table containing either the aperture photometry columns
+        ``flux_net`` and ``var_net``, or the PSF photometry columns
+        ``flux_fit`` and ``flux_err``.
+
+    Returns
+    -------
+    astropy.table.Table
+        The input photometry table with two additional columns,
+        ``mag`` and ``mag_err``, containing the instrumental magnitude
+        and its uncertainty.
+
+    Raises
+    ------
+    ValueError
+        If the photometry table does not contain the expected columns for
+        either aperture or PSF photometry.
+    """
+    logger = get_logger("photometry")
+
+    logger.info("Calculating instrument magnitude")
+    print("Calculating instrument magnitudes")
+
+    # Case in aperture photometry
+    if "flux_net" in phot_table.colnames:
+
+        flux = phot_table['flux_net']
+        flux_err = np.sqrt(phot_table['var_net'])
+
+    # Case in PSF photometry
+    elif "flux_fit" in phot_table.colnames:
+        flux = phot_table['flux_fit']
+        flux_err = phot_table['flux_err']
+
+    # If not both of these cases
+    else:
+        phot_cols = phot_table.colnames
+        errormsg = "Could not identify photometry type from photometry table;"
+        errormsg += " expected aperture columns ('flux_net', 'var_net') or PSF"
+        errormsg += " columns ('flux_fit', 'flux_err'), but got columns: "
+        errormsg += f"{phot_cols}"
+
+        logger.error(errormsg)
+        raise ValueError(
+            errormsg
+        )
+
+    # Magnitude calculation
+    phot_table["mag"] = -2.5 * np.log10(flux)
+    phot_table["mag_err"] = (2.5 / np.log(10)) * (flux_err / flux)
+
+    return phot_table
 
 # -----------------------------
 # Extraction
