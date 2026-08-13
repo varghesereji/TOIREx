@@ -590,20 +590,26 @@ def save_to_wcs(final_fname):
         ra, dec = convert_radec(ra, dec)
 
         colnames = phot_table.colnames
+
         reordered = Table()
+
         reordered[colnames[0]] = phot_table[colnames[0]]
+
         reordered['RA'] = ra
         reordered['Dec'] = dec
+
         for name in colnames[1:]:
             reordered[name] = phot_table[name]
 
         out_table_name = final_fname.stem + ".wcs.fits"
-
         out_table_name = opdir / out_table_name
+
         hdu = fits.BinTableHDU(data=reordered, header=primary_header,
                                name='PHOTOMETRY')
         hdul_out = fits.HDUList([fits.PrimaryHDU(header=primary_header), hdu])
+
         hdul_out.writeto(out_table_name, overwrite=True)
+
     print("{} saved with WCS coordinates".format(out_table_name))
 
 
