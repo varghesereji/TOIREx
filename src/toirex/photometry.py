@@ -643,6 +643,7 @@ def save_to_wcs(final_fname):
 
 
 def save_photometry(fname, phot_table, history="Photometry table added",
+                    save_magnitude=True,
                     flext=0):
     """
     Save a photometry table to a new FITS file.
