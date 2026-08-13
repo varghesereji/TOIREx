@@ -570,37 +570,72 @@ def psf_photometry_subrot(config, fname, positions,
 
 
 def save_to_wcs(final_fname):
+    """
+    Add WCS coordinates to the photometry table and save the result.
+
+    The fitted pixel coordinates (``x_fit`` and ``y_fit``) from the
+    ``PHOTOMETRY`` extension are converted to celestial coordinates
+    (RA and Dec) using the WCS information in the primary HDU header.
+    The resulting RA and Dec columns are added to the photometry table,
+    and the updated table is saved to a new FITS file with a ``.wcs.fits``
+    suffix.
+
+    A history entry is also added to the primary FITS header to record
+    the addition of the WCS coordinates.
+
+    Parameters
+    ----------
+    final_fname : pathlib.Path
+        Path to the input photometry FITS file.
+
+    Returns
+    -------
+    None
+        The WCS-coordinate photometry table is written to a new FITS file.
+    """
+    logger = get_logger("photometry")
+
     opdir = Path(final_fname.parent)
-    print(opdir)
+
     with fits.open(final_fname) as hdul:
         primary_header = hdul[0].header
+
+        primary_header.add_history(
+            "RA and Dec coordinates added to photometry table"
+            )
+
         w = WCS(primary_header)
         phot_table = Table(hdul['PHOTOMETRY'].data)
-        # print(phot_table)
+
         x = phot_table['x_fit']
         y = phot_table['y_fit']
-        # print(x)
+
         ra, dec = w.wcs_pix2world(x, y, 0)
-        # print(ra, dec)
         ra, dec = convert_radec(ra, dec)
-        # print(ra, dec)
+
         colnames = phot_table.colnames
+
         reordered = Table()
+
         reordered[colnames[0]] = phot_table[colnames[0]]
+
         reordered['RA'] = ra
         reordered['Dec'] = dec
+
         for name in colnames[1:]:
             reordered[name] = phot_table[name]
-        # print(reordered)
+
         out_table_name = final_fname.stem + ".wcs.fits"
-        # out_table_path = final_fname.parent
         out_table_name = opdir / out_table_name
+
         hdu = fits.BinTableHDU(data=reordered, header=primary_header,
                                name='PHOTOMETRY')
         hdul_out = fits.HDUList([fits.PrimaryHDU(header=primary_header), hdu])
-        hdul_out.writeto(out_table_name, overwrite=True)
-        print("{} saved with WCS coordinates".format(out_table_name))
 
+        hdul_out.writeto(out_table_name, overwrite=True)
+
+    print("{} saved with WCS coordinates".format(out_table_name))
+    logger.info("Photometry data saved with WCS coordinates")
 
 # -----------------------------
 # File Saving
@@ -609,15 +644,53 @@ def save_to_wcs(final_fname):
 
 def save_photometry(fname, phot_table, history="Photometry table added",
                     flext=0):
+    """
+    Save a photometry table to a new FITS file.
+
+    The photometry table is stored in a ``PHOTOMETRY`` binary table
+    extension. The header from the specified input extension is copied
+    to the primary HDU of the output file, with a history entry added
+    to record the photometry operation.
+
+    Parameters
+    ----------
+    fname : pathlib.Path
+        Path to the input FITS file.
+    phot_table : astropy.table.Table
+        Photometry table to be saved in the output FITS file.
+    history : str, optional
+        History entry to add to the output FITS header.
+        Default is ``"Photometry table added"``.
+    flext : int, optional
+        FITS extension from which the input header is obtained.
+        Default is ``0``.
+
+    Returns
+    -------
+    pathlib.Path
+        Path to the output photometry FITS file.
+    """
+    logger = get_logger("photometry")
+
     table_hdu = fits.BinTableHDU(phot_table, name="PHOTOMETRY")
+
+    header = fits.getheader(fname, ext=flext)
+    header.add_history(history)
+
     primary_hdu = fits.PrimaryHDU(
-        header=fits.getheader(fname, ext=flext)
+        header=header
         )
+
     hdul = fits.HDUList([primary_hdu, table_hdu])
+
     opdir = Path(fname.parent)
     opfname = fname.stem + ".phot.fits"
     opfname = opdir / opfname
+
     hdul.writeto(opfname, overwrite=True)
+
+    logger.info(f"Photometry file saved as {opfname}")
+
     return opfname
 
 
