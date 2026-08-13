@@ -644,6 +644,32 @@ def save_to_wcs(final_fname):
 
 def save_photometry(fname, phot_table, history="Photometry table added",
                     flext=0):
+    """
+    Save a photometry table to a new FITS file.
+
+    The photometry table is stored in a ``PHOTOMETRY`` binary table
+    extension. The header from the specified input extension is copied
+    to the primary HDU of the output file, with a history entry added
+    to record the photometry operation.
+
+    Parameters
+    ----------
+    fname : pathlib.Path
+        Path to the input FITS file.
+    phot_table : astropy.table.Table
+        Photometry table to be saved in the output FITS file.
+    history : str, optional
+        History entry to add to the output FITS header.
+        Default is ``"Photometry table added"``.
+    flext : int, optional
+        FITS extension from which the input header is obtained.
+        Default is ``0``.
+
+    Returns
+    -------
+    pathlib.Path
+        Path to the output photometry FITS file.
+    """
     logger = get_logger("photometry")
 
     table_hdu = fits.BinTableHDU(phot_table, name="PHOTOMETRY")
