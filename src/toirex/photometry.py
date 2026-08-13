@@ -752,6 +752,12 @@ def calculate_magnitude(phot_table):
             "Could not identify photometry type from photometry table."
         )
 
+    # Magnitude calculation
+    phot_table["mag"] = -2.5 * np.log10(flux)
+    phot_table["mag_err"] = (2.5 / np.log(10)) * (flux_err / flux)
+
+    return phot_table
+
 # -----------------------------
 # Extraction
 # -----------------------------
