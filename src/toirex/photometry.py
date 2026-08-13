@@ -555,9 +555,12 @@ def psf_photometry_subrot(config, fname, positions,
                      fname=resplot_fname,
                      show_plot=True)
 
+    save_magnitude = config['photometry']['SAVE_MAGNITUDE'] == 'Y'
+
     opfname = save_photometry(
         fname, phot,
         history='PSF photometry table added on file update.',
+        save_magnitude=save_magnitude,
         flext=flext
     )
     logger.info("PSF Photometry DONE")
