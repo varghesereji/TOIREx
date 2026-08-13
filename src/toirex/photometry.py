@@ -586,7 +586,6 @@ def save_to_wcs(final_fname):
         y = phot_table['y_fit']
 
         ra, dec = w.wcs_pix2world(x, y, 0)
-
         ra, dec = convert_radec(ra, dec)
 
         colnames = phot_table.colnames
