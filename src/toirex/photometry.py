@@ -731,6 +731,28 @@ def get_centroids(filename, purpose='read', new_centroids=None):
 
 
 # -----------------------------
+# Magnitude
+# -----------------------------
+def calculate_magnitude(phot_table):
+
+    # Case in aperture photometry
+    if "flux_net" in phot_table.colnames:
+
+        flux = phot_table['flux_net']
+        flux_err = np.sqrt(phot_table['var_net'])
+
+    # Case in PSF photometry
+    elif "flux_fit" in phot_table.colnames:
+        flux = phot_table['flux_fit']
+        flux_err = phot_table['flux_err']
+
+    # If not both of these cases
+    else:
+        raise ValueError(
+            "Could not identify photometry type from photometry table."
+        )
+
+# -----------------------------
 # Extraction
 # -----------------------------
 
