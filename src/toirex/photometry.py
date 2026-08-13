@@ -673,6 +673,9 @@ def save_photometry(fname, phot_table, history="Photometry table added",
     """
     logger = get_logger("photometry")
 
+    if save_magnitude:
+        calculate_magnitude(phot_table)
+
     table_hdu = fits.BinTableHDU(phot_table, name="PHOTOMETRY")
 
     header = fits.getheader(fname, ext=flext)
