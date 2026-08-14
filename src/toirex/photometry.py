@@ -681,6 +681,11 @@ def save_photometry(fname, phot_table, history="Photometry table added",
     logger = get_logger("photometry")
 
     header = fits.getheader(fname, ext=flext)
+
+    # calculating snr
+    calculate_snr(phot_table)
+    header.add_history("Calculated signal-to-noise ratio of each source")
+
     if save_magnitude:
         calculate_magnitude(phot_table)
         header.add_history("Calculated instrument magnitude")
