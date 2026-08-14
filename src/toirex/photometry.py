@@ -742,6 +742,16 @@ def get_centroids(filename, purpose='read', new_centroids=None):
 
 
 # -----------------------------
+# SNR
+# -----------------------------
+
+def calculate_snr(phot_table):
+    logger = get_logger("photometry")
+
+    logger.info("Calculating instrument magnitude")
+    print("Calculating instrument magnitudes")
+
+# -----------------------------
 # Magnitude
 # -----------------------------
 def calculate_magnitude(phot_table):
