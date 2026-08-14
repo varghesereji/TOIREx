@@ -681,6 +681,11 @@ def save_photometry(fname, phot_table, history="Photometry table added",
     logger = get_logger("photometry")
 
     header = fits.getheader(fname, ext=flext)
+
+    # calculating snr
+    calculate_snr(phot_table)
+    header.add_history("Calculated signal-to-noise ratio of each source")
+
     if save_magnitude:
         calculate_magnitude(phot_table)
         header.add_history("Calculated instrument magnitude")
@@ -739,6 +744,65 @@ def get_centroids(filename, purpose='read', new_centroids=None):
             targets_txt.write(loc_line)
         targets_txt.close()
         print("Updated the selected sources list")
+
+
+# -----------------------------
+# SNR
+# -----------------------------
+
+def calculate_snr(phot_table):
+    """
+    Calculate the signal-to-noise ratio for each detected source.
+
+    For aperture photometry, the flux uncertainty is calculated as the
+    square root of ``var_net``. For PSF photometry, the existing
+    ``flux_err`` column is used.
+
+    Parameters
+    ----------
+    phot_table : astropy.table.Table
+        Photometry table containing either ``flux_net`` and ``var_net``
+        for aperture photometry, or ``flux_fit`` and ``flux_err`` for
+        PSF photometry.
+
+    Returns
+    -------
+    astropy.table.Table
+        The input photometry table with an additional ``snr`` column.
+    """
+    logger = get_logger("photometry")
+
+    logger.info("Calculating signal-to-noise ratio")
+    print("Calculating SNR")
+
+    # Case in aperture photometry
+    if "flux_net" in phot_table.colnames:
+
+        flux = phot_table['flux_net']
+        flux_err = np.sqrt(phot_table['var_net'])
+
+    # Case in PSF photometry
+    elif "flux_fit" in phot_table.colnames:
+        flux = phot_table['flux_fit']
+        flux_err = phot_table['flux_err']
+
+    # If not both of these cases
+    else:
+        phot_cols = phot_table.colnames
+        errormsg = "Could not identify photometry type from photometry table;"
+        errormsg += " expected aperture columns ('flux_net', 'var_net') or PSF"
+        errormsg += " columns ('flux_fit', 'flux_err'), but got columns: "
+        errormsg += f"{phot_cols}"
+
+        logger.error(errormsg)
+        raise ValueError(
+            errormsg
+        )
+
+    # snr_calculation
+    phot_table['snr'] = flux / flux_err
+
+    return phot_table
 
 
 # -----------------------------
