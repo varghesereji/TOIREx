@@ -1,13 +1,17 @@
 from unittest.mock import patch
+from unittest.mock import Mock
 
 import numpy as np
 from astropy.table import Table
 from astropy.io import fits
+from pathlib import Path
 
 from toirex.photometry import calculate_snr
 from toirex.photometry import calculate_magnitude
 from toirex.photometry import save_photometry
 from toirex.photometry import _make_daostarfinder
+from toirex.photometry import targetfind_auto
+
 
 @patch("toirex.photometry.get_logger")
 def test_calculate_snr_aperture(mock_get_logger):
@@ -201,5 +205,91 @@ def test_make_daostarfinder_brightest(mock_daofinder):
         fwhm=7,
         threshold=50,
         brightest=10,
+    )
+
+
+# Test on automatic source detection
+@patch("toirex.photometry.imageplot")
+@patch("toirex.photometry.table_to_centroids")
+@patch("toirex.photometry._make_daostarfinder")
+@patch("toirex.photometry.sigma_clipped_stats")
+@patch("toirex.photometry.fits.getdata")
+@patch("toirex.photometry.get_logger")
+def test_targetfind_auto(mock_get_logger,
+                         mock_getdata,
+                         mock_stats,
+                         mock_make_daofind,
+                         mock_table_to_centroids,
+                         mock_imageplot):
+    """Test automatic source detection."""
+
+    data = np.array([
+        [10.0, 20.0],
+        [30.0, 40.0],
+    ])
+
+    mock_getdata.return_value = data
+    mock_stats.return_value = (0.0, 10.0, 1.0)
+
+    sources = Table({
+        "x_centroid": [10.0, 20.0],
+        "y_centroid": [15.0, 25.0],
+    })
+
+    mock_daofind = Mock(return_value=sources)
+    mock_make_daofind.return_value = mock_daofind
+
+    mock_table_to_centroids.return_value = [(15.0, 10.0), (25.0, 20.0)]
+
+    fname = Path("test.fits")
+
+    result = targetfind_auto(
+        fname,
+        fwhm=7.0,
+        threshold=50,
+        n_brightest=10,
+        show_plot=False,
+        aperture_radii=(10, 15, 20),
+        plot_dirs="plots",
+    )
+
+    mock_getdata.assert_called_once_with(fname, ext=0)
+
+    mock_stats.assert_called_once_with(data)
+
+    mock_make_daofind.assert_called_once_with(
+        fwhm=7.0,
+        threshold=50,
+        n_brightest=10,
+        exclude_border=True,
+        xycoords=None,
+    )
+
+    mock_daofind.assert_called_once()
+    detected_data = mock_daofind.call_args.args[0]
+
+    np.testing.assert_array_equal(
+        detected_data,
+        data - 10.0,
+    )
+
+    mock_table_to_centroids.assert_called_once_with(
+        sources,
+        keys=("y_centroid", "x_centroid"),
+    )
+
+    mock_imageplot.assert_called_once()
+
+    assert "x_0" in result.colnames
+    assert "y_0" in result.colnames
+
+    np.testing.assert_array_equal(
+        result["x_0"],
+        [10.0, 20.0],
+    )
+
+    np.testing.assert_array_equal(
+        result["y_0"],
+        [15.0, 25.0],
     )
 # End
