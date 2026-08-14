@@ -7,7 +7,7 @@ from astropy.io import fits
 from toirex.photometry import calculate_snr
 from toirex.photometry import calculate_magnitude
 from toirex.photometry import save_photometry
-
+from toirex.photometry import _make_daostarfinder
 
 @patch("toirex.photometry.get_logger")
 def test_calculate_snr_aperture(mock_get_logger):
@@ -165,4 +165,23 @@ def test_save_psfphotometry(mock_get_logger, tmp_path):
         np.testing.assert_allclose(phot['mag'], expected_mags)
         np.testing.assert_allclose(phot['mag_err'], expected_magerrs)
 
+
+#############################
+# Tests on DAOFinder
+#############################
+@patch("toirex.photometry.DAOStarFinder")
+def test_make_daostarfinder_n_brightest(mock_daofinder):
+    """Test DAOStarFinder initialization with n_brightest."""
+
+    _make_daostarfinder(
+        fwhm=7,
+        threshold=50,
+        n_brightest=10,
+    )
+
+    mock_daofinder.assert_called_once_with(
+        fwhm=7,
+        threshold=50,
+        n_brightest=10,
+    )
 # End
