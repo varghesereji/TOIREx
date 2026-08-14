@@ -781,6 +781,19 @@ def calculate_snr(phot_table):
         flux = phot_table['flux_fit']
         flux_err = phot_table['flux_err']
 
+    # If not both of these cases
+    else:
+        phot_cols = phot_table.colnames
+        errormsg = "Could not identify photometry type from photometry table;"
+        errormsg += " expected aperture columns ('flux_net', 'var_net') or PSF"
+        errormsg += " columns ('flux_fit', 'flux_err'), but got columns: "
+        errormsg += f"{phot_cols}"
+
+        logger.error(errormsg)
+        raise ValueError(
+            errormsg
+        )
+
     # snr_calculation
     phot_table['snr'] = flux / flux_err
 
