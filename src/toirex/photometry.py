@@ -751,6 +751,18 @@ def calculate_snr(phot_table):
     logger.info("Calculating instrument magnitude")
     print("Calculating instrument magnitudes")
 
+    # Case in aperture photometry
+    if "flux_net" in phot_table.colnames:
+
+        flux = phot_table['flux_net']
+        flux_err = np.sqrt(phot_table['var_net'])
+
+    # Case in PSF photometry
+    elif "flux_fit" in phot_table.colnames:
+        flux = phot_table['flux_fit']
+        flux_err = phot_table['flux_err']
+
+
 # -----------------------------
 # Magnitude
 # -----------------------------
