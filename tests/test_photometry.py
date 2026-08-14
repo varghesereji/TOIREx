@@ -184,4 +184,22 @@ def test_make_daostarfinder_n_brightest(mock_daofinder):
         threshold=50,
         n_brightest=10,
     )
+
+
+@patch("toirex.photometry.DAOStarFinder")
+def test_make_daostarfinder_brightest(mock_daofinder):
+    """Test DAOStarFinder initialization with brightest."""
+
+    with patch("toirex.photometry._DAOSTARFINDER_SUPPORTS_N_BRIGHTEST", False):
+        _make_daostarfinder(
+            fwhm=7,
+            threshold=50,
+            n_brightest=10,
+        )
+
+    mock_daofinder.assert_called_once_with(
+        fwhm=7,
+        threshold=50,
+        brightest=10,
+    )
 # End
