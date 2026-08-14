@@ -762,6 +762,11 @@ def calculate_snr(phot_table):
         flux = phot_table['flux_fit']
         flux_err = phot_table['flux_err']
 
+    # snr_calculation
+    phot_table['snr'] = flux / flux_err
+
+    return phot_table
+
 
 # -----------------------------
 # Magnitude
