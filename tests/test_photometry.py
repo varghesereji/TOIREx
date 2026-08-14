@@ -124,4 +124,45 @@ def test_save_aperturephotometry(mock_get_logger, tmp_path):
         np.testing.assert_allclose(phot['snr'], expected_snr)
         np.testing.assert_allclose(phot['mag'], expected_mags)
         np.testing.assert_allclose(phot['mag_err'], expected_magerrs)
+
+@patch("toirex.photometry.get_logger")
+def test_save_psfphotometry(mock_get_logger, tmp_path):
+    """Test saving photometry without calculating magnitude."""
+
+    input_file = tmp_path / "test.fits"
+    fits.PrimaryHDU().writeto(input_file)
+
+    phot_table = Table({
+        "id": [1, 2, 3],
+        "flux_fit": [100.0, 200.0, 300.0],
+        "flux_err": [5.0, 10.0, 15.0],
+    })
+
+    output_file = save_photometry(
+        input_file,
+        phot_table,
+        save_magnitude=True,
+    )
+
+    expected_snr = [20.0, 20.0, 20.0]
+    expected_mags = [-5.0, -5.75257499, -6.1928034]
+    expected_magerrs = [0.05428681023790647,
+                        0.05428681023790647,
+                        0.05428681023790647]
+
+    with fits.open(output_file) as hdul:
+        phot = Table(hdul["PHOTOMETRY"].data)
+
+        assert "snr" in phot.colnames
+        assert "mag" in phot.colnames
+        assert "mag_err" in phot.colnames
+
+        history = hdul[0].header.get("HISTORY", [])
+        assert "Calculated signal-to-noise ratio of each source" in history
+        assert "Calculated instrument magnitude" in history
+
+        np.testing.assert_allclose(phot['snr'], expected_snr)
+        np.testing.assert_allclose(phot['mag'], expected_mags)
+        np.testing.assert_allclose(phot['mag_err'], expected_magerrs)
+
 # End
