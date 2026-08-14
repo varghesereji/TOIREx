@@ -746,10 +746,29 @@ def get_centroids(filename, purpose='read', new_centroids=None):
 # -----------------------------
 
 def calculate_snr(phot_table):
+    """
+    Calculate the signal-to-noise ratio for each detected source.
+
+    For aperture photometry, the flux uncertainty is calculated as the
+    square root of ``var_net``. For PSF photometry, the existing
+    ``flux_err`` column is used.
+
+    Parameters
+    ----------
+    phot_table : astropy.table.Table
+        Photometry table containing either ``flux_net`` and ``var_net``
+        for aperture photometry, or ``flux_fit`` and ``flux_err`` for
+        PSF photometry.
+
+    Returns
+    -------
+    astropy.table.Table
+        The input photometry table with an additional ``snr`` column.
+    """
     logger = get_logger("photometry")
 
-    logger.info("Calculating instrument magnitude")
-    print("Calculating instrument magnitudes")
+    logger.info("Calculating signal-to-noise ratio")
+    print("Calculating SNR")
 
     # Case in aperture photometry
     if "flux_net" in phot_table.colnames:
