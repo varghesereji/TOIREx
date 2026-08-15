@@ -17,6 +17,7 @@ from toirex.photometry import aperture_photometry_subrot
 from toirex.photometry import make_epsf
 from toirex.photometry import psf_photometry_subrot
 from toirex.photometry import save_to_wcs
+from toirex.photometry import get_centroids
 
 
 @patch("toirex.photometry.get_logger")
@@ -1367,7 +1368,9 @@ def test_save_photometry(mock_getheader,
     )
 
     # Check history entries
-    assert "Calculated signal-to-noise ratio of each source" in header["HISTORY"]
+    assert "Calculated signal-to-noise ratio of each source" in header[
+        "HISTORY"
+    ]
     assert "Calculated instrument magnitude" in header["HISTORY"]
     assert "Test photometry" in header["HISTORY"]
 
@@ -1381,4 +1384,29 @@ def test_save_photometry(mock_getheader,
 
     # Check returned filename
     assert result == expected_output
+
+@patch("toirex.photometry.read_txt_file")
+def test_get_centroids_read(mock_read_txt_file, tmp_path):
+    """Test reading centroids from a text file."""
+
+    filename = tmp_path / "centroids.txt"
+
+    # The function first checks whether the file exists.
+    filename.touch()
+
+    mock_read_txt_file.return_value = [
+        ["10", "20"],
+        ["30", "40"],
+    ]
+
+    result = get_centroids(filename, purpose="read")
+
+    mock_read_txt_file.assert_called_once_with(filename)
+
+    expected = [
+        [10.0, 20.0],
+        [30.0, 40.0],
+    ]
+
+    assert result == expected
 # End
