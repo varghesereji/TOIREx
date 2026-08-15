@@ -1,5 +1,6 @@
 from unittest.mock import patch
 from unittest.mock import Mock
+from unittest.mock import MagicMock
 
 import numpy as np
 from astropy.table import Table
@@ -15,6 +16,7 @@ from toirex.photometry import targetfind_manual
 from toirex.photometry import aperture_photometry_subrot
 from toirex.photometry import make_epsf
 from toirex.photometry import psf_photometry_subrot
+from toirex.photometry import save_to_wcs
 
 
 @patch("toirex.photometry.get_logger")
@@ -1113,4 +1115,187 @@ def test_psf_photometry_subrot_epsf(
     )
 
     assert result == Path("test.phot.fits")
+
+
+@patch("toirex.photometry.get_logger")
+@patch("toirex.photometry.convert_radec")
+@patch("toirex.photometry.WCS")
+@patch("toirex.photometry.fits.BinTableHDU")
+@patch("toirex.photometry.fits.PrimaryHDU")
+@patch("toirex.photometry.fits.HDUList")
+@patch("toirex.photometry.fits.open")
+def test_save_to_wcs(mock_fits_open,
+                     mock_hdulist,
+                     mock_primary_hdu,
+                     mock_bintable_hdu,
+                     mock_wcs,
+                     mock_convert_radec,
+                     mock_get_logger):
+
+    """Test adding WCS coordinates to the photometry table."""
+
+    final_fname = Path("test.phot.fits")
+
+    # ---------------------------------------------------------
+    # Input header
+    # ---------------------------------------------------------
+
+    primary_header = fits.Header()
+    primary_header["NAXIS"] = 2
+
+    # ---------------------------------------------------------
+    # Input photometry table
+    # ---------------------------------------------------------
+
+    phot_table = Table({
+        "x_fit": [10.0, 20.0],
+        "y_fit": [15.0, 25.0],
+        "flux_fit": [1000.0, 2000.0],
+    })
+
+    # ---------------------------------------------------------
+    # Mock input FITS file
+    # ---------------------------------------------------------
+
+    primary_hdu = Mock()
+    primary_hdu.header = primary_header
+
+    phot_hdu = Mock()
+    phot_hdu.data = phot_table.as_array()
+
+    hdul = MagicMock()
+    hdul.__enter__.return_value = hdul
+    hdul.__exit__.return_value = None
+
+    hdul.__getitem__.side_effect = lambda key: (
+        primary_hdu if key == 0 else phot_hdu
+    )
+
+    mock_fits_open.return_value = hdul
+
+    # ---------------------------------------------------------
+    # Mock WCS
+    # ---------------------------------------------------------
+
+    wcs = Mock()
+    mock_wcs.return_value = wcs
+
+    ra = np.array([100.0, 110.0])
+    dec = np.array([20.0, 30.0])
+
+    wcs.wcs_pix2world.return_value = (ra, dec)
+
+    # ---------------------------------------------------------
+    # Mock RA/Dec conversion
+    # ---------------------------------------------------------
+
+    converted_ra = np.array(["06:40:00", "07:20:00"])
+    converted_dec = np.array(["+20:00:00", "+30:00:00"])
+
+    mock_convert_radec.return_value = (
+        converted_ra,
+        converted_dec,
+    )
+
+    # ---------------------------------------------------------
+    # Mock output HDUs
+    # ---------------------------------------------------------
+
+    primary_out = Mock()
+    table_out = Mock()
+
+    mock_primary_hdu.return_value = primary_out
+    mock_bintable_hdu.return_value = table_out
+
+    hdul_out = Mock()
+    mock_hdulist.return_value = hdul_out
+
+    # ---------------------------------------------------------
+    # Run function
+    # ---------------------------------------------------------
+
+    save_to_wcs(final_fname)
+
+    # ---------------------------------------------------------
+    # Check input FITS file
+    # ---------------------------------------------------------
+
+    mock_fits_open.assert_called_once_with(final_fname)
+
+    # ---------------------------------------------------------
+    # Check WCS
+    # ---------------------------------------------------------
+
+    mock_wcs.assert_called_once_with(primary_header)
+
+    wcs.wcs_pix2world.assert_called_once()
+
+    wcs_args = wcs.wcs_pix2world.call_args
+
+    np.testing.assert_array_equal(
+        wcs_args.args[0],
+        phot_table["x_fit"],
+    )
+
+    np.testing.assert_array_equal(
+        wcs_args.args[1],
+        phot_table["y_fit"],
+    )
+
+    assert wcs_args.args[2] == 0
+
+    # ---------------------------------------------------------
+    # Check RA/Dec conversion
+    # ---------------------------------------------------------
+
+    mock_convert_radec.assert_called_once_with(
+        ra,
+        dec,
+    )
+
+    # ---------------------------------------------------------
+    # Check history
+    # ---------------------------------------------------------
+
+    assert (
+        "RA and Dec coordinates added to photometry table"
+        in primary_header["HISTORY"]
+    )
+
+    # ---------------------------------------------------------
+    # Check output table HDU
+    # ---------------------------------------------------------
+
+    mock_bintable_hdu.assert_called_once()
+
+    bintable_args = mock_bintable_hdu.call_args
+
+    assert bintable_args.kwargs["name"] == "PHOTOMETRY"
+
+    # ---------------------------------------------------------
+    # Check output primary HDU
+    # ---------------------------------------------------------
+
+    mock_primary_hdu.assert_called_once_with(
+        header=primary_header
+    )
+
+    # ---------------------------------------------------------
+    # Check output HDUList
+    # ---------------------------------------------------------
+
+    mock_hdulist.assert_called_once_with([
+        primary_out,
+        table_out,
+    ])
+
+    # ---------------------------------------------------------
+    # Check file writing
+    # ---------------------------------------------------------
+
+    hdul_out.writeto.assert_called_once_with(
+        Path("test.phot.wcs.fits"),
+        overwrite=True,
+    )
+
 # End
