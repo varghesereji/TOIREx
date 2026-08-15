@@ -904,4 +904,213 @@ def test_psf_photometry_subrot(mock_get_logger,
 
     assert result == Path("test.phot.fits")
 
+
+@patch("toirex.photometry.save_photometry")
+@patch("toirex.photometry.save_residualimg")
+@patch("toirex.photometry.PSFPhotometry")
+@patch("toirex.photometry.LocalBackground")
+@patch("toirex.photometry.MMMBackground")
+@patch("toirex.photometry.GaussianPSF")
+@patch("toirex.photometry.fits.getdata")
+@patch("toirex.photometry.get_logger")
+def test_psf_photometry_subrot_gaussian(
+        mock_get_logger,
+        mock_getdata,
+        mock_gaussian_psf,
+        mock_mmm_background,
+        mock_local_background,
+        mock_psf_photometry,
+        mock_save_residualimg,
+        mock_save_photometry):
+    """Test PSF photometry using a Gaussian PSF."""
+
+    config = {
+        "inputs": {
+            "FLUXEXT": "0",
+            "VAREXT": "1",
+        },
+        "photometry": {
+            "MODEL": "GaussianPSF",
+            "PSF_FWHM": "(7.0, 8.0)",
+            "PSF_ANGLE": "0.5",
+            "FIT_SHAPE": "(15, 15)",
+            "RADIUS": "4",
+            "BKGWINDOWS": "(10, 20)",
+            "SAVE_MAGNITUDE": "Y",
+        },
+    }
+
+    fname = Path("test.fits")
+
+    positions = Table({
+        "x_0": [10.0, 20.0],
+        "y_0": [15.0, 25.0],
+    })
+
+    data = np.ones((100, 100))
+    var = np.ones((100, 100))
+
+    mock_getdata.side_effect = [data, var]
+
+    psf_model = Mock()
+    mock_gaussian_psf.return_value = psf_model
+
+    bkgstat = Mock()
+    mock_mmm_background.return_value = bkgstat
+
+    local_bkg = Mock()
+    mock_local_background.return_value = local_bkg
+
+    psfphot = Mock()
+
+    phot = Table({
+        "x_fit": [10.0, 20.0],
+        "y_fit": [15.0, 25.0],
+        "flux_fit": [1000.0, 2000.0],
+    })
+
+    psfphot.return_value = phot
+    psfphot.make_residual_image.return_value = np.zeros((100, 100))
+
+    mock_psf_photometry.return_value = psfphot
+    mock_save_photometry.return_value = Path("test.phot.fits")
+
+    result = psf_photometry_subrot(
+        config,
+        fname,
+        positions,
+    )
+
+    # Check Gaussian PSF construction
+    mock_gaussian_psf.assert_called_once_with(
+        flux=1,
+        x_fwhm=7.0,
+        y_fwhm=8.0,
+        theta=0.5,
+    )
+
+    # Check the rest of the PSF photometry setup
+    mock_psf_photometry.assert_called_once_with(
+        psf_model,
+        (15, 15),
+        local_bkg_estimator=local_bkg,
+        aperture_radius=4.0,
+        progress_bar=True,
+    )
+
+    assert result == Path("test.phot.fits")
+
+
+@patch("toirex.photometry.save_photometry")
+@patch("toirex.photometry.save_residualimg")
+@patch("toirex.photometry.PSFPhotometry")
+@patch("toirex.photometry.LocalBackground")
+@patch("toirex.photometry.MMMBackground")
+@patch("toirex.photometry.make_epsf")
+@patch("toirex.photometry.fits.getdata")
+@patch("toirex.photometry.get_logger")
+def test_psf_photometry_subrot_epsf(
+        mock_get_logger,
+        mock_getdata,
+        mock_make_epsf,
+        mock_mmm_background,
+        mock_local_background,
+        mock_psf_photometry,
+        mock_save_residualimg,
+        mock_save_photometry):
+    """Test PSF photometry using an effective PSF."""
+
+    config = {
+        "inputs": {
+            "FLUXEXT": "0",
+            "VAREXT": "1",
+        },
+        "photometry": {
+            "MODEL": "EPSF",
+            "FWHM": "7.0",
+            "THRESHOLD": "50",
+            "FIT_SHAPE": "(15, 15)",
+            "RADIUS": "4",
+            "BKGWINDOWS": "(10, 20)",
+            "SAVE_MAGNITUDE": "Y",
+        },
+    }
+
+    fname = Path("test.fits")
+
+    positions = Table({
+        "x_0": [10.0, 20.0],
+        "y_0": [15.0, 25.0],
+    })
+
+    data = np.ones((100, 100))
+    var = np.ones((100, 100))
+
+    mock_getdata.side_effect = [data, var]
+
+    # Mock ePSF
+    epsf = Mock()
+    mock_make_epsf.return_value = epsf
+
+    # Mock background
+    bkgstat = Mock()
+    mock_mmm_background.return_value = bkgstat
+
+    local_bkg = Mock()
+    mock_local_background.return_value = local_bkg
+
+    # Mock PSF photometry
+    psfphot = Mock()
+
+    phot = Table({
+        "x_fit": [10.0, 20.0],
+        "y_fit": [15.0, 25.0],
+        "flux_fit": [1000.0, 2000.0],
+    })
+
+    psfphot.return_value = phot
+    psfphot.make_residual_image.return_value = np.zeros((100, 100))
+
+    mock_psf_photometry.return_value = psfphot
+    mock_save_photometry.return_value = Path("test.phot.fits")
+
+    result = psf_photometry_subrot(
+        config,
+        fname,
+        positions,
+    )
+
+    # Check make_epsf call
+
+    assert mock_make_epsf.call_count == 1
+
+    epsf_args = mock_make_epsf.call_args
+
+    np.testing.assert_array_equal(
+        epsf_args.args[0],
+        data,
+    )
+
+    np.testing.assert_array_equal(
+        epsf_args.kwargs["err"],
+        np.sqrt(var),
+    )
+
+    assert epsf_args.kwargs["star_positions"] is positions
+    assert epsf_args.kwargs["fwhm"] == 7.0
+    assert epsf_args.kwargs["threshold"] == 50.0
+    assert epsf_args.kwargs["fit_shape"] == (15, 15)
+    assert epsf_args.kwargs["aperture_radius"] == 4.0
+    assert epsf_args.kwargs["plot_fname"] == Path("test_epsf.pdf")
+
+    # The returned ePSF should be passed to PSFPhotometry
+    mock_psf_photometry.assert_called_once_with(
+        epsf,
+        (15, 15),
+        local_bkg_estimator=local_bkg,
+        aperture_radius=4.0,
+        progress_bar=True,
+    )
+
+    assert result == Path("test.phot.fits")
 # End
