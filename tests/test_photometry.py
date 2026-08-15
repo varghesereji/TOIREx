@@ -18,7 +18,7 @@ from toirex.photometry import make_epsf
 from toirex.photometry import psf_photometry_subrot
 from toirex.photometry import save_to_wcs
 from toirex.photometry import get_centroids
-
+from toirex.photometry import photometry_extraction
 
 @patch("toirex.photometry.get_logger")
 def test_calculate_snr_aperture(mock_get_logger):
@@ -1409,4 +1409,99 @@ def test_get_centroids_read(mock_read_txt_file, tmp_path):
     ]
 
     assert result == expected
+
+
+@patch("toirex.photometry.save_to_wcs")
+@patch("toirex.photometry.psf_photometry_subrot")
+@patch("toirex.photometry.get_centroids")
+@patch("toirex.photometry.targetfind_auto")
+@patch("toirex.photometry.read_txt_file")
+@patch("toirex.photometry.table_to_centroids")
+@patch("toirex.photometry.get_logger")
+def test_photometry_extraction_auto_psf(
+        mock_get_logger,
+        mock_table_to_centroids,
+        mock_read_txt_file,
+        mock_targetfind_auto,
+        mock_get_centroids,
+        mock_psf_photometry,
+        mock_save_to_wcs,
+        tmp_path):
+
+    """Test automatic source finding with PSF photometry."""
+
+    config = {
+        "outputs": {
+            "OP_DIR": str(tmp_path),
+        },
+        "photometry": {
+            "RADIUS": "10",
+            "BKGWINDOWS": "(15, 20)",
+            "SOURCELIST": "sources.txt",
+            "EDITSOURCE": "NO",
+            "FINDSOURCE": "AUTO",
+            "FWHM": "7",
+            "THRESHOLD": "50",
+            "METHOD": "PSF",
+        },
+    }
+
+    dirname = "group1"
+
+    opdir = tmp_path / dirname
+    opdir.mkdir()
+
+    # Create group file
+    groupfile = opdir / "Readytoextract_group1.txt"
+    groupfile.write_text("frame1.fits\n")
+
+    # Contents of group file
+    mock_read_txt_file.return_value = [
+        ["frame1.fits"]
+    ]
+
+    # Sources returned by automatic source finding
+    centroids = Table({
+        "x_0": [10.0, 20.0],
+        "y_0": [15.0, 25.0],
+    })
+
+    mock_targetfind_auto.return_value = centroids
+
+    # Output of PSF photometry
+    phot_output = opdir / "frame1.phot.fits"
+    mock_psf_photometry.return_value = phot_output
+
+    photometry_extraction(config, dirname)
+
+    frame = opdir / "frame1.fits"
+    plot_dir = opdir / "Photometry_plots"
+
+    # Check automatic source finding
+    mock_targetfind_auto.assert_called_once_with(
+        frame,
+        fwhm=7.0,
+        threshold=50.0,
+        show_plot=True,
+        plot_dirs=plot_dir,
+        aperture_radii=(10.0, 15.0, 20.0),
+    )
+
+    # Source positions should be written
+    mock_get_centroids.assert_called_once_with(
+        opdir / "sources.txt",
+        purpose="write",
+        new_centroids=centroids,
+    )
+
+    # Check PSF photometry
+    mock_psf_photometry.assert_called_once_with(
+        config,
+        frame,
+        positions=centroids,
+        plot_dirs=plot_dir,
+    )
+
+    # Check WCS conversion
+    mock_save_to_wcs.assert_called_once_with(phot_output)
 # End
