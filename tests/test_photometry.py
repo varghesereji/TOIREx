@@ -13,6 +13,7 @@ from toirex.photometry import _make_daostarfinder
 from toirex.photometry import targetfind_auto
 from toirex.photometry import targetfind_manual
 from toirex.photometry import aperture_photometry_subrot
+from toirex.photometry import make_epsf
 
 
 @patch("toirex.photometry.get_logger")
@@ -576,4 +577,148 @@ def test_aperture_photometry_subrot(mock_get_logger,
     # Check return value
     assert result == Path("test.phot.fits")
 
+
+@patch("toirex.photometry.plot_epsf")
+@patch("toirex.photometry.EPSFBuilder")
+@patch("toirex.photometry.extract_stars")
+@patch("toirex.photometry.PSFPhotometry")
+@patch("toirex.photometry.CircularGaussianSigmaPRF")
+@patch("toirex.photometry.get_logger")
+def test_make_epsf(mock_get_logger,
+                   mock_psf_model,
+                   mock_psf_photometry,
+                   mock_extract_stars,
+                   mock_epsf_builder,
+                   mock_plot_epsf):
+    """Test ePSF construction from supplied star positions."""
+
+    frame = np.ones((100, 100))
+    err = np.ones((100, 100))
+
+    star_positions = np.array([
+        [10.0, 20.0],
+        [30.0, 40.0],
+        [50.0, 60.0],
+        [70.0, 80.0],
+        [20.0, 70.0],
+        [40.0, 30.0],
+        [60.0, 50.0],
+        [80.0, 20.0],
+        [25.0, 25.0],
+        [75.0, 75.0],
+    ])
+
+    # Mock PSF model
+    psf_model = Mock()
+    mock_psf_model.return_value = psf_model
+
+    # Mock PSF photometry
+    psfphot = Mock()
+
+    phot = Table({
+        "flags": [0] * 10,
+        "flux_init": [
+            10.0, 20.0, 30.0, 40.0, 50.0,
+            60.0, 70.0, 80.0, 90.0, 100.0,
+        ],
+        "x_fit": [
+            10.0, 20.0, 30.0, 40.0, 50.0,
+            60.0, 70.0, 80.0, 90.0, 100.0,
+        ],
+        "y_fit": [
+            11.0, 21.0, 31.0, 41.0, 51.0,
+            61.0, 71.0, 81.0, 91.0, 101.0,
+        ],
+    })
+
+    psfphot.return_value = phot
+    mock_psf_photometry.return_value = psfphot
+
+    # Mock extracted stars
+    epsf_stars = [Mock()] * 5
+    mock_extract_stars.return_value = epsf_stars
+
+    # Mock EPSFBuilder
+    epsf = Mock()
+    fitted_stars = Mock()
+
+    epsf_builder = Mock(return_value=(epsf, fitted_stars))
+    mock_epsf_builder.return_value = epsf_builder
+
+    plot_fname = "epsf_plot.pdf"
+
+    result = make_epsf(
+        frame,
+        err=err,
+        star_positions=star_positions,
+        aperture_radius=4,
+        fwhm=7.0,
+        threshold=50,
+        cutout_size=25,
+        fit_shape=(15, 15),
+        oversample=4,
+        plot_fname=plot_fname,
+    )
+
+    # Check PSF model
+    mock_psf_model.assert_called_once_with(
+        flux=1,
+        sigma=7.0 / 2.355,
+    )
+
+    # DAOStarFinder should not be created when positions are supplied
+    # (there is no _make_daostarfinder mock in this test).
+
+    # Check PSFPhotometry
+    mock_psf_photometry.assert_called_once_with(
+        psf_model,
+        (15, 15),
+        finder=None,
+        aperture_radius=4,
+    )
+
+    psfphot.assert_called_once_with(
+        frame,
+        error=err,
+        init_params=star_positions,
+    )
+
+    # 90th percentile of the fluxes is 91.
+    # Therefore only the source with flux_init=100 is selected.
+    #
+    # Check that extract_stars receives the selected position.
+    extract_table = mock_extract_stars.call_args.args[1]
+
+    np.testing.assert_array_equal(
+        extract_table["x"],
+        [100.0],
+    )
+
+    np.testing.assert_array_equal(
+        extract_table["y"],
+        [101.0],
+    )
+
+    assert mock_extract_stars.call_args.kwargs["size"] == 25
+
+    # Check EPSFBuilder
+    mock_epsf_builder.assert_called_once_with(
+        oversampling=4,
+        smoothing_kernel="quadratic",
+        recentering_maxiters=10,
+        maxiters=10,
+        progress_bar=True,
+    )
+
+    epsf_builder.assert_called_once_with(epsf_stars)
+
+    # Check plot
+    mock_plot_epsf.assert_called_once_with(
+        epsf,
+        fitted_stars,
+        plot_fname=plot_fname,
+    )
+
+    # Check return value
+    assert result is epsf
 # End
