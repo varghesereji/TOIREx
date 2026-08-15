@@ -12,6 +12,7 @@ from toirex.photometry import save_photometry
 from toirex.photometry import _make_daostarfinder
 from toirex.photometry import targetfind_auto
 from toirex.photometry import targetfind_manual
+from toirex.photometry import aperture_photometry_subrot
 
 
 @patch("toirex.photometry.get_logger")
@@ -346,5 +347,233 @@ def test_targetfind_manual(mock_get_logger, mock_imageplot, tmp_path):
         )
 
 
+@patch("toirex.photometry.save_photometry")
+@patch("toirex.photometry.aperture_photometry")
+@patch("toirex.photometry.fits.getdata")
+@patch("toirex.photometry.CircularAnnulus")
+@patch("toirex.photometry.CircularAperture")
+@patch("toirex.photometry.get_logger")
+def test_aperture_photometry_subrot(mock_get_logger,
+                                    mock_circular_aperture,
+                                    mock_circular_annulus,
+                                    mock_getdata,
+                                    mock_aperture_photometry,
+                                    mock_save_photometry):
+    """Test aperture photometry."""
+
+    config = {
+        "photometry": {
+            "APERTURE": "CircularAperture",
+            "ANNULUS": "CircularAnnulus",
+            "RADIUS": "10",
+            "BKGWINDOWS": "(15, 20)",
+            "SAVE_MAGNITUDE": "Y",
+        },
+        "inputs": {
+            "FLUXEXT": "0",
+            "VAREXT": "1",
+        },
+    }
+
+    positions = Table({
+        "x_0": [10.0, 20.0],
+        "y_0": [15.0, 25.0],
+    })
+
+    fname = Path("test.fits")
+
+    data = np.ones((100, 100))
+    var = np.ones((100, 100))
+
+    mock_getdata.side_effect = [data, var]
+
+    # Mock aperture
+    aperture = Mock()
+    aperture.area = 100.0
+    mock_circular_aperture.return_value = aperture
+
+    # Mock annulus
+    annulus_aperture = Mock()
+
+    mask1 = Mock()
+    mask1.data = np.ones((2, 2), dtype=bool)
+    mask1.multiply.side_effect = [
+        np.array([
+            [10.0, 10.0],
+            [10.0, 10.0],
+        ]),
+        np.array([
+            [1.0, 1.0],
+            [1.0, 1.0],
+        ]),
+    ]
+
+    mask2 = Mock()
+    mask2.data = np.ones((2, 2), dtype=bool)
+    mask2.multiply.side_effect = [
+        np.array([
+            [20.0, 20.0],
+            [20.0, 20.0],
+        ]),
+        np.array([
+            [1.0, 1.0],
+            [1.0, 1.0],
+        ]),
+    ]
+
+    annulus_aperture.to_mask.return_value = [mask1, mask2]
+    mock_circular_annulus.return_value = annulus_aperture
+
+    # Mock aperture photometry result
+    phot = Table({
+        "xcenter": [10.0, 20.0],
+        "ycenter": [15.0, 25.0],
+        "aperture_sum": [1000.0, 2000.0],
+        "aperture_sum_err": [10.0, 20.0],
+    })
+
+    mock_aperture_photometry.return_value = phot
+
+    mock_save_photometry.return_value = Path("test.phot.fits")
+
+    result = aperture_photometry_subrot(
+        config,
+        fname,
+        positions,
+    )
+
+    # Check aperture positions and radius
+    expected_positions = np.array([
+        [10.0, 15.0],
+        [20.0, 25.0],
+    ])
+
+    assert mock_circular_aperture.call_count == 1
+
+    aperture_args = mock_circular_aperture.call_args
+
+    np.testing.assert_array_equal(
+        aperture_args.args[0],
+        expected_positions,
+        )
+
+    assert aperture_args.kwargs["r"] == 10.0
+
+    # Check annulus positions and radii
+
+    assert mock_circular_annulus.call_count == 1
+
+    annulus_args = mock_circular_annulus.call_args
+
+    np.testing.assert_array_equal(
+        annulus_args.args[0],
+        expected_positions,
+        )
+
+    assert annulus_args.kwargs["r_in"] == 15.0
+    assert annulus_args.kwargs["r_out"] == 20.0
+
+    # Check input data
+    assert mock_getdata.call_count == 2
+
+    mock_getdata.assert_any_call(
+        fname,
+        ext=0,
+    )
+
+    mock_getdata.assert_any_call(
+        fname,
+        ext=1,
+    )
+
+    # Check aperture photometry
+    mock_aperture_photometry.assert_called_once()
+
+    call_args = mock_aperture_photometry.call_args
+
+    assert np.array_equal(
+        call_args.args[0],
+        data,
+    )
+
+    assert call_args.args[1] is aperture
+
+    np.testing.assert_array_equal(
+        call_args.kwargs["error"],
+        np.sqrt(var),
+    )
+
+    # Check the photometry table before saving
+    saved_phot = mock_save_photometry.call_args.args[1]
+
+    assert "bkg" in saved_phot.colnames
+    assert "bkg_var" in saved_phot.colnames
+    assert "bkg_sum" in saved_phot.colnames
+    assert "bkg_var_sum" in saved_phot.colnames
+    assert "flux_net" in saved_phot.colnames
+    assert "var_net" in saved_phot.colnames
+    assert "x_fit" in saved_phot.colnames
+    assert "y_fit" in saved_phot.colnames
+
+    # Check background calculation
+    np.testing.assert_array_equal(
+        saved_phot["bkg"],
+        [10.0, 20.0],
+    )
+
+    np.testing.assert_array_equal(
+        saved_phot["bkg_var"],
+        [0.25, 0.25],
+    )
+
+    # bkg_sum = bkg * aperture area
+    np.testing.assert_array_equal(
+        saved_phot["bkg_sum"],
+        [1000.0, 2000.0],
+    )
+
+    # bkg_var_sum = bkg_var * aperture area
+    np.testing.assert_array_equal(
+        saved_phot["bkg_var_sum"],
+        [25.0, 25.0],
+    )
+
+    # flux_net = aperture_sum - bkg_sum
+    np.testing.assert_array_equal(
+        saved_phot["flux_net"],
+        [0.0, 0.0],
+    )
+
+    # var_net = aperture_sum_err² + bkg_var_sum
+    np.testing.assert_array_equal(
+        saved_phot["var_net"],
+        [125.0, 425.0],
+    )
+
+    # Check column renaming
+    assert "xcenter" not in saved_phot.colnames
+    assert "ycenter" not in saved_phot.colnames
+
+    np.testing.assert_array_equal(
+        saved_phot["x_fit"],
+        [10.0, 20.0],
+    )
+
+    np.testing.assert_array_equal(
+        saved_phot["y_fit"],
+        [15.0, 25.0],
+    )
+
+    # Check save_magnitude and save_photometry arguments
+    mock_save_photometry.assert_called_once_with(
+        fname,
+        saved_phot,
+        history="Aperture photometry table added on file update.",
+        save_magnitude=True,
+        flext=0,
+    )
+
+    # Check return value
+    assert result == Path("test.phot.fits")
 
 # End
