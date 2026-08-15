@@ -231,7 +231,7 @@ def aperture_photometry_subrot(config, fname, positions):
         r_in = annulus[0]
         r_out = annulus[1]
         annulus_apertures = CircularAnnulus(positions, r_in=r_in, r_out=r_out)
-    elif config['photometry']['ANNUSUS'] == 'EllipticalAnnulus':
+    elif config['photometry']['ANNULUS'] == 'EllipticalAnnulus':
         if len(annulus) == 4:
             theta = 0
             a_in, b_in, a_out, b_out = annulus
