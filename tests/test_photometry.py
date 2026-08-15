@@ -11,6 +11,7 @@ from toirex.photometry import calculate_magnitude
 from toirex.photometry import save_photometry
 from toirex.photometry import _make_daostarfinder
 from toirex.photometry import targetfind_auto
+from toirex.photometry import targetfind_manual
 
 
 @patch("toirex.photometry.get_logger")
@@ -128,6 +129,7 @@ def test_save_aperturephotometry(mock_get_logger, tmp_path):
         np.testing.assert_allclose(phot['snr'], expected_snr)
         np.testing.assert_allclose(phot['mag'], expected_mags)
         np.testing.assert_allclose(phot['mag_err'], expected_magerrs)
+
 
 @patch("toirex.photometry.get_logger")
 def test_save_psfphotometry(mock_get_logger, tmp_path):
@@ -292,4 +294,57 @@ def test_targetfind_auto(mock_get_logger,
         result["y_0"],
         [15.0, 25.0],
     )
+
+
+@patch("toirex.photometry.imageplot")
+@patch("toirex.photometry.get_logger")
+def test_targetfind_manual(mock_get_logger, mock_imageplot, tmp_path):
+    """Test manual source selection."""
+
+    fname = tmp_path / "test.fits"
+
+    centroids_0 = np.array([
+        [10.0, 20.0],
+        [30.0, 40.0],
+        [50.0, 60.0],
+        ])
+
+    mock_imageplot.return_value = np.array([
+        [11.0, 21.0],
+        [31.0, 41.0],
+        ])
+
+    result = targetfind_manual(
+        fname,
+        centroids_0,
+        aperture_radii=(10, 15, 20),
+        plot_dirs=tmp_path,
+        )
+
+    mock_get_logger.return_value.info.assert_called_once_with(
+        f"Manual finding sources in {str(fname)}"
+        )
+
+    plot_name = tmp_path / "test_selectedsources.pdf"
+
+    mock_imageplot.assert_called_with(
+        fname,
+        ext=0,
+        title="Select sources",
+        line_profile="aperture",
+        get_target=False,
+        centroid_list=centroids_0,
+        save_plot=plot_name,
+        aperture_radii=(10, 15, 20),
+        )
+
+    assert "x_0" in result.colnames
+    assert "y_0" in result.colnames
+    np.testing.assert_array_equal(
+        result["x_0"],
+        [21.0, 41.0],
+        )
+
+
+
 # End
