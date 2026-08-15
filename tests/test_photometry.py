@@ -1298,4 +1298,87 @@ def test_save_to_wcs(mock_fits_open,
         overwrite=True,
     )
 
+@patch("toirex.photometry.calculate_magnitude")
+@patch("toirex.photometry.calculate_snr")
+@patch("toirex.photometry.get_logger")
+@patch("toirex.photometry.fits.HDUList")
+@patch("toirex.photometry.fits.PrimaryHDU")
+@patch("toirex.photometry.fits.BinTableHDU")
+@patch("toirex.photometry.fits.getheader")
+def test_save_photometry(mock_getheader,
+                         mock_bintablehdu,
+                         mock_primaryhdu,
+                         mock_hdulist,
+                         mock_get_logger,
+                         mock_calculate_snr,
+                         mock_calculate_magnitude):
+    """Test saving a photometry table to a FITS file."""
+
+    fname = Path("test.fits")
+
+    phot_table = Table({
+        "x_fit": [10.0, 20.0],
+        "y_fit": [15.0, 25.0],
+        "flux_fit": [100.0, 200.0],
+    })
+
+    header = fits.Header()
+    mock_getheader.return_value = header
+
+    table_hdu = Mock()
+    primary_hdu = Mock()
+    hdul = Mock()
+
+    mock_bintablehdu.return_value = table_hdu
+    mock_primaryhdu.return_value = primary_hdu
+    mock_hdulist.return_value = hdul
+
+    result = save_photometry(
+        fname,
+        phot_table,
+        history="Test photometry",
+        save_magnitude=True,
+        flext=1,
+    )
+
+    # Check header was read from the requested extension
+    mock_getheader.assert_called_once_with(fname, ext=1)
+
+    # SNR should always be calculated
+    mock_calculate_snr.assert_called_once_with(phot_table)
+
+    # Magnitude should be calculated when requested
+    mock_calculate_magnitude.assert_called_once_with(phot_table)
+
+    # Check the photometry table HDU
+    mock_bintablehdu.assert_called_once_with(
+        phot_table,
+        name="PHOTOMETRY",
+    )
+
+    # Check primary HDU
+    mock_primaryhdu.assert_called_once_with(
+        header=header,
+    )
+
+    # Check HDUList
+    mock_hdulist.assert_called_once_with(
+        [primary_hdu, table_hdu]
+    )
+
+    # Check history entries
+    assert "Calculated signal-to-noise ratio of each source" in header["HISTORY"]
+    assert "Calculated instrument magnitude" in header["HISTORY"]
+    assert "Test photometry" in header["HISTORY"]
+
+    # Check output filename
+    expected_output = Path("test.phot.fits")
+
+    hdul.writeto.assert_called_once_with(
+        expected_output,
+        overwrite=True,
+    )
+
+    # Check returned filename
+    assert result == expected_output
 # End
