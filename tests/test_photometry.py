@@ -1359,6 +1359,67 @@ def test_find_sources_auto(
     assert result is expected_centroids
 
 
+@patch("toirex.photometry.get_logger")
+@patch("toirex.photometry.get_centroids")
+@patch("toirex.photometry.targetfind_manual")
+def test_find_sources_manual(
+        mock_targetfind_manual,
+        mock_get_centroids,
+        mock_get_logger,
+        tmp_path
+):
+    """Test manual source finding."""
+
+    config = {
+        "photometry": {
+            "RADIUS": "10",
+            "BKGWINDOWS": "(15, 20)",
+            "SOURCELIST": "sources.txt",
+            "EDITSOURCE": "NO",
+            "FINDSOURCE": "MANUAL",
+        }
+    }
+
+    frametoextract = tmp_path / "frame1.fits"
+    plot_dir = tmp_path / "Photometry_plots"
+
+    initial_centroids = [(10, 15), (20, 25)]
+    final_centroids = [(11, 16), (21, 26)]
+
+    mock_get_centroids.side_effect = [
+        initial_centroids,
+        None,
+    ]
+
+    mock_targetfind_manual.return_value = final_centroids
+
+    result = find_sources(
+        config,
+        frametoextract,
+        plot_dir
+    )
+
+    mock_get_centroids.assert_any_call(
+        tmp_path / "sources.txt",
+        purpose="read"
+    )
+
+    mock_targetfind_manual.assert_called_once_with(
+        frametoextract,
+        centroids_0=initial_centroids,
+        aperture_radii=(10.0, 15, 20),
+        plot_dirs=plot_dir,
+    )
+
+    mock_get_centroids.assert_called_with(
+        tmp_path / "sources.txt",
+        purpose="write",
+        new_centroids=final_centroids,
+    )
+
+    assert result == final_centroids
+
+
 @patch("toirex.photometry.calculate_magnitude")
 @patch("toirex.photometry.calculate_snr")
 @patch("toirex.photometry.get_logger")
