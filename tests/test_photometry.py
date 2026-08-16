@@ -21,6 +21,7 @@ from toirex.photometry import get_centroids
 from toirex.photometry import find_sources
 from toirex.photometry import photometry_extraction
 from toirex.photometry import extract_photometry
+from toirex.photometry import phot_process
 
 
 @patch("toirex.photometry.get_logger")
@@ -1634,6 +1635,63 @@ def test_extract_photometry_aperture(
 # -------------------------------------------------
 # Tests for extraction
 # -------------------------------------------------
+
+
+@patch("toirex.photometry.get_logger")
+@patch("toirex.photometry.save_to_wcs")
+@patch("toirex.photometry.extract_photometry")
+@patch("toirex.photometry.find_sources")
+def test_phot_process(
+        mock_find_sources,
+        mock_extract_photometry,
+        mock_save_to_wcs,
+        mock_get_logger,
+        tmp_path
+):
+    """Test the photometry processing workflow."""
+
+    config = {
+        "photometry": {
+            "METHOD": "PSF",
+        }
+    }
+
+    frametoextract = "frame1.fits"
+
+    expected_centroids = Table({
+        "x": [10.0, 20.0],
+        "y": [15.0, 25.0],
+    })
+
+    expected_output = tmp_path / "photometry.fits"
+
+    mock_find_sources.return_value = expected_centroids
+    mock_extract_photometry.return_value = expected_output
+
+    phot_process(
+        config,
+        frametoextract,
+        tmp_path
+    )
+
+    plot_dir = tmp_path / "Photometry_plots"
+
+    mock_find_sources.assert_called_once_with(
+        config,
+        tmp_path / frametoextract,
+        plot_dir
+    )
+
+    mock_extract_photometry.assert_called_once_with(
+        config,
+        tmp_path / frametoextract,
+        expected_centroids,
+        plot_dir
+    )
+
+    mock_save_to_wcs.assert_called_once_with(
+        expected_output
+    )
 
 
 @patch("toirex.photometry.read_txt_file")
