@@ -1276,7 +1276,7 @@ def extract_photometry(
 
 
 def phot_process(config,
-                 frametoextract,
+                 filename,
                  opdir=None,
                  output_filename=None):
     """
@@ -1293,7 +1293,7 @@ def phot_process(config,
     config : dict
         Configuration dictionary containing the photometry settings.
 
-    frametoextract : str or pathlib.Path
+    filename : str or pathlib.Path
         Name or path of the frame to be processed. If ``opdir`` is
         provided, the frame is interpreted relative to that directory.
 
@@ -1302,7 +1302,7 @@ def phot_process(config,
         products and plots will be saved. If ``None``, the parent
         directory of ``frametoextract`` is used.
 
-    output_fname : str or pathlib.Path, optional
+    output_filename : str or pathlib.Path, optional
         Output filename for the photometry FITS file. If ``None``, the
         output filename is generated from ``fname`` by replacing its
         extension with ``".phot.fits"``.
@@ -1316,14 +1316,14 @@ def phot_process(config,
 
     logger = get_logger("photometry")
 
-    frametoextract = Path(frametoextract)
+    filename = Path(filename)
     if opdir is None:
-        opdir = frametoextract.parent
+        opdir = filename.parent
 
     else:
         opdir = Path(opdir)
 
-    frametoextract = opdir / frametoextract
+    filename = opdir / filename
 
     # Making directory to save plots
     plot_dir = opdir / "Photometry_plots"
@@ -1331,13 +1331,13 @@ def phot_process(config,
 
     centroids = find_sources(
         config,
-        frametoextract,
+        filename,
         plot_dir
         )
 
     withphot = extract_photometry(
         config,
-        frametoextract,
+        filename,
         centroids,
         plot_dir,
         output_filename=output_filename
