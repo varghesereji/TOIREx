@@ -53,7 +53,11 @@ _DAOSTARFINDER_SUPPORTS_N_BRIGHTEST = (
 # -----------------------------
 
 
-def _make_daostarfinder(fwhm, threshold, n_brightest, **kwargs):
+def _make_daostarfinder(fwhm,
+                        threshold,
+                        n_brightest,
+                        **kwargs):
+
     if _DAOSTARFINDER_SUPPORTS_N_BRIGHTEST:
         return DAOStarFinder(
             fwhm=fwhm,
@@ -131,14 +135,21 @@ def targetfind_auto(fname,
     y_key = "y_centroid" if "y_centroid" in sources.colnames else "ycentroid"
 
     centroids = table_to_centroids(sources, keys=(y_key, x_key))
+
     plot_name = fname.with_name(f"{fname.stem}_autoselectedsources.pdf")
     plot_name = Path(plot_dirs) / plot_name.name
-    imageplot(fname, ext=0, title="Sources found",
-              line_profile="aperture", get_target=False,
-              centroid_list=centroids,
-              save_plot=plot_name,
-              show_plot=show_plot,
-              aperture_radii=aperture_radii)
+
+    imageplot(
+        fname, ext=0,
+        title="Sources found",
+        line_profile="aperture",
+        get_target=False,
+        centroid_list=centroids,
+        save_plot=plot_name,
+        show_plot=show_plot,
+        aperture_radii=aperture_radii
+    )
+
     positions = Table()
     positions['x_0'] = sources[x_key]
     positions['y_0'] = sources[y_key]
@@ -192,7 +203,9 @@ def targetfind_manual(fname,
 # -----------------------------
 
 
-def aperture_photometry_subrot(config, fname, positions):
+def aperture_photometry_subrot(config,
+                               fname,
+                               positions):
     """
     Perform aperture photometry on the specified sources.
 
@@ -249,50 +262,70 @@ def aperture_photometry_subrot(config, fname, positions):
 
     # Aperture
     if config['photometry']['APERTURE'] == 'CircularAperture':
+
         radius = float(config['photometry']['RADIUS'])
         apertures = CircularAperture(positions, r=radius)
+
     elif config['photometry']['APERTURE'] == 'EllipticalAperture':
+
         aper_qtys = list(float(x)
                          for x in ast.literal_eval(
                                  config['photometry']['RADIUS']
                          )
                          )
+
         if len(aper_qtys) == 2:
+
             print("Taking default value for angle, 0")
             theta = 0
             a, b = aper_qtys
+
         else:
+
             a, b, theta = aper_qtys
             logger.info(f"Angle {theta}")
+
         apertures = EllipticalAperture(positions, a=a, b=b, theta=theta)
+
     # Annulus
     annulus = list(float(x)
                    for x in ast.literal_eval(
                            config['photometry']['BKGWINDOWS']
                    )
                    )
+
     if config['photometry']['ANNULUS'] == 'CircularAnnulus':
+
         r_in = annulus[0]
         r_out = annulus[1]
         annulus_apertures = CircularAnnulus(positions, r_in=r_in, r_out=r_out)
+
     elif config['photometry']['ANNULUS'] == 'EllipticalAnnulus':
+
         if len(annulus) == 4:
+
             theta = 0
             a_in, b_in, a_out, b_out = annulus
+
         else:
+
             a_in, b_in, a_out, b_out, theta = annulus
+
         annulus_apertures = EllipticalAnnulus(positions,
                                               a_in=a_in,
                                               a_out=a_out,
                                               b_in=b_in,
                                               b_out=b_out,
                                               theta=theta)
+
     annulus_masks = annulus_apertures.to_mask()
 
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
+
     try:
         varext = int(varext)
+
     except ValueError:
         print("Using flux array as variance")
         logger.warning("No variance array. Using flux array as variance")
@@ -304,9 +337,11 @@ def aperture_photometry_subrot(config, fname, positions):
     # Aperture
     phot = aperture_photometry(data, apertures,
                                error=np.sqrt(var))
+
     # Background
     bkg_median = []
     bkg_var = []
+
     for mask in annulus_masks:
         annulus_data = mask.multiply(data)
         annulus_var = mask.multiply(var)
@@ -316,8 +351,10 @@ def aperture_photometry_subrot(config, fname, positions):
         var_clip = np.sum(annulus_var_1d) / np.size(annulus_var_1d) ** 2
         bkg_median.append(median_sigclip)
         bkg_var.append(var_clip)
+
     bkg_median = np.array(bkg_median)
     bkg_var = np.array(bkg_var)
+
     phot['bkg'] = bkg_median
     phot['bkg_var'] = bkg_var
     phot['bkg_sum'] = bkg_median * apertures.area
@@ -337,6 +374,7 @@ def aperture_photometry_subrot(config, fname, positions):
         )
 
     logger.info("Aperture Photometry DONE")
+
     return opfname
 
 
@@ -406,13 +444,18 @@ def make_epsf(
     """
     logger = get_logger("photometry")
     logger.info("Building ePSF")
+
     psf_model = CircularGaussianSigmaPRF(flux=1,
                                          sigma=fwhm/2.355)
-    # print("Select bright targets to generate Effective PSF")
+
     print("Building effective PSF")
+
     finder = None
+
     if star_positions is None:
+
         print("Finding the sources for ePSF automatically")
+
         finder = _make_daostarfinder(
             fwhm,
             threshold,
@@ -426,6 +469,7 @@ def make_epsf(
     phot = psfphot(frame,
                    error=err,
                    init_params=star_positions)
+
     good = phot["flags"] == 0
     phot = phot[good]
 
@@ -440,8 +484,10 @@ def make_epsf(
     epsf_stars_tbl = Table()
     epsf_stars_tbl['x'] = x[mask]
     epsf_stars_tbl['y'] = y[mask]
+
     nddata = NDData(data=frame,
                     uncertainty=StdDevUncertainty(err))
+
     epsf_stars = extract_stars(nddata, epsf_stars_tbl,
                                size=cutout_size)
     if len(epsf_stars) < 5:
@@ -451,25 +497,34 @@ def make_epsf(
             "Consider using a Gaussian PSF "
             "model or selecting more bright, isolated stars."
             )
+
         warnings.warn(
             msg,
             UserWarning,
             stacklevel=2,
         )
         logger.warning(msg)
+
     logger.info("Building ePSF")
+
     epsf_builder = EPSFBuilder(oversampling=oversample,
                                smoothing_kernel='quadratic',
                                recentering_maxiters=10,
                                maxiters=10,
                                progress_bar=True)
+
     epsf, fitted_stars = epsf_builder(epsf_stars)
+
     logger.info(f"ePSF plot saved as {plot_fname}")
+
     plot_epsf(epsf, fitted_stars, plot_fname=plot_fname)
+
     return epsf
 
 
-def psf_photometry_subrot(config, fname, positions,
+def psf_photometry_subrot(config,
+                          fname,
+                          positions,
                           plot_dirs="."):
     """
     Perform PSF photometry on sources in a FITS image.
@@ -516,20 +571,25 @@ def psf_photometry_subrot(config, fname, positions,
     logger = get_logger("photometry")
 
     print("Doing PSF Photometry")
+
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
 
     fit_shape = ast.literal_eval(config['photometry']['FIT_SHAPE'])
     radius = float(config['photometry']['RADIUS'])
     bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
+
     logger.info(f"Radius: {config['photometry']['RADIUS']}")
     logger.info(f"Bkg Annulus: {config['photometry']['BKGWINDOWS']}")
     logger.info(f"fit_shape: {fit_shape}")
+
     try:
         varext = int(varext)
+
     except ValueError:
         print("Using flux array as variance")
         logger.warning("No variance array. Using flux array as variance")
+
         varext = flext
 
     # Reading data
@@ -538,6 +598,7 @@ def psf_photometry_subrot(config, fname, positions,
     error = np.sqrt(var)
 
     logger.info(f"PSF model: {config['photometry']['MODEL']}")
+
     # Making PSF
     if config['photometry']['MODEL'] == 'CircularGaussianPSF':
         fwhm = float(config['photometry']['FWHM'])
@@ -702,7 +763,9 @@ def save_to_wcs(final_fname):
 # -----------------------------
 
 
-def save_photometry(fname, phot_table, history="Photometry table added",
+def save_photometry(fname,
+                    phot_table,
+                    history="Photometry table added",
                     save_magnitude=True,
                     flext=0):
     """
@@ -769,32 +832,41 @@ def save_photometry(fname, phot_table, history="Photometry table added",
 # -----------------------------
 
 
-def get_centroids(filename, purpose='read', new_centroids=None):
-    '''
+def get_centroids(filename,
+                  purpose='read',
+                  new_centroids=None):
+    """
     if purpose == "read", new centroids will not be taken.
     Otherwise, write the text file with new_centroids
-    '''
+    """
     if purpose == 'read':
+
         if not filename.exists():
             return None
+
         else:
             centroids = read_txt_file(filename)
+
             # convert y, x to float
             for i, loc in enumerate(centroids):
                 centroids[i][0] = float(loc[0])
                 centroids[i][1] = float(loc[1])
-            # print(centroids)
+
             if len(centroids) == 0:
                 return None
+
             else:
                 return centroids
+
     elif purpose == 'write':
+
         targets_txt = open(filename, 'w')
         new_centroids = [list(row)[::-1] for row in new_centroids]
-        # print(new_centroids)
+
         for loc in new_centroids:
             loc_line = " ".join(map(str, loc)) + "\n"
             targets_txt.write(loc_line)
+
         targets_txt.close()
         print("Updated the selected sources list")
 
@@ -1111,7 +1183,8 @@ def extract_photometry(
 # -----------------------------
 
 
-def phot_process(config, frametoextract,
+def phot_process(config,
+                 frametoextract,
                  opdir=None):
     """
     Perform the complete photometry processing for a single frame.
@@ -1175,7 +1248,8 @@ def phot_process(config, frametoextract,
     save_to_wcs(withphot)
 
 
-def photometry_extraction(config, dirname):
+def photometry_extraction(config,
+                          dirname):
     """
     Perform photometry extraction for all frames in a directory.
 
