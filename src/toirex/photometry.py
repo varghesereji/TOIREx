@@ -366,19 +366,6 @@ def aperture_photometry_subrot(config,
 
     return phot
 
-    save_magnitude = config['photometry']['SAVE_MAGNITUDE'] == 'Y'
-
-    opfname = save_photometry(
-        fname, phot,
-        history="Aperture photometry table added on file update.",
-        save_magnitude=save_magnitude,
-        flext=flext
-        )
-
-    logger.info("Aperture Photometry DONE")
-
-    return opfname
-
 
 # -----------------------------
 # PSF photometry
@@ -667,17 +654,6 @@ def psf_photometry_subrot(config,
                      show_plot=True)
 
     return phot
-
-    save_magnitude = config['photometry']['SAVE_MAGNITUDE'] == 'Y'
-
-    opfname = save_photometry(
-        fname, phot,
-        history='PSF photometry table added on file update.',
-        save_magnitude=save_magnitude,
-        flext=flext
-    )
-    logger.info("PSF Photometry DONE")
-    return opfname
 
 
 # -----------------------------
@@ -1181,6 +1157,9 @@ def extract_photometry(
                                                 positions=centroids)
         logger.info("Aperture Photometry DONE")
         history = "Aperture photometry table added on file update."
+
+    save_magnitude = config['photometry']['SAVE_MAGNITUDE'] == 'Y'
+    flext = int(config['inputs']['FLUXEXT'])
 
     withphot = save_photometry(
         frametoextract,
