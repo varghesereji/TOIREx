@@ -964,6 +964,45 @@ def extract_photometry(
         centroids,
         plot_dir
 ):
+    """
+    Perform photometry extraction using the configured method.
+
+    The photometry method is selected from the ``METHOD`` entry in the
+    photometry configuration. PSF photometry is performed using
+    :func:`psf_photometry_subrot`, while aperture photometry is performed
+    using :func:`aperture_photometry_subrot`.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing the photometry settings,
+        including the photometry method.
+
+    frametoextract : str or pathlib.Path
+        Path to the frame from which photometry is to be extracted.
+
+    centroids : astropy.table.Table or array-like
+        Coordinates of the sources for which photometry is to be
+        extracted.
+
+    plot_dir : str or pathlib.Path
+        Directory where plots generated during PSF photometry are saved.
+
+    Returns
+    -------
+    str or pathlib.Path
+        Path to the file containing the extracted photometry.
+
+    Raises
+    ------
+    KeyError
+        If the ``photometry`` section or ``METHOD`` entry is missing
+        from ``config``.
+
+    ValueError
+        If ``METHOD`` is neither ``'PSF'`` nor ``'Aperture'``.
+    """
+
     logger = get_logger('photometry')
 
     # Doing photometry
