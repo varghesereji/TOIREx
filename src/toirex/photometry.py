@@ -1169,9 +1169,13 @@ def extract_photometry(
         withphot = psf_photometry_subrot(config, frametoextract,
                                          positions=centroids,
                                          plot_dirs=plot_dir)
+        logger.info("PSF Photometry DONE")
+
     elif config['photometry']['METHOD'] == 'Aperture':
         withphot = aperture_photometry_subrot(config, frametoextract,
                                               positions=centroids)
+        logger.info("Aperture Photometry DONE")
+
     print("Photometry data saved to {}".format(withphot))
     logger.info(f"Output saved as {withphot}")
 
