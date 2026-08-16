@@ -990,11 +990,6 @@ def phot_process(config, frametoextract,
                  opdir=None):
     logger = get_logger("photometry")
 
-    # radius = float(config['photometry']['RADIUS'])
-    # bkgwindows = ast.literal_eval(
-    #     config['photometry']['BKGWINDOWS']
-    # )
-
     frametoextract = Path(frametoextract)
     if opdir is None:
         opdir = frametoextract.parent
