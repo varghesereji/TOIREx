@@ -18,6 +18,7 @@ from toirex.photometry import make_epsf
 from toirex.photometry import psf_photometry_subrot
 from toirex.photometry import save_to_wcs
 from toirex.photometry import get_centroids
+from toirex.photometry import find_sources
 from toirex.photometry import photometry_extraction
 
 
@@ -1299,6 +1300,63 @@ def test_save_to_wcs(mock_fits_open,
         Path("test.phot.wcs.fits"),
         overwrite=True,
     )
+
+
+@patch("toirex.photometry.get_centroids")
+@patch("toirex.photometry.targetfind_auto")
+@patch("toirex.photometry.get_logger")
+def test_find_sources_auto(
+        mock_get_logger,
+        mock_targetfind_auto,
+        mock_get_centroids,
+        tmp_path
+):
+    """Test automatic source finding."""
+
+    config = {
+        "photometry": {
+            "RADIUS": "10",
+            "BKGWINDOWS": "(15, 20)",
+            "SOURCELIST": "sources.txt",
+            "EDITSOURCE": "NO",
+            "FINDSOURCE": "AUTO",
+            "FWHM": "7",
+            "THRESHOLD": "50",
+        }
+    }
+
+    frametoextract = tmp_path / "frame1.fits"
+    plot_dir = tmp_path / "Photometry_plots"
+
+    expected_centroids = Table({
+        "x": [10.0, 20.0],
+        "y": [15.0, 25.0],
+    })
+
+    mock_targetfind_auto.return_value = expected_centroids
+
+    result = find_sources(
+        config,
+        frametoextract,
+        plot_dir
+    )
+
+    mock_targetfind_auto.assert_called_once_with(
+        frametoextract,
+        fwhm=7.0,
+        threshold=50.0,
+        show_plot=True,
+        plot_dirs=plot_dir,
+        aperture_radii=(10.0, 15, 20),
+    )
+
+    mock_get_centroids.assert_called_once_with(
+        tmp_path / "sources.txt",
+        purpose="write",
+        new_centroids=expected_centroids,
+    )
+
+    assert result is expected_centroids
 
 
 @patch("toirex.photometry.calculate_magnitude")
