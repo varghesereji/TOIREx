@@ -1302,6 +1302,10 @@ def test_save_to_wcs(mock_fits_open,
     )
 
 
+# -------------------------------------------------
+# Tests for target finding
+# -------------------------------------------------
+
 @patch("toirex.photometry.get_centroids")
 @patch("toirex.photometry.targetfind_auto")
 @patch("toirex.photometry.get_logger")
