@@ -612,6 +612,15 @@ def save_to_wcs(final_fname):
             )
 
         w = WCS(primary_header)
+
+        if not w.has_celestial:
+            logger.warning(
+                "No celestial WCS information found in %s."
+                "Skipping WCS correction.",
+                final_fname,
+                )
+            return
+
         phot_table = Table(hdul['PHOTOMETRY'].data)
 
         x = phot_table['x_fit']
