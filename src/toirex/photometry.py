@@ -949,6 +949,28 @@ def find_sources(
 # Extraction
 # -----------------------------
 
+def extract_photometry(
+        config,
+        frametoextract,
+        centroids,
+        plot_dir
+):
+    logger = get_logger('photometry')
+
+    # Doing photometry
+    if config['photometry']['METHOD'] == 'PSF':
+        logger.info("Doing PSF Photometry")
+        withphot = psf_photometry_subrot(config, frametoextract,
+                                         positions=centroids,
+                                         plot_dirs=plot_dir)
+    elif config['photometry']['METHOD'] == 'Aperture':
+        withphot = aperture_photometry_subrot(config, frametoextract,
+                                              positions=centroids)
+    print("Photometry data saved to {}".format(withphot))
+    logger.info(f"Output saved as {withphot}")
+
+    return withphot
+
 
 # -----------------------------
 # Processes of photometry
@@ -983,17 +1005,13 @@ def phot_process(config, frametoextract,
         plot_dir
         )
 
-    # Doing photometry
-    if config['photometry']['METHOD'] == 'PSF':
-        logger.info("Doing PSF Photometry")
-        withphot = psf_photometry_subrot(config, frametoextract,
-                                         positions=centroids,
-                                         plot_dirs=plot_dir)
-    elif config['photometry']['METHOD'] == 'Aperture':
-        withphot = aperture_photometry_subrot(config, frametoextract,
-                                              positions=centroids)
-    print("Photometry data saved to {}".format(withphot))
-    logger.info(f"Output saved as {withphot}")
+    withphot = extract_photometry(
+        config,
+        frametoextract,
+        centroids,
+        plot_dir
+        )
+
     save_to_wcs(withphot)
     logger.info(f"WCS correction on {withphot}")
 
