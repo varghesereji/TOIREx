@@ -1174,11 +1174,14 @@ def extract_photometry(
                                            positions=centroids,
                                            plot_dirs=plot_dir)
         logger.info("PSF Photometry DONE")
+        history = "PSF photometry table added on file update."
 
     elif config['photometry']['METHOD'] == 'Aperture':
         phot_table = aperture_photometry_subrot(config, frametoextract,
                                                 positions=centroids)
         logger.info("Aperture Photometry DONE")
+        history = "Aperture photometry table added on file update."
+
     
     print("Photometry data saved to {}".format(withphot))
     logger.info(f"Output saved as {withphot}")
