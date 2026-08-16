@@ -891,7 +891,8 @@ def calculate_magnitude(phot_table):
 # -----------------------------
 
 
-def phot_process(config, frametoextract):
+def phot_process(config, frametoextract,
+                 opdir=None):
     logger = get_logger("photometry")
 
     radius = float(config['photometry']['RADIUS'])
@@ -900,7 +901,11 @@ def phot_process(config, frametoextract):
     )
 
     frametoextract = Path(frametoextract)
-    opdir = frametoextract.parent
+    if opdir is None:
+        opdir = frametoextract.parent
+
+    else:
+        opdir = Path(opdir)
 
     frametoextract = opdir / frametoextract
 
@@ -973,4 +978,5 @@ def photometry_extraction(config, dirname):
         for txtline in txtfile_full:
             frametoextract = txtline[0]
 
-            phot_process(config, frametoextract)
+            phot_process(config, frametoextract,
+                         opdir)
