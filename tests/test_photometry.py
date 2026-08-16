@@ -18,7 +18,11 @@ from toirex.photometry import make_epsf
 from toirex.photometry import psf_photometry_subrot
 from toirex.photometry import save_to_wcs
 from toirex.photometry import get_centroids
+from toirex.photometry import find_sources
 from toirex.photometry import photometry_extraction
+from toirex.photometry import extract_photometry
+from toirex.photometry import phot_process
+
 
 @patch("toirex.photometry.get_logger")
 def test_calculate_snr_aperture(mock_get_logger):
@@ -1299,6 +1303,133 @@ def test_save_to_wcs(mock_fits_open,
         overwrite=True,
     )
 
+
+# -------------------------------------------------
+# Tests for target finding
+# -------------------------------------------------
+
+@patch("toirex.photometry.get_centroids")
+@patch("toirex.photometry.targetfind_auto")
+@patch("toirex.photometry.get_logger")
+def test_find_sources_auto(
+        mock_get_logger,
+        mock_targetfind_auto,
+        mock_get_centroids,
+        tmp_path
+):
+    """Test automatic source finding."""
+
+    config = {
+        "photometry": {
+            "RADIUS": "10",
+            "BKGWINDOWS": "(15, 20)",
+            "SOURCELIST": "sources.txt",
+            "EDITSOURCE": "NO",
+            "FINDSOURCE": "AUTO",
+            "FWHM": "7",
+            "THRESHOLD": "50",
+        }
+    }
+
+    frametoextract = tmp_path / "frame1.fits"
+    plot_dir = tmp_path / "Photometry_plots"
+
+    expected_centroids = Table({
+        "x": [10.0, 20.0],
+        "y": [15.0, 25.0],
+    })
+
+    mock_targetfind_auto.return_value = expected_centroids
+
+    result = find_sources(
+        config,
+        frametoextract,
+        plot_dir
+    )
+
+    mock_targetfind_auto.assert_called_once_with(
+        frametoextract,
+        fwhm=7.0,
+        threshold=50.0,
+        show_plot=True,
+        plot_dirs=plot_dir,
+        aperture_radii=(10.0, 15, 20),
+    )
+
+    mock_get_centroids.assert_called_once_with(
+        tmp_path / "sources.txt",
+        purpose="write",
+        new_centroids=expected_centroids,
+    )
+
+    assert result is expected_centroids
+
+
+@patch("toirex.photometry.get_logger")
+@patch("toirex.photometry.get_centroids")
+@patch("toirex.photometry.targetfind_manual")
+def test_find_sources_manual(
+        mock_targetfind_manual,
+        mock_get_centroids,
+        mock_get_logger,
+        tmp_path
+):
+    """Test manual source finding."""
+
+    config = {
+        "photometry": {
+            "RADIUS": "10",
+            "BKGWINDOWS": "(15, 20)",
+            "SOURCELIST": "sources.txt",
+            "EDITSOURCE": "NO",
+            "FINDSOURCE": "MANUAL",
+        }
+    }
+
+    frametoextract = tmp_path / "frame1.fits"
+    plot_dir = tmp_path / "Photometry_plots"
+
+    initial_centroids = [(10, 15), (20, 25)]
+    final_centroids = [(11, 16), (21, 26)]
+
+    mock_get_centroids.side_effect = [
+        initial_centroids,
+        None,
+    ]
+
+    mock_targetfind_manual.return_value = final_centroids
+
+    result = find_sources(
+        config,
+        frametoextract,
+        plot_dir
+    )
+
+    mock_get_centroids.assert_any_call(
+        tmp_path / "sources.txt",
+        purpose="read"
+    )
+
+    mock_targetfind_manual.assert_called_once_with(
+        frametoextract,
+        centroids_0=initial_centroids,
+        aperture_radii=(10.0, 15, 20),
+        plot_dirs=plot_dir,
+    )
+
+    mock_get_centroids.assert_called_with(
+        tmp_path / "sources.txt",
+        purpose="write",
+        new_centroids=final_centroids,
+    )
+
+    assert result == final_centroids
+
+
+# -------------------------------------------------
+# Tests for saving output
+# -------------------------------------------------
+
 @patch("toirex.photometry.calculate_magnitude")
 @patch("toirex.photometry.calculate_snr")
 @patch("toirex.photometry.get_logger")
@@ -1385,6 +1516,7 @@ def test_save_photometry(mock_getheader,
     # Check returned filename
     assert result == expected_output
 
+
 @patch("toirex.photometry.read_txt_file")
 def test_get_centroids_read(mock_read_txt_file, tmp_path):
     """Test reading centroids from a text file."""
@@ -1411,24 +1543,168 @@ def test_get_centroids_read(mock_read_txt_file, tmp_path):
     assert result == expected
 
 
-@patch("toirex.photometry.save_to_wcs")
-@patch("toirex.photometry.psf_photometry_subrot")
-@patch("toirex.photometry.get_centroids")
-@patch("toirex.photometry.targetfind_auto")
-@patch("toirex.photometry.read_txt_file")
-@patch("toirex.photometry.table_to_centroids")
-@patch("toirex.photometry.get_logger")
-def test_photometry_extraction_auto_psf(
-        mock_get_logger,
-        mock_table_to_centroids,
-        mock_read_txt_file,
-        mock_targetfind_auto,
-        mock_get_centroids,
-        mock_psf_photometry,
-        mock_save_to_wcs,
-        tmp_path):
+# -------------------------------------------------
+# Tests for extraction
+# -------------------------------------------------
 
-    """Test automatic source finding with PSF photometry."""
+
+@patch("toirex.photometry.psf_photometry_subrot")
+@patch("toirex.photometry.get_logger")
+def test_extract_photometry_psf(
+        mock_get_logger,
+        mock_psf_photometry,
+        tmp_path
+):
+    """Test PSF photometry extraction."""
+
+    config = {
+        "photometry": {
+            "METHOD": "PSF",
+        }
+    }
+
+    frametoextract = tmp_path / "frame1.fits"
+    plot_dir = tmp_path / "Photometry_plots"
+
+    centroids = Table({
+        "x": [10.0, 20.0],
+        "y": [15.0, 25.0],
+    })
+
+    expected_output = tmp_path / "photometry.fits"
+    mock_psf_photometry.return_value = expected_output
+
+    result = extract_photometry(
+        config,
+        frametoextract,
+        centroids,
+        plot_dir
+    )
+
+    mock_psf_photometry.assert_called_once_with(
+        config,
+        frametoextract,
+        positions=centroids,
+        plot_dirs=plot_dir,
+    )
+
+    assert result == expected_output
+
+
+@patch("toirex.photometry.aperture_photometry_subrot")
+@patch("toirex.photometry.get_logger")
+def test_extract_photometry_aperture(
+        mock_get_logger,
+        mock_aperture_photometry,
+        tmp_path
+):
+    """Test aperture photometry extraction."""
+
+    config = {
+        "photometry": {
+            "METHOD": "Aperture",
+        }
+    }
+
+    frametoextract = tmp_path / "frame1.fits"
+    plot_dir = tmp_path / "Photometry_plots"
+
+    centroids = Table({
+        "x": [10.0, 20.0],
+        "y": [15.0, 25.0],
+    })
+
+    expected_output = tmp_path / "photometry.fits"
+    mock_aperture_photometry.return_value = expected_output
+
+    result = extract_photometry(
+        config,
+        frametoextract,
+        centroids,
+        plot_dir
+    )
+
+    mock_aperture_photometry.assert_called_once_with(
+        config,
+        frametoextract,
+        positions=centroids,
+    )
+
+    assert result == expected_output
+
+# -------------------------------------------------
+# Tests for extraction
+# -------------------------------------------------
+
+
+@patch("toirex.photometry.get_logger")
+@patch("toirex.photometry.save_to_wcs")
+@patch("toirex.photometry.extract_photometry")
+@patch("toirex.photometry.find_sources")
+def test_phot_process(
+        mock_find_sources,
+        mock_extract_photometry,
+        mock_save_to_wcs,
+        mock_get_logger,
+        tmp_path
+):
+    """Test the photometry processing workflow."""
+
+    config = {
+        "photometry": {
+            "METHOD": "PSF",
+        }
+    }
+
+    frametoextract = "frame1.fits"
+
+    expected_centroids = Table({
+        "x": [10.0, 20.0],
+        "y": [15.0, 25.0],
+    })
+
+    expected_output = tmp_path / "photometry.fits"
+
+    mock_find_sources.return_value = expected_centroids
+    mock_extract_photometry.return_value = expected_output
+
+    phot_process(
+        config,
+        frametoextract,
+        tmp_path
+    )
+
+    plot_dir = tmp_path / "Photometry_plots"
+
+    mock_find_sources.assert_called_once_with(
+        config,
+        tmp_path / frametoextract,
+        plot_dir
+    )
+
+    mock_extract_photometry.assert_called_once_with(
+        config,
+        tmp_path / frametoextract,
+        expected_centroids,
+        plot_dir
+    )
+
+    mock_save_to_wcs.assert_called_once_with(
+        expected_output
+    )
+
+
+@patch("toirex.photometry.read_txt_file")
+@patch("toirex.photometry.get_logger")
+@patch("toirex.photometry.phot_process")
+def test_photometry_extraction_auto_psf(
+        mock_phot_process,
+        mock_get_logger,
+        mock_read_txt_file,
+        tmp_path
+):
+
+    """Test photometry extraction"""
 
     config = {
         "outputs": {
@@ -1460,48 +1736,17 @@ def test_photometry_extraction_auto_psf(
         ["frame1.fits"]
     ]
 
-    # Sources returned by automatic source finding
-    centroids = Table({
-        "x_0": [10.0, 20.0],
-        "y_0": [15.0, 25.0],
-    })
-
-    mock_targetfind_auto.return_value = centroids
-
-    # Output of PSF photometry
-    phot_output = opdir / "frame1.phot.fits"
-    mock_psf_photometry.return_value = phot_output
-
     photometry_extraction(config, dirname)
 
-    frame = opdir / "frame1.fits"
-    plot_dir = opdir / "Photometry_plots"
+    # check that the group file was read
+    mock_read_txt_file.assert_called_once_with(groupfile)
 
-    # Check automatic source finding
-    mock_targetfind_auto.assert_called_once_with(
-        frame,
-        fwhm=7.0,
-        threshold=50.0,
-        show_plot=True,
-        plot_dirs=plot_dir,
-        aperture_radii=(10.0, 15.0, 20.0),
-    )
-
-    # Source positions should be written
-    mock_get_centroids.assert_called_once_with(
-        opdir / "sources.txt",
-        purpose="write",
-        new_centroids=centroids,
-    )
-
-    # Check PSF photometry
-    mock_psf_photometry.assert_called_once_with(
+    # check that phot_process wsa called for the frame
+    mock_phot_process.assert_called_once_with(
         config,
-        frame,
-        positions=centroids,
-        plot_dirs=plot_dir,
-    )
+        "frame1.fits",
+        opdir
+        )
 
-    # Check WCS conversion
-    mock_save_to_wcs.assert_called_once_with(phot_output)
+
 # End

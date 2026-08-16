@@ -53,7 +53,11 @@ _DAOSTARFINDER_SUPPORTS_N_BRIGHTEST = (
 # -----------------------------
 
 
-def _make_daostarfinder(fwhm, threshold, n_brightest, **kwargs):
+def _make_daostarfinder(fwhm,
+                        threshold,
+                        n_brightest,
+                        **kwargs):
+
     if _DAOSTARFINDER_SUPPORTS_N_BRIGHTEST:
         return DAOStarFinder(
             fwhm=fwhm,
@@ -131,14 +135,21 @@ def targetfind_auto(fname,
     y_key = "y_centroid" if "y_centroid" in sources.colnames else "ycentroid"
 
     centroids = table_to_centroids(sources, keys=(y_key, x_key))
+
     plot_name = fname.with_name(f"{fname.stem}_autoselectedsources.pdf")
     plot_name = Path(plot_dirs) / plot_name.name
-    imageplot(fname, ext=0, title="Sources found",
-              line_profile="aperture", get_target=False,
-              centroid_list=centroids,
-              save_plot=plot_name,
-              show_plot=show_plot,
-              aperture_radii=aperture_radii)
+
+    imageplot(
+        fname, ext=0,
+        title="Sources found",
+        line_profile="aperture",
+        get_target=False,
+        centroid_list=centroids,
+        save_plot=plot_name,
+        show_plot=show_plot,
+        aperture_radii=aperture_radii
+    )
+
     positions = Table()
     positions['x_0'] = sources[x_key]
     positions['y_0'] = sources[y_key]
@@ -192,7 +203,53 @@ def targetfind_manual(fname,
 # -----------------------------
 
 
-def aperture_photometry_subrot(config, fname, positions):
+def aperture_photometry_subrot(config,
+                               fname,
+                               positions):
+    """
+    Perform aperture photometry on the specified sources.
+
+    Aperture and background annulus geometries are selected from the
+    photometry configuration. The source flux, background level, and
+    associated variances are calculated for each source. The resulting
+    photometry table is saved to a FITS file.
+
+    If a variance extension is not available, the flux extension is used
+    as the variance array.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing the photometry and input
+        settings. The photometry configuration must specify the aperture
+        type, aperture radius, annulus type, background windows, and
+        whether magnitude should be saved. The input configuration must
+        specify the flux and variance FITS extensions.
+
+    fname : str or pathlib.Path
+        Path to the FITS file from which the photometry is extracted.
+
+    positions : astropy.table.Table
+        Table containing the source positions. The table must contain
+        ``x_0`` and ``y_0`` columns giving the source coordinates in
+        pixels.
+
+    Returns
+    -------
+    str or pathlib.Path
+        Path to the FITS file containing the saved aperture photometry
+        table.
+
+    Notes
+    -----
+    The net source flux is calculated by subtracting the estimated
+    background contribution from the aperture sum. The corresponding
+    variance is calculated from the aperture flux uncertainty and the
+    background variance.
+
+    The output photometry table contains the fitted source coordinates
+    as ``x_fit`` and ``y_fit``.
+    """
     logger = get_logger("photometry")
     positions = np.array([positions['x_0'],
                           positions['y_0']]).T
@@ -205,50 +262,70 @@ def aperture_photometry_subrot(config, fname, positions):
 
     # Aperture
     if config['photometry']['APERTURE'] == 'CircularAperture':
+
         radius = float(config['photometry']['RADIUS'])
         apertures = CircularAperture(positions, r=radius)
+
     elif config['photometry']['APERTURE'] == 'EllipticalAperture':
+
         aper_qtys = list(float(x)
                          for x in ast.literal_eval(
                                  config['photometry']['RADIUS']
                          )
                          )
+
         if len(aper_qtys) == 2:
+
             print("Taking default value for angle, 0")
             theta = 0
             a, b = aper_qtys
+
         else:
+
             a, b, theta = aper_qtys
             logger.info(f"Angle {theta}")
+
         apertures = EllipticalAperture(positions, a=a, b=b, theta=theta)
+
     # Annulus
     annulus = list(float(x)
                    for x in ast.literal_eval(
                            config['photometry']['BKGWINDOWS']
                    )
                    )
+
     if config['photometry']['ANNULUS'] == 'CircularAnnulus':
+
         r_in = annulus[0]
         r_out = annulus[1]
         annulus_apertures = CircularAnnulus(positions, r_in=r_in, r_out=r_out)
+
     elif config['photometry']['ANNULUS'] == 'EllipticalAnnulus':
+
         if len(annulus) == 4:
+
             theta = 0
             a_in, b_in, a_out, b_out = annulus
+
         else:
+
             a_in, b_in, a_out, b_out, theta = annulus
+
         annulus_apertures = EllipticalAnnulus(positions,
                                               a_in=a_in,
                                               a_out=a_out,
                                               b_in=b_in,
                                               b_out=b_out,
                                               theta=theta)
+
     annulus_masks = annulus_apertures.to_mask()
 
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
+
     try:
         varext = int(varext)
+
     except ValueError:
         print("Using flux array as variance")
         logger.warning("No variance array. Using flux array as variance")
@@ -260,9 +337,11 @@ def aperture_photometry_subrot(config, fname, positions):
     # Aperture
     phot = aperture_photometry(data, apertures,
                                error=np.sqrt(var))
+
     # Background
     bkg_median = []
     bkg_var = []
+
     for mask in annulus_masks:
         annulus_data = mask.multiply(data)
         annulus_var = mask.multiply(var)
@@ -272,8 +351,10 @@ def aperture_photometry_subrot(config, fname, positions):
         var_clip = np.sum(annulus_var_1d) / np.size(annulus_var_1d) ** 2
         bkg_median.append(median_sigclip)
         bkg_var.append(var_clip)
+
     bkg_median = np.array(bkg_median)
     bkg_var = np.array(bkg_var)
+
     phot['bkg'] = bkg_median
     phot['bkg_var'] = bkg_var
     phot['bkg_sum'] = bkg_median * apertures.area
@@ -293,6 +374,7 @@ def aperture_photometry_subrot(config, fname, positions):
         )
 
     logger.info("Aperture Photometry DONE")
+
     return opfname
 
 
@@ -362,13 +444,18 @@ def make_epsf(
     """
     logger = get_logger("photometry")
     logger.info("Building ePSF")
+
     psf_model = CircularGaussianSigmaPRF(flux=1,
                                          sigma=fwhm/2.355)
-    # print("Select bright targets to generate Effective PSF")
+
     print("Building effective PSF")
+
     finder = None
+
     if star_positions is None:
+
         print("Finding the sources for ePSF automatically")
+
         finder = _make_daostarfinder(
             fwhm,
             threshold,
@@ -382,6 +469,7 @@ def make_epsf(
     phot = psfphot(frame,
                    error=err,
                    init_params=star_positions)
+
     good = phot["flags"] == 0
     phot = phot[good]
 
@@ -396,8 +484,10 @@ def make_epsf(
     epsf_stars_tbl = Table()
     epsf_stars_tbl['x'] = x[mask]
     epsf_stars_tbl['y'] = y[mask]
+
     nddata = NDData(data=frame,
                     uncertainty=StdDevUncertainty(err))
+
     epsf_stars = extract_stars(nddata, epsf_stars_tbl,
                                size=cutout_size)
     if len(epsf_stars) < 5:
@@ -407,25 +497,34 @@ def make_epsf(
             "Consider using a Gaussian PSF "
             "model or selecting more bright, isolated stars."
             )
+
         warnings.warn(
             msg,
             UserWarning,
             stacklevel=2,
         )
         logger.warning(msg)
+
     logger.info("Building ePSF")
+
     epsf_builder = EPSFBuilder(oversampling=oversample,
                                smoothing_kernel='quadratic',
                                recentering_maxiters=10,
                                maxiters=10,
                                progress_bar=True)
+
     epsf, fitted_stars = epsf_builder(epsf_stars)
+
     logger.info(f"ePSF plot saved as {plot_fname}")
+
     plot_epsf(epsf, fitted_stars, plot_fname=plot_fname)
+
     return epsf
 
 
-def psf_photometry_subrot(config, fname, positions,
+def psf_photometry_subrot(config,
+                          fname,
+                          positions,
                           plot_dirs="."):
     """
     Perform PSF photometry on sources in a FITS image.
@@ -472,20 +571,25 @@ def psf_photometry_subrot(config, fname, positions,
     logger = get_logger("photometry")
 
     print("Doing PSF Photometry")
+
     flext = int(config['inputs']['FLUXEXT'])
     varext = config['inputs']['VAREXT']
 
     fit_shape = ast.literal_eval(config['photometry']['FIT_SHAPE'])
     radius = float(config['photometry']['RADIUS'])
     bkgwindows = ast.literal_eval(config['photometry']['BKGWINDOWS'])
+
     logger.info(f"Radius: {config['photometry']['RADIUS']}")
     logger.info(f"Bkg Annulus: {config['photometry']['BKGWINDOWS']}")
     logger.info(f"fit_shape: {fit_shape}")
+
     try:
         varext = int(varext)
+
     except ValueError:
         print("Using flux array as variance")
         logger.warning("No variance array. Using flux array as variance")
+
         varext = flext
 
     # Reading data
@@ -494,6 +598,7 @@ def psf_photometry_subrot(config, fname, positions,
     error = np.sqrt(var)
 
     logger.info(f"PSF model: {config['photometry']['MODEL']}")
+
     # Making PSF
     if config['photometry']['MODEL'] == 'CircularGaussianPSF':
         fwhm = float(config['photometry']['FWHM'])
@@ -612,6 +717,15 @@ def save_to_wcs(final_fname):
             )
 
         w = WCS(primary_header)
+
+        if not w.has_celestial:
+            logger.warning(
+                "No celestial WCS information found in %s."
+                "Skipping WCS correction.",
+                final_fname,
+                )
+            return
+
         phot_table = Table(hdul['PHOTOMETRY'].data)
 
         x = phot_table['x_fit']
@@ -649,7 +763,9 @@ def save_to_wcs(final_fname):
 # -----------------------------
 
 
-def save_photometry(fname, phot_table, history="Photometry table added",
+def save_photometry(fname,
+                    phot_table,
+                    history="Photometry table added",
                     save_magnitude=True,
                     flext=0):
     """
@@ -716,32 +832,41 @@ def save_photometry(fname, phot_table, history="Photometry table added",
 # -----------------------------
 
 
-def get_centroids(filename, purpose='read', new_centroids=None):
-    '''
+def get_centroids(filename,
+                  purpose='read',
+                  new_centroids=None):
+    """
     if purpose == "read", new centroids will not be taken.
     Otherwise, write the text file with new_centroids
-    '''
+    """
     if purpose == 'read':
+
         if not filename.exists():
             return None
+
         else:
             centroids = read_txt_file(filename)
+
             # convert y, x to float
             for i, loc in enumerate(centroids):
                 centroids[i][0] = float(loc[0])
                 centroids[i][1] = float(loc[1])
-            # print(centroids)
+
             if len(centroids) == 0:
                 return None
+
             else:
                 return centroids
+
     elif purpose == 'write':
+
         targets_txt = open(filename, 'w')
         new_centroids = [list(row)[::-1] for row in new_centroids]
-        # print(new_centroids)
+
         for loc in new_centroids:
             loc_line = " ".join(map(str, loc)) + "\n"
             targets_txt.write(loc_line)
+
         targets_txt.close()
         print("Updated the selected sources list")
 
@@ -886,80 +1011,289 @@ def calculate_magnitude(phot_table):
 
     return phot_table
 
+
 # -----------------------------
-# Extraction
+# Source finding
 # -----------------------------
 
+def find_sources(
+        config,
+        frametoextract,
+        plot_dir
+):
+    """
+    Find source positions in an astronomical image.
 
-def photometry_extraction(config, dirname):
-    # dictkw = config['inits']['DICTKW']
+    Sources can be identified automatically or manually according to the
+    ``FINDSOURCE`` configuration option. In automatic mode, sources are
+    detected using :func:`targetfind_auto`. If source editing is enabled,
+    the automatically detected sources are subsequently passed to
+    :func:`targetfind_manual` for interactive adjustment.
+
+    In manual mode, initial source positions are read from the configured
+    source list and passed to :func:`targetfind_manual`.
+
+    The final source positions are written to the configured source list
+    and returned.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing the photometry settings,
+        including source-finding method, aperture radius, background
+        windows, source list, FWHM, and detection threshold.
+
+    frametoextract : str or pathlib.Path
+        Path to the frame in which sources are to be identified.
+
+    plot_dir : str or pathlib.Path
+        Directory where source-finding plots are saved.
+
+    Returns
+    -------
+    astropy.table.Table
+        Table containing the final source positions.
+
+    Raises
+    ------
+    KeyError
+        If required photometry configuration parameters are missing.
+
+    ValueError
+        If a numerical configuration parameter cannot be converted to
+        the required type.
+    """
+
     logger = get_logger("photometry")
-    logger.info("Doing photometry")
-    opdir = Path(config['outputs']['OP_DIR']) / dirname
-    reduce_txtfname = "Readytoextract_group*.txt"
-    txtfiles_groups = opdir.glob(reduce_txtfname)
+    opdir = Path(frametoextract).parent
 
     radius = float(config['photometry']['RADIUS'])
     bkgwindows = ast.literal_eval(
         config['photometry']['BKGWINDOWS']
     )
 
+    sources_txtfname = opdir / config['photometry']['SOURCELIST']
+    editsource = config['photometry']['EDITSOURCE'] == 'YES'
+    if config['photometry']['FINDSOURCE'] == 'AUTO':
+        logger.info("Finding source AUTO")
+        fwhm = float(config['photometry']['FWHM'])
+        threshold = float(config['photometry']['THRESHOLD'])
+        centroids = targetfind_auto(
+            frametoextract,
+            fwhm=fwhm,
+            threshold=threshold,
+            show_plot=not editsource,
+            plot_dirs=plot_dir,
+            aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
+        )
+
+        if editsource:
+            logger.info("Editing the sources found")
+            centroids = targetfind_manual(
+                frametoextract,
+                centroids_0=table_to_centroids(centroids),
+                aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
+                plot_dirs=plot_dir
+            )
+
+    elif config['photometry']['FINDSOURCE'] == 'MANUAL':
+        logger.info("Finding source MANUAL")
+        centroids_0 = get_centroids(sources_txtfname, purpose='read')
+        centroids = targetfind_manual(
+            frametoextract,
+            centroids_0=centroids_0,
+            aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
+            plot_dirs=plot_dir
+        )
+
+    get_centroids(sources_txtfname, purpose='write',
+                  new_centroids=centroids)
+
+    return centroids
+
+
+# -----------------------------
+# Extraction
+# -----------------------------
+
+def extract_photometry(
+        config,
+        frametoextract,
+        centroids,
+        plot_dir
+):
+    """
+    Perform photometry extraction using the configured method.
+
+    The photometry method is selected from the ``METHOD`` entry in the
+    photometry configuration. PSF photometry is performed using
+    :func:`psf_photometry_subrot`, while aperture photometry is performed
+    using :func:`aperture_photometry_subrot`.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing the photometry settings,
+        including the photometry method.
+
+    frametoextract : str or pathlib.Path
+        Path to the frame from which photometry is to be extracted.
+
+    centroids : astropy.table.Table or array-like
+        Coordinates of the sources for which photometry is to be
+        extracted.
+
+    plot_dir : str or pathlib.Path
+        Directory where plots generated during PSF photometry are saved.
+
+    Returns
+    -------
+    str or pathlib.Path
+        Path to the file containing the extracted photometry.
+
+    Raises
+    ------
+    KeyError
+        If the ``photometry`` section or ``METHOD`` entry is missing
+        from ``config``.
+
+    ValueError
+        If ``METHOD`` is neither ``'PSF'`` nor ``'Aperture'``.
+    """
+
+    logger = get_logger('photometry')
+
+    # Doing photometry
+    if config['photometry']['METHOD'] == 'PSF':
+        logger.info("Doing PSF Photometry")
+        withphot = psf_photometry_subrot(config, frametoextract,
+                                         positions=centroids,
+                                         plot_dirs=plot_dir)
+    elif config['photometry']['METHOD'] == 'Aperture':
+        withphot = aperture_photometry_subrot(config, frametoextract,
+                                              positions=centroids)
+    print("Photometry data saved to {}".format(withphot))
+    logger.info(f"Output saved as {withphot}")
+
+    return withphot
+
+
+# -----------------------------
+# Processes of photometry
+# -----------------------------
+
+
+def phot_process(config,
+                 frametoextract,
+                 opdir=None):
+    """
+    Perform the complete photometry processing for a single frame.
+
+    The frame path is resolved relative to ``opdir`` when provided.
+    A directory for photometry plots is created within ``opdir``.
+    Sources are then identified, photometry is extracted for the
+    detected sources, and WCS coordinates are added to the resulting
+    photometry table.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing the photometry settings.
+
+    frametoextract : str or pathlib.Path
+        Name or path of the frame to be processed. If ``opdir`` is
+        provided, the frame is interpreted relative to that directory.
+
+    opdir : str or pathlib.Path, optional
+        Output directory containing the frame and where photometry
+        products and plots will be saved. If ``None``, the parent
+        directory of ``frametoextract`` is used.
+
+    Returns
+    -------
+    None
+        The processed photometry is saved to disk, and no value is
+        returned.
+    """
+
+    logger = get_logger("photometry")
+
+    frametoextract = Path(frametoextract)
+    if opdir is None:
+        opdir = frametoextract.parent
+
+    else:
+        opdir = Path(opdir)
+
+    frametoextract = opdir / frametoextract
+
     # Making directory to save plots
     plot_dir = opdir / "Photometry_plots"
     plot_dir.mkdir(exist_ok=True)
 
+    centroids = find_sources(
+        config,
+        frametoextract,
+        plot_dir
+        )
+
+    withphot = extract_photometry(
+        config,
+        frametoextract,
+        centroids,
+        plot_dir
+        )
+
+    logger.info(f"WCS correction on {withphot}")
+    save_to_wcs(withphot)
+
+
+def photometry_extraction(config,
+                          dirname):
+    """
+    Perform photometry extraction for all frames in a directory.
+
+    Searches the specified output directory for group files matching
+    ``Readytoextract_group*.txt``. Each group file contains the names of
+    frames to be processed. The frames are read from the group files and
+    passed to :func:`phot_process` for source detection, photometry
+    extraction, and WCS correction.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing the output directory under
+        ``config['outputs']['OP_DIR']`` and the photometry settings.
+
+    dirname : str
+        Name of the directory within the configured output directory
+        containing the group files and frames to be processed.
+
+    Returns
+    -------
+    None
+        This function performs photometry extraction and does not return
+        a value.
+    """
+
+    logger = get_logger("photometry")
+    logger.info("Doing photometry")
+
+    opdir = Path(config['outputs']['OP_DIR']) / dirname
+
+    reduce_txtfname = "Readytoextract_group*.txt"
+    txtfiles_groups = opdir.glob(reduce_txtfname)
+
     for groupfile in txtfiles_groups:
         txtfile_full = read_txt_file(groupfile)
+
         logger.info(f"Running for files in {groupfile}")
+
         for txtline in txtfile_full:
             frametoextract = txtline[0]
-            frametoextract = opdir / frametoextract
-            sources_txtfname = opdir / config['photometry']['SOURCELIST']
-            editsource = config['photometry']['EDITSOURCE'] == 'YES'
-            if config['photometry']['FINDSOURCE'] == 'AUTO':
-                logger.info("Finding source AUTO")
-                fwhm = float(config['photometry']['FWHM'])
-                threshold = float(config['photometry']['THRESHOLD'])
-                centroids = targetfind_auto(
-                    frametoextract,
-                    fwhm=fwhm,
-                    threshold=threshold,
-                    show_plot=not editsource,
-                    plot_dirs=plot_dir,
-                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
-                )
 
-                if editsource:
-                    logger.info("Editing the sources found")
-                    centroids = targetfind_manual(
-                        frametoextract,
-                        centroids_0=table_to_centroids(centroids),
-                        aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
-                        plot_dirs=plot_dir
-                    )
+            phot_process(config, frametoextract,
+                         opdir)
 
-            elif config['photometry']['FINDSOURCE'] == 'MANUAL':
-                logger.info("Finding source MANUAL")
-                centroids_0 = get_centroids(sources_txtfname, purpose='read')
-                centroids = targetfind_manual(
-                    frametoextract,
-                    centroids_0=centroids_0,
-                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
-                    plot_dirs=plot_dir
-                )
 
-            get_centroids(sources_txtfname, purpose='write',
-                          new_centroids=centroids)
-            # Doing photometry
-            if config['photometry']['METHOD'] == 'PSF':
-                logger.info("Doing PSF Photometry")
-                withphot = psf_photometry_subrot(config, frametoextract,
-                                                 positions=centroids,
-                                                 plot_dirs=plot_dir)
-            elif config['photometry']['METHOD'] == 'Aperture':
-                withphot = aperture_photometry_subrot(config, frametoextract,
-                                                      positions=centroids)
-            print("Photometry data saved to {}".format(withphot))
-            logger.info(f"Output saved as {withphot}")
-            save_to_wcs(withphot)
-            logger.info(f"WCS correction on {withphot}")
+# End
