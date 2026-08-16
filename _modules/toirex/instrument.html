@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>toirex.instrument &#8212; TOIREx  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nature.css?v=279e0f84" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">TOIREx  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">toirex.instrument</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for toirex.instrument</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">resources</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">importlib_resources</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">resources</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fits</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_fits_header</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_fits_data</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_pkgpath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_pixel_shift</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.setups</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_config</span>
+
+
+<span class="c1">#################################</span>
+<span class="c1">#      Common functions         #</span>
+<span class="c1">#################################</span>
+
+
+<div class="viewcode-block" id="sort_filename_key">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.sort_filename_key">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sort_filename_key</span><span class="p">(</span><span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">regexp</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;(\d+)\.Z\.fits&quot;</span><span class="p">):</span>
+    <span class="n">basename</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">regexp</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">number</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="k">if</span> <span class="n">number</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span></div>
+
+
+
+<span class="c1">#################################</span>
+<span class="c1">#         SpecTANSPEC           #</span>
+<span class="c1">#################################</span>
+
+
+<div class="viewcode-block" id="standardise_header_spectanspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.standardise_header_spectanspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">standardise_header_spectanspec</span><span class="p">(</span><span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">read_fits_header</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="n">header</span><span class="p">[</span><span class="s1">&#39;FNUM&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;FNUM&#39;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">header</span></div>
+
+
+
+<div class="viewcode-block" id="frame_select_spectanspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.frame_select_spectanspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">frame_select_spectanspec</span><span class="p">(</span><span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This function will decide weather to select a frame or not.</span>
+<span class="sd">    Since TANSPEC have both image and spectroscopy mode, need to</span>
+<span class="sd">    decied weather to select certain files or not.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">read_fits_header</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS1&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2048</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;NAXIS2&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2048</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="catalog_flag_spectanspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.catalog_flag_spectanspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">catalog_flag_spectanspec</span><span class="p">(</span><span class="n">flog_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">headers_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This function is to flag the</span>
+<span class="sd">    frames as object, argon, neon, cont1</span>
+<span class="sd">    or cont2. Specific for instrument.</span>
+<span class="sd">    Input</span>
+<span class="sd">    ------</span>
+<span class="sd">    flog_list: catalog entries.</span>
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    catalog list with flag.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">headers_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">headers_list</span><span class="p">)</span>
+    <span class="n">argon_pos</span> <span class="o">=</span> <span class="n">headers_list</span> <span class="o">==</span> <span class="s1">&#39;ARGONL&#39;</span>
+    <span class="n">neon_pos</span> <span class="o">=</span> <span class="n">headers_list</span> <span class="o">==</span> <span class="s1">&#39;NEONL&#39;</span>
+    <span class="n">cont1_pos</span> <span class="o">=</span> <span class="n">headers_list</span> <span class="o">==</span> <span class="s1">&#39;CONT1L&#39;</span>
+    <span class="n">cont2_pos</span> <span class="o">=</span> <span class="n">headers_list</span> <span class="o">==</span> <span class="s1">&#39;CONT2L&#39;</span>
+    <span class="n">calmir_pos</span> <span class="o">=</span> <span class="n">headers_list</span> <span class="o">==</span> <span class="s1">&#39;CALMIR&#39;</span>
+    <span class="n">flog_list_red</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flog_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+    <span class="n">argon_flag</span> <span class="o">=</span> <span class="n">flog_list_red</span><span class="p">[</span><span class="n">argon_pos</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="n">neon_flag</span> <span class="o">=</span> <span class="n">flog_list_red</span><span class="p">[</span><span class="n">neon_pos</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="n">cont1_flag</span> <span class="o">=</span> <span class="n">flog_list_red</span><span class="p">[</span><span class="n">cont1_pos</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="n">cont2_flag</span> <span class="o">=</span> <span class="n">flog_list_red</span><span class="p">[</span><span class="n">cont2_pos</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="n">calmir_flag</span> <span class="o">=</span> <span class="n">flog_list_red</span><span class="p">[</span><span class="n">calmir_pos</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+    <span class="n">lamp_flags</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">argon_flag</span><span class="p">,</span> <span class="n">neon_flag</span><span class="p">,</span>
+        <span class="n">cont1_flag</span><span class="p">,</span> <span class="n">cont2_flag</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">object_flag</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+    <span class="k">if</span> <span class="n">calmir_flag</span> <span class="o">==</span> <span class="s1">&#39;out&#39;</span><span class="p">:</span>
+        <span class="n">object_flag</span> <span class="o">=</span> <span class="s2">&quot;OBJECT&quot;</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">calmir_flag</span> <span class="o">==</span> <span class="s1">&#39;in&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">lamp_flags</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">]):</span>
+            <span class="n">object_flag</span> <span class="o">=</span> <span class="s2">&quot;ARGON&quot;</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">lamp_flags</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">]):</span>
+            <span class="n">object_flag</span> <span class="o">=</span> <span class="s2">&quot;NEON&quot;</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">lamp_flags</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">]):</span>
+            <span class="n">object_flag</span> <span class="o">=</span> <span class="s2">&quot;CONT1&quot;</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">lamp_flags</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">]):</span>
+            <span class="n">object_flag</span> <span class="o">=</span> <span class="s2">&quot;CONT2&quot;</span>
+
+    <span class="n">flog_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">object_flag</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flog_list</span></div>
+
+
+
+<div class="viewcode-block" id="makemasterflat_tanspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.makemasterflat_tanspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">makemasterflat_tanspec</span><span class="p">(</span><span class="n">normcontdata</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function will create a master flat using the continuum flat of each</span>
+<span class="sd">    night and already generated master flat. This is to take care of noise for</span>
+<span class="sd">    higher orders (orders 10, 11 nd 12) in XD mode. Basically, we will use</span>
+<span class="sd">    the master flat to remove noise in higher orders and for the lower orders,</span>
+<span class="sd">    the pipeline will use the continuum lamp observed in each night for the</span>
+<span class="sd">    flat correction. In the end it will return the data for the new continuum</span>
+<span class="sd">    flat.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mastercontname</span> <span class="o">=</span> <span class="s1">&#39;TANSPEC/CONTLAMPDIR/master-cont1xd_S-1.0.fits&#39;</span>
+    <span class="n">continuum_locname</span> <span class="o">=</span> <span class="s1">&#39;TANSPEC/CONTLAMPDIR/ContinuumCutLine.npy&#39;</span>
+
+    <span class="c1"># Getting path</span>
+    <span class="n">masterconti_path</span> <span class="o">=</span> <span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">&quot;toirex.data&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">mastercontname</span>
+    <span class="n">continuum_locpath</span> <span class="o">=</span> <span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">&quot;toirex.data&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">continuum_locname</span>
+
+    <span class="c1"># Loadig file</span>
+    <span class="n">mastrrcontidata</span> <span class="o">=</span> <span class="n">read_fits_data</span><span class="p">(</span><span class="n">masterconti_path</span><span class="p">)</span>
+    <span class="n">continuum_locdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">continuum_locpath</span><span class="p">)</span>
+
+    <span class="n">x_value</span><span class="p">,</span> <span class="n">y_value</span> <span class="o">=</span> <span class="n">continuum_locdata</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">continuum_locdata</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">x_value</span><span class="p">,</span> <span class="n">y_value</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+
+    <span class="n">xnewvalue</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">normcontdata</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">loc_array</span> <span class="o">=</span> <span class="n">p</span><span class="p">(</span><span class="n">xnewvalue</span><span class="p">)</span>
+
+    <span class="n">ynewvalue</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2048</span><span class="p">),</span> <span class="p">(</span><span class="mi">2048</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="n">ynewvalue</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ogrid</span><span class="p">[:</span><span class="n">nrows</span><span class="p">,</span> <span class="p">:</span><span class="n">ncols</span><span class="p">]</span>
+    <span class="n">boolmask</span> <span class="o">=</span> <span class="n">row</span> <span class="o">&lt;</span> <span class="n">loc_array</span>
+
+    <span class="n">newflatdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">boolmask</span><span class="p">,</span> <span class="n">normcontdata</span><span class="p">,</span> <span class="n">mastrrcontidata</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">newflatdata</span></div>
+
+
+
+<div class="viewcode-block" id="masterflat_combination">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.masterflat_combination">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">masterflat_combination</span><span class="p">(</span><span class="n">flat_fname</span><span class="p">):</span>
+    <span class="n">hdul</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">flat_fname</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;update&#39;</span><span class="p">)</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">hdul</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+    <span class="k">if</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;GRATING&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;grating1&#39;</span><span class="p">:</span>
+        <span class="c1"># print(&quot;need to create a master flat for &quot;, flat_fname)</span>
+        <span class="c1"># Updating the flat file</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">hdul</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">newflatdata</span> <span class="o">=</span> <span class="n">makemasterflat_tanspec</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">hdul</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">newflatdata</span>
+        <span class="n">hdul</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">add_history</span><span class="p">(</span>
+            <span class="s2">&quot;Created master flat by combine with flats saved with pipeline&quot;</span><span class="p">)</span>
+        <span class="c1"># Save changes</span>
+        <span class="n">hdul</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="c1"># Close the fits file</span>
+        <span class="n">hdul</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">hdul</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">flat_fname</span></div>
+
+
+
+<div class="viewcode-block" id="select_trace_spectanspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.select_trace_spectanspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">select_trace_spectanspec</span><span class="p">(</span>
+        <span class="n">dataframe</span><span class="p">,</span>
+        <span class="n">instrument_config</span><span class="o">=</span><span class="s2">&quot;config/instrument_templates.config&quot;</span><span class="p">):</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">read_fits_header</span><span class="p">(</span><span class="n">dataframe</span><span class="p">)</span>
+    <span class="n">pkgpath</span> <span class="o">=</span> <span class="n">get_pkgpath</span><span class="p">()</span>
+    <span class="n">instconfig</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">instrument_config</span>
+    <span class="n">instrument_configs</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">instconfig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;GRATING&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;grating1&#39;</span><span class="p">:</span>
+        <span class="c1"># grating_items = instrument_configs[&#39;TANSPEC_XD&#39;]</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;XD&quot;</span>
+    <span class="k">elif</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;GRATING&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;grating2&#39;</span><span class="p">:</span>
+        <span class="c1"># grating_items = instrument_configs[&#39;TANSPEC_LR&#39;]</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;LR&quot;</span>
+    <span class="n">grating_items</span> <span class="o">=</span> <span class="n">instrument_configs</span><span class="p">[</span><span class="s1">&#39;TANSPEC_&#39;</span> <span class="o">+</span> <span class="n">mode</span><span class="p">]</span>
+    <span class="n">star_trace</span> <span class="o">=</span> <span class="n">grating_items</span><span class="p">[</span><span class="s1">&#39;ContinuumFile&#39;</span><span class="p">]</span>
+    <span class="n">aperture_label</span> <span class="o">=</span> <span class="n">grating_items</span><span class="p">[</span><span class="s1">&#39;ApertureLabel&#39;</span><span class="p">]</span>
+    <span class="n">aperturetrace</span> <span class="o">=</span> <span class="n">grating_items</span><span class="p">[</span><span class="s1">&#39;ApertureTraceFilename&#39;</span><span class="p">]</span>
+
+    <span class="n">star_trace</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">star_trace</span>
+    <span class="n">aperture_label</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">aperture_label</span>
+    <span class="n">aperturetrace</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">aperturetrace</span>
+    <span class="k">return</span> <span class="n">star_trace</span><span class="p">,</span> <span class="n">aperture_label</span><span class="p">,</span> <span class="n">aperturetrace</span></div>
+
+
+
+<div class="viewcode-block" id="pixel_offset_spectanspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.pixel_offset_spectanspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pixel_offset_spectanspec</span><span class="p">(</span><span class="n">lampspectra</span><span class="p">):</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">getheader</span><span class="p">(</span><span class="n">lampspectra</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;GRATING&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;grating2&#39;</span><span class="p">:</span>
+        <span class="n">pixeloffset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;GRATING&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;grating1&#39;</span><span class="p">:</span>
+        <span class="n">lamp_spec</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">lampspectra</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">arc_lamp</span> <span class="o">=</span> <span class="n">lamp_spec</span><span class="p">[</span><span class="mi">7</span><span class="p">:</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">arc_lamp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">arc_lamp</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">pkgpath</span> <span class="o">=</span> <span class="n">get_pkgpath</span><span class="p">()</span>
+        <span class="n">template_filename</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> \
+            <span class="s2">&quot;data/TANSPEC/XD/pixeloffsettemplate/pixeloffsettemplate_s0.5.npy&quot;</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">template_filename</span><span class="p">)</span>
+        <span class="n">pixeloffset</span> <span class="o">=</span> <span class="n">get_pixel_shift</span><span class="p">(</span><span class="n">arc_lamp</span><span class="p">,</span> <span class="n">template</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pixeloffset</span></div>
+
+
+
+<div class="viewcode-block" id="get_template_spectanspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.get_template_spectanspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_template_spectanspec</span><span class="p">(</span>
+        <span class="n">lampfname</span><span class="p">,</span>
+        <span class="n">index</span><span class="p">,</span>
+        <span class="n">instrument_config</span><span class="o">=</span><span class="s2">&quot;config/instrument_templates.config&quot;</span>
+<span class="p">):</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">read_fits_header</span><span class="p">(</span><span class="n">lampfname</span><span class="p">)</span>
+    <span class="n">pkgpath</span> <span class="o">=</span> <span class="n">get_pkgpath</span><span class="p">()</span>
+    <span class="n">instconfig</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">instrument_config</span>
+    <span class="n">instrument_configs</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">instconfig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;GRATING&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;grating1&#39;</span><span class="p">:</span>
+        <span class="c1"># grating_items = instrument_configs[&#39;TANSPEC_XD&#39;]</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;XD&quot;</span>
+    <span class="k">elif</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;GRATING&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;grating2&#39;</span><span class="p">:</span>
+        <span class="c1"># grating_items = instrument_configs[&#39;TANSPEC_LR&#39;]</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;LR&quot;</span>
+    <span class="n">slitwidth</span> <span class="o">=</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;SLIT&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">:]</span>
+    <span class="n">instrument_specs</span> <span class="o">=</span> <span class="n">instrument_configs</span><span class="p">[</span><span class="s1">&#39;TANSPEC_&#39;</span><span class="o">+</span><span class="n">mode</span><span class="p">]</span>
+    <span class="n">temp_path</span> <span class="o">=</span> <span class="n">instrument_specs</span><span class="p">[</span><span class="s1">&#39;LampTrace_dict&#39;</span><span class="p">]</span>
+    <span class="n">trace_nameformat</span> <span class="o">=</span> <span class="n">instrument_specs</span><span class="p">[</span><span class="s1">&#39;LampTrace_nameformat&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;LR&quot;</span><span class="p">:</span>
+        <span class="n">trace_name</span> <span class="o">=</span> <span class="n">trace_nameformat</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;LR&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;XD&quot;</span><span class="p">:</span>
+        <span class="n">trace_name</span> <span class="o">=</span> <span class="n">trace_nameformat</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">template_path</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">temp_path</span> <span class="o">/</span> <span class="n">slitwidth</span> <span class="o">/</span> <span class="n">trace_name</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">template_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">template</span></div>
+
+
+
+<div class="viewcode-block" id="get_response_spectanspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.get_response_spectanspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_response_spectanspec</span><span class="p">(</span>
+        <span class="n">fname</span><span class="p">,</span>
+        <span class="n">instrument_config</span><span class="o">=</span><span class="s2">&quot;config/instrument_templates.config&quot;</span>
+<span class="p">):</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">read_fits_header</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="n">pkgpath</span> <span class="o">=</span> <span class="n">get_pkgpath</span><span class="p">()</span>
+    <span class="n">instconfig</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">instrument_config</span>
+    <span class="n">instrument_configs</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">instconfig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;GRATING&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;grating1&#39;</span><span class="p">:</span>
+        <span class="c1"># grating_items = instrument_configs[&#39;TANSPEC_XD&#39;]</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;XD&quot;</span>
+    <span class="k">elif</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;GRATING&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;grating2&#39;</span><span class="p">:</span>
+        <span class="c1"># grating_items = instrument_configs[&#39;TANSPEC_LR&#39;]</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;LR&quot;</span>
+    <span class="n">instrument_specs</span> <span class="o">=</span> <span class="n">instrument_configs</span><span class="p">[</span><span class="s1">&#39;TANSPEC_&#39;</span><span class="o">+</span><span class="n">mode</span><span class="p">]</span>
+    <span class="n">temp_path</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">instrument_specs</span><span class="p">[</span><span class="s1">&#39;Response&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">temp_path</span></div>
+
+
+
+<div class="viewcode-block" id="get_stdsky_spectanspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.get_stdsky_spectanspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_stdsky_spectanspec</span><span class="p">(</span>
+        <span class="n">fname</span><span class="p">,</span>
+        <span class="n">instrument_config</span><span class="o">=</span><span class="s2">&quot;config/instrument_templates.config&quot;</span>
+<span class="p">):</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">read_fits_header</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="n">pkgpath</span> <span class="o">=</span> <span class="n">get_pkgpath</span><span class="p">()</span>
+    <span class="n">instconfig</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">instrument_config</span>
+    <span class="n">instrument_configs</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">instconfig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;GRATING&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;grating1&#39;</span><span class="p">:</span>
+        <span class="c1"># grating_items = instrument_configs[&#39;TANSPEC_XD&#39;]</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;XD&quot;</span>
+    <span class="k">elif</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;GRATING&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;grating2&#39;</span><span class="p">:</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;LR&quot;</span>
+
+    <span class="n">instrument_specs</span> <span class="o">=</span> <span class="n">instrument_configs</span><span class="p">[</span><span class="s1">&#39;TANSPEC_&#39;</span> <span class="o">+</span> <span class="n">mode</span><span class="p">]</span>
+    <span class="n">sky_fname</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">instrument_specs</span><span class="p">[</span><span class="s1">&#39;StdSky&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">sky_fname</span></div>
+
+
+<span class="c1">#################################</span>
+<span class="c1">#         TIRSPEC               #</span>
+<span class="c1">#################################</span>
+
+
+<div class="viewcode-block" id="standardise_header_tirspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.standardise_header_tirspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">standardise_header_tirspec</span><span class="p">(</span><span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">read_fits_header</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="c1"># FNUM not in header. Extracting from filename.</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">instruments</span><span class="p">[</span><span class="s1">&#39;TIRSPEC&#39;</span><span class="p">][</span><span class="s1">&#39;sort_filename_key&#39;</span><span class="p">](</span><span class="n">fname</span><span class="p">)</span>
+    <span class="n">header</span><span class="p">[</span><span class="s1">&#39;FNUM&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fnum</span>
+    <span class="k">return</span> <span class="n">header</span></div>
+
+
+
+<div class="viewcode-block" id="frame_select_tirspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.frame_select_tirspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">frame_select_tirspec</span><span class="p">(</span><span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<div class="viewcode-block" id="catalog_flag_tirspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.catalog_flag_tirspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">catalog_flag_tirspec</span><span class="p">(</span><span class="n">flog_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">headers_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">flog_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">flats_kws</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;flat&quot;</span><span class="p">,</span> <span class="s2">&quot;cont&quot;</span><span class="p">]</span>
+    <span class="n">arg_kws</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ar&quot;</span><span class="p">,</span> <span class="s2">&quot;arg&quot;</span><span class="p">]</span>
+    <span class="n">flat_check</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="n">kw</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">flats_kws</span><span class="p">])</span>
+    <span class="n">arg_check</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="n">kw</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">arg_kws</span>
+        <span class="p">])</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">flat_check</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">flag</span> <span class="o">=</span> <span class="s2">&quot;FLAT&quot;</span>
+    <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">arg_check</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">flag</span> <span class="o">=</span> <span class="s2">&quot;ARGON&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">flag</span> <span class="o">=</span> <span class="s2">&quot;OBJECT&quot;</span>
+    <span class="n">flog_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flog_list</span></div>
+
+
+
+<div class="viewcode-block" id="load_badpixelmask_tirspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.load_badpixelmask_tirspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_badpixelmask_tirspec</span><span class="p">(</span>
+        <span class="n">instrument_config</span><span class="o">=</span><span class="s2">&quot;config/instrument_templates.config&quot;</span>
+<span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span>
+        <span class="n">get_pkgpath</span><span class="p">()</span> <span class="o">/</span> <span class="n">instrument_config</span>
+    <span class="p">)[</span>
+        <span class="s1">&#39;TIRSPEC&#39;</span>
+    <span class="p">][</span>
+        <span class="s1">&#39;BadPixelMask&#39;</span>
+        <span class="p">]</span>
+
+    <span class="n">mask_path</span> <span class="o">=</span> <span class="n">get_pkgpath</span><span class="p">()</span> <span class="o">/</span> <span class="n">path</span>
+    <span class="k">return</span> <span class="n">mask_path</span></div>
+
+
+
+<div class="viewcode-block" id="select_trace_tirspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.select_trace_tirspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">select_trace_tirspec</span><span class="p">(</span>
+        <span class="n">dataframe</span><span class="p">,</span>
+        <span class="n">instrument_config</span><span class="o">=</span><span class="s2">&quot;config/instrument_templates.config&quot;</span><span class="p">):</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">read_fits_header</span><span class="p">(</span><span class="n">dataframe</span><span class="p">)</span>
+    <span class="n">pkgpath</span> <span class="o">=</span> <span class="n">get_pkgpath</span><span class="p">()</span>
+    <span class="n">instconfig</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">instrument_config</span>
+    <span class="n">instrument_configs</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">instconfig</span><span class="p">)</span>
+    <span class="n">spec_filter</span> <span class="o">=</span> <span class="n">header</span><span class="p">[</span><span class="s2">&quot;UPPER&quot;</span><span class="p">]</span>
+    <span class="n">grating_items</span> <span class="o">=</span> <span class="n">instrument_configs</span><span class="p">[</span><span class="s1">&#39;TIRSPEC&#39;</span><span class="p">]</span>
+    <span class="n">star_trace</span> <span class="o">=</span> <span class="n">grating_items</span><span class="p">[</span><span class="s1">&#39;ContinuumFile&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">spec_filter</span><span class="p">,</span>
+                                                       <span class="n">spec_filter</span><span class="p">)</span>
+    <span class="n">aperture_label</span> <span class="o">=</span> <span class="n">grating_items</span><span class="p">[</span><span class="s1">&#39;ApertureLabel&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">spec_filter</span><span class="p">,</span>
+                                                           <span class="n">spec_filter</span><span class="p">)</span>
+    <span class="n">aperturetrace</span> <span class="o">=</span> <span class="n">grating_items</span><span class="p">[</span><span class="s1">&#39;ApertureTraceFilename&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">spec_filter</span><span class="p">,</span>
+                                                                  <span class="n">spec_filter</span><span class="p">)</span>
+
+    <span class="n">star_trace</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">star_trace</span>
+    <span class="n">aperture_label</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">aperture_label</span>
+    <span class="n">aperturetrace</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">aperturetrace</span>
+    <span class="k">return</span> <span class="n">star_trace</span><span class="p">,</span> <span class="n">aperture_label</span><span class="p">,</span> <span class="n">aperturetrace</span></div>
+
+
+
+<div class="viewcode-block" id="call_masterflat_tirspec">
+<a class="viewcode-back" href="../../toirex.html#toirex.instrument.call_masterflat_tirspec">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">call_masterflat_tirspec</span><span class="p">(</span>
+        <span class="n">frame</span><span class="p">,</span>
+        <span class="n">instrument_config</span><span class="o">=</span><span class="s2">&quot;config/instrument_templates.config&quot;</span>
+        <span class="p">):</span>
+    <span class="n">pkgpath</span> <span class="o">=</span> <span class="n">get_pkgpath</span><span class="p">()</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">read_fits_header</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+    <span class="n">slit</span> <span class="o">=</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;SLIT&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">slit</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;open&#39;</span><span class="p">:</span>
+        <span class="c1"># Because if it is photometry, slit should be open always.</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;P&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># There will be a slit if you are taking spectra.</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;S&#39;</span>
+    <span class="n">instconfig</span> <span class="o">=</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">instrument_config</span>
+    <span class="n">instrument_configs</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">instconfig</span><span class="p">)</span>
+    <span class="n">instrument_items</span> <span class="o">=</span> <span class="n">instrument_configs</span><span class="p">[</span><span class="s1">&#39;TIRSPEC&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;P&#39;</span><span class="p">:</span>
+        <span class="n">masterflat</span> <span class="o">=</span> <span class="n">instrument_items</span><span class="p">[</span><span class="s1">&#39;PhotFlats&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">masterflat</span> <span class="o">=</span> <span class="n">instrument_items</span><span class="p">[</span><span class="s1">&#39;SpecFlats&#39;</span><span class="p">]</span>
+    <span class="n">band</span> <span class="o">=</span> <span class="n">header</span><span class="p">[</span><span class="s1">&#39;UPPER&#39;</span><span class="p">]</span>
+    <span class="n">masterflat_band</span> <span class="o">=</span> <span class="n">masterflat</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">band</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pkgpath</span> <span class="o">/</span> <span class="n">masterflat_band</span></div>
+
+
+<span class="c1"># def get_badpixelmask_tirspec()</span>
+
+<span class="c1">#################################</span>
+<span class="c1">#    Function dictionaries      #</span>
+<span class="c1">#################################</span>
+
+
+<span class="n">instruments</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;SpecTANSPEC&#39;</span><span class="p">:</span>
+    <span class="p">{</span><span class="s1">&#39;sort_filename_key&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">sort_filename_key</span><span class="p">,</span> <span class="n">regexp</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;(\d+)\.Z\.fits&#39;</span><span class="p">),</span>
+     <span class="s1">&#39;standardise_header&#39;</span><span class="p">:</span> <span class="n">standardise_header_spectanspec</span><span class="p">,</span>
+     <span class="s1">&#39;frame_select&#39;</span><span class="p">:</span> <span class="n">frame_select_spectanspec</span><span class="p">,</span>
+     <span class="s1">&#39;catalog_flag&#39;</span><span class="p">:</span> <span class="n">catalog_flag_spectanspec</span><span class="p">,</span>
+     <span class="s1">&#39;masterflat&#39;</span><span class="p">:</span> <span class="n">masterflat_combination</span><span class="p">,</span>
+     <span class="s1">&#39;select_trace&#39;</span><span class="p">:</span> <span class="n">select_trace_spectanspec</span><span class="p">,</span>
+     <span class="s1">&#39;get_template&#39;</span><span class="p">:</span> <span class="n">get_template_spectanspec</span><span class="p">,</span>
+     <span class="s1">&#39;pixel_offset&#39;</span><span class="p">:</span> <span class="n">pixel_offset_spectanspec</span><span class="p">,</span>
+     <span class="s1">&#39;get_stdsky&#39;</span><span class="p">:</span> <span class="n">get_stdsky_spectanspec</span><span class="p">,</span>
+     <span class="s1">&#39;inst_response&#39;</span><span class="p">:</span> <span class="n">get_response_spectanspec</span><span class="p">,</span>
+     <span class="s1">&#39;badpixelmask&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+     <span class="s1">&#39;fname_regexp&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;^(.*?)-\d</span><span class="si">{5}</span><span class="s2">\.Z\.fits$&quot;</span><span class="p">,</span>
+     <span class="s1">&#39;grouping_keys&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;GRATING&#39;</span><span class="p">,</span> <span class="s1">&#39;SLIT&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;A_TRGTRA&#39;</span><span class="p">,</span> <span class="s1">&#39;A_TRGTDE&#39;</span><span class="p">],</span>
+     <span class="s1">&#39;flat_kw&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;CONT1&#39;</span><span class="p">,</span> <span class="s1">&#39;CONT2&#39;</span><span class="p">],</span>
+     <span class="s1">&#39;flat_grouping_keys&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;GRATING&#39;</span><span class="p">,</span> <span class="s1">&#39;SLIT&#39;</span><span class="p">],</span>
+     <span class="s1">&#39;lamp_kw&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;ARGON&#39;</span><span class="p">,</span> <span class="s1">&#39;NEON&#39;</span><span class="p">],</span>
+     <span class="s1">&#39;catalog_headers&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s1">&#39;FNUM&#39;</span><span class="p">,</span> <span class="s1">&#39;A_UTC&#39;</span><span class="p">,</span> <span class="s1">&#39;DATE_OBS&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ITIMEREQ&#39;</span><span class="p">,</span> <span class="s1">&#39;FILTER&#39;</span><span class="p">,</span> <span class="s1">&#39;GRATING&#39;</span><span class="p">,</span> <span class="s1">&#39;SLIT&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CALMIR&#39;</span><span class="p">,</span> <span class="s1">&#39;OBJECT&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ARGONL&#39;</span><span class="p">,</span> <span class="s1">&#39;NEONL&#39;</span><span class="p">,</span> <span class="s1">&#39;CONT1L&#39;</span><span class="p">,</span> <span class="s1">&#39;CONT2L&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;A_TRGTRA&#39;</span><span class="p">,</span> <span class="s1">&#39;A_TRGTDE&#39;</span>
+            <span class="p">]</span>
+     <span class="p">},</span>
+    <span class="s1">&#39;TIRSPEC&#39;</span><span class="p">:</span>
+    <span class="p">{</span><span class="s1">&#39;sort_filename_key&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">sort_filename_key</span><span class="p">,</span> <span class="n">regexp</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;(\d+)\.Z\.fits&#39;</span><span class="p">),</span>
+     <span class="s1">&#39;standardise_header&#39;</span><span class="p">:</span> <span class="n">standardise_header_tirspec</span><span class="p">,</span>
+     <span class="s1">&#39;frame_select&#39;</span><span class="p">:</span> <span class="n">frame_select_tirspec</span><span class="p">,</span>
+     <span class="s1">&#39;catalog_flag&#39;</span><span class="p">:</span> <span class="n">catalog_flag_tirspec</span><span class="p">,</span>
+     <span class="s1">&#39;masterflat&#39;</span><span class="p">:</span> <span class="n">call_masterflat_tirspec</span><span class="p">,</span>
+     <span class="s1">&#39;select_trace&#39;</span><span class="p">:</span> <span class="n">select_trace_tirspec</span><span class="p">,</span>
+     <span class="s1">&#39;pixel_offset&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+     <span class="s1">&#39;get_stdsky&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+     <span class="s1">&#39;inst_response&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+     <span class="s1">&#39;badpixelmask&#39;</span><span class="p">:</span> <span class="n">load_badpixelmask_tirspec</span><span class="p">,</span>
+     <span class="s1">&#39;fname_regexp&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;^(.*?)-\d</span><span class="si">{3}</span><span class="s2">\.Z\.fits$&quot;</span><span class="p">,</span>
+     <span class="s1">&#39;grouping_keys&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;UPPER&#39;</span><span class="p">,</span> <span class="s1">&#39;LOWER&#39;</span><span class="p">,</span> <span class="s1">&#39;SLIT&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;TCSRA&#39;</span><span class="p">,</span> <span class="s1">&#39;TCSDEC&#39;</span>
+                       <span class="p">],</span>
+     <span class="s1">&#39;flat_kw&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;FLAT&#39;</span><span class="p">],</span>
+     <span class="s1">&#39;flat_grouping_keys&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;UPPER&#39;</span><span class="p">,</span> <span class="s1">&#39;LOWER&#39;</span><span class="p">],</span>
+     <span class="s1">&#39;lamp_kw&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;ARGON&#39;</span><span class="p">],</span>
+     <span class="s1">&#39;catalog_headers&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s1">&#39;FNUM&#39;</span><span class="p">,</span> <span class="s1">&#39;TIME&#39;</span><span class="p">,</span> <span class="s1">&#39;DATE&#39;</span><span class="p">,</span> <span class="s1">&#39;UPPER&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;LOWER&#39;</span><span class="p">,</span> <span class="s1">&#39;SLIT&#39;</span><span class="p">,</span> <span class="s1">&#39;CALMIR&#39;</span><span class="p">,</span> <span class="s1">&#39;TARGET&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;TCSRA&#39;</span><span class="p">,</span> <span class="s1">&#39;TCSDEC&#39;</span>
+        <span class="p">]</span>
+     <span class="p">},</span>
+<span class="p">}</span>
+<span class="c1"># End</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/toirex_logo.png" alt="Logo of TOIREx"/>
+            </a></p>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">TOIREx  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">toirex.instrument</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2025, Varghese Reji.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

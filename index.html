@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>TOIREx documentation &#8212; TOIREx  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">TOIREx  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TOIREx documentation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="toirex-documentation">
+<h1>TOIREx documentation<a class="headerlink" href="#toirex-documentation" title="Link to this heading">¶</a></h1>
+<p><strong>TIFR Optical to Infrared Extractor (TOIREx)</strong> is a Python package to extract
+photometry and spectroscopy data from optical and infrared instruments.</p>
+<p>TOIREx provides an automated pipeline to:</p>
+<ul class="simple">
+<li><p>Select and group frames</p></li>
+<li><p>Combine frames</p></li>
+<li><p>Apply flat-field correction</p></li>
+<li><p>Perform sky subtraction</p></li>
+<li><p>Extract photometric and spectroscopic data</p></li>
+</ul>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Configuration and Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#setting-up">Setting Up</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#configuration-sections">Configuration Sections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#inits">[inits]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#outputs">[outputs]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#visual">[visual]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#logging">[logging]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#inputs">[inputs]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#dither">[dither]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#spectral-extraction">[spectral_extraction]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#wcs">[wcs]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#photometry">[photometry]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="flowchart.html">Module Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="toirex.html">toirex package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="toirex.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toirex.html#toirex-toirex-main-module">toirex.toirex_main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toirex.html#module-toirex.grouping_frames">toirex.grouping_frames module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toirex.html#module-toirex.obscatalog">toirex.obscatalog module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toirex.html#module-toirex.selecting_frames">toirex.selecting_frames module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toirex.html#toirex-dithering-module">toirex.dithering module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toirex.html#toirex-photometry-module">toirex.photometry module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toirex.html#toirex-spectral-reduction-module">toirex.spectral_reduction module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toirex.html#module-toirex.setups">toirex.setups module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toirex.html#toirex-utils-module">toirex.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toirex.html#module-toirex">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developers.html">Developer Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#pipeline-architecture">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#repository-structure">Repository Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#development-installation">Development Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#coding-style">Coding Style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#configuration-file">Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#error-handling">Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#contributing">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developers.html#api-documentation">API Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="#">
+              <img class="logo" src="_static/toirex_logo.png" alt="Logo of TOIREx"/>
+            </a></p>
+  <div>
+    <h3><a href="#">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TOIREx documentation</a><ul>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="installation.html"
+                          title="next chapter">Installation</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">TOIREx  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TOIREx documentation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2025, Varghese Reji.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>toirex.grouping_frames &#8212; TOIREx  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nature.css?v=279e0f84" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">TOIREx  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">toirex.grouping_frames</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for toirex.grouping_frames</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.setups</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.obscatalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_catalog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.instrument</span><span class="w"> </span><span class="kn">import</span> <span class="n">instruments</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_in_editor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_fname_prefix</span>
+
+
+<div class="viewcode-block" id="remove_repeated_values">
+<a class="viewcode-back" href="../../toirex.html#toirex.grouping_frames.remove_repeated_values">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_repeated_values</span><span class="p">(</span><span class="n">candidate_list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove duplicate elements from a list, with special handling for</span>
+<span class="sd">    NumPy arrays.</span>
+
+<span class="sd">    This function iterates through the input list and removes repeated</span>
+<span class="sd">    elements. Unlike the built-in `set`, it preserves the original order</span>
+<span class="sd">    and works with elements that are NumPy arrays by comparing their</span>
+<span class="sd">    contents (via `tolist()`) rather than object identity.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    candidate_list : list</span>
+<span class="sd">        Input list potentially containing repeated elements. Elements can be</span>
+<span class="sd">        of arbitrary type, including NumPy arrays.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    filtered_list : list</span>
+<span class="sd">        A new list with repeated elements removed, preserving the first</span>
+<span class="sd">        occurrence of each unique element.</span>
+
+<span class="sd">     Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - For NumPy arrays, equality is determined by comparing the result of</span>
+<span class="sd">      `.tolist()`, so arrays with the same contents but different memory</span>
+<span class="sd">      locations are considered duplicates.</span>
+<span class="sd">    - The function preserves the order of elements, unlike `set()`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; arr1 = np.array([1, 2, 3])</span>
+<span class="sd">    &gt;&gt;&gt; arr2 = np.array([1, 2, 3])</span>
+<span class="sd">    &gt;&gt;&gt; candidate_list = [arr1, arr2, [4, 5], [4, 5], &quot;a&quot;, &quot;a&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; remove_repeated_values(candidate_list)</span>
+<span class="sd">    [array([1, 2, 3]), [4, 5], &#39;a&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">filtered_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cand</span> <span class="ow">in</span> <span class="n">candidate_list</span><span class="p">:</span>
+        <span class="n">cand_list</span> <span class="o">=</span> <span class="n">cand</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cand</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">cand</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="n">cand_list</span>
+                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">filtered_list</span>
+        <span class="p">):</span>
+            <span class="n">filtered_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cand</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">filtered_list</span></div>
+
+
+
+<div class="viewcode-block" id="select_flats">
+<a class="viewcode-back" href="../../toirex.html#toirex.grouping_frames.select_flats">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">select_flats</span><span class="p">(</span><span class="n">catalog_dict</span><span class="p">,</span> <span class="n">flats_keys</span><span class="p">,</span> <span class="n">flat_flag</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Select and group flat frames from a catalogue.</span>
+
+<span class="sd">    This function extracts flat frames from the input catalogue based on</span>
+<span class="sd">    classification flags and groups them according to a set of catalogue</span>
+<span class="sd">    keys (e.g., grism, filter, order). Duplicate groups are removed using</span>
+<span class="sd">    `remove_repeated_values`. The grouped flats are returned as a dictionary</span>
+<span class="sd">    mapping a concatenated string of key values to the corresponding flat</span>
+<span class="sd">    file names.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    catalog_dict : dict</span>
+<span class="sd">        Dictionary containing the catalogue. Must include:</span>
+<span class="sd">        - ``&#39;FNAME&#39;`` : list or array of file names</span>
+<span class="sd">        - ``&#39;FLAG&#39;`` : list or array of classification flags</span>
+<span class="sd">        - Additional keys specified in `flats_keys`.</span>
+
+<span class="sd">    flats_keys : list of str</span>
+<span class="sd">        List of catalogue dictionary keys used to define unique groups</span>
+<span class="sd">        (e.g., [&quot;GRISM&quot;, &quot;FILTER&quot;]).</span>
+
+<span class="sd">    flat_flag : list of str</span>
+<span class="sd">        List of flags that identify flat frames in the catalogue.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    grouped_flats : dict</span>
+<span class="sd">        Dictionary where:</span>
+<span class="sd">        - keys are strings obtained by joining the values of the group-defining</span>
+<span class="sd">          keys with a space (e.g., &quot;GRISM1 FILTER2&quot;),</span>
+<span class="sd">        - values are arrays of file names corresponding to that group of flats.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - The grouping is done by extracting values from `catalog_dict` at</span>
+<span class="sd">    positions</span>
+<span class="sd">      where `FLAG` matches `flat_flag`.</span>
+<span class="sd">    - Duplicate groups are removed using `remove_repeated_values`.</span>
+<span class="sd">    - The function assumes that the catalogue dictionary values can be indexed</span>
+<span class="sd">      and broadcast into NumPy arrays.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; catalog_dict = {</span>
+<span class="sd">    ...     &quot;FNAME&quot;: [&quot;flat1.fits&quot;, &quot;flat2.fits&quot;, &quot;sci1.fits&quot;],</span>
+<span class="sd">    ...     &quot;FLAG&quot;:  [&quot;FLAT&quot;, &quot;FLAT&quot;, &quot;SCIENCE&quot;],</span>
+<span class="sd">    ...     &quot;FILTER&quot;: [&quot;R&quot;, &quot;R&quot;, &quot;R&quot;],</span>
+<span class="sd">    ...     &quot;GRISM&quot;:  [&quot;G1&quot;, &quot;G1&quot;, &quot;G1&quot;]</span>
+<span class="sd">    ... }</span>
+<span class="sd">    &gt;&gt;&gt; flats_keys = [&quot;FILTER&quot;, &quot;GRISM&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; flat_flag = [&quot;FLAT&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; select_flats(catalog_dict, flats_keys, flat_flag)</span>
+<span class="sd">    {&#39;R G1&#39;: array([&#39;flat1.fits&#39;, &#39;flat2.fits&#39;], dtype=&#39;&lt;U10&#39;)}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">group_entries</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fnames</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">catalog_dict</span><span class="p">[</span><span class="s1">&#39;FNAME&#39;</span><span class="p">])</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">catalog_dict</span><span class="p">[</span><span class="s1">&#39;FLAG&#39;</span><span class="p">]</span>
+    <span class="n">flat_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">True</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">flat_flag</span> <span class="k">else</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">flags</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">keys</span> <span class="ow">in</span> <span class="n">flats_keys</span><span class="p">:</span>
+        <span class="c1"># print(keys)</span>
+        <span class="n">catalog_keys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">catalog_dict</span><span class="p">[</span><span class="n">keys</span><span class="p">])</span>
+        <span class="n">group_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">catalog_keys</span><span class="p">[</span><span class="n">flat_mask</span><span class="p">])</span>
+    <span class="n">group_entries</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">group_entries</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">reduced_groups</span> <span class="o">=</span> <span class="n">remove_repeated_values</span><span class="p">(</span><span class="n">group_entries</span><span class="p">)</span>
+    <span class="n">flat_fnames</span> <span class="o">=</span> <span class="n">fnames</span><span class="p">[</span><span class="n">flat_mask</span><span class="p">]</span>
+    <span class="n">grouped_flats</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">reduced_groups</span><span class="p">):</span>
+        <span class="c1"># print(r)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">group_entries</span> <span class="o">==</span> <span class="n">r</span>
+        <span class="n">matchings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">matched_fnames</span> <span class="o">=</span> <span class="n">flat_fnames</span><span class="p">[</span><span class="n">matchings</span><span class="p">]</span>
+        <span class="c1"># print(matched_fnames)</span>
+        <span class="n">dictkw</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">grouped_flats</span><span class="p">[</span><span class="n">dictkw</span><span class="p">]</span> <span class="o">=</span> <span class="n">matched_fnames</span>
+    <span class="c1"># print(grouped_flats)</span>
+    <span class="k">return</span> <span class="n">grouped_flats</span></div>
+
+
+
+<div class="viewcode-block" id="ordered_keys">
+<a class="viewcode-back" href="../../toirex.html#toirex.grouping_frames.ordered_keys">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ordered_keys</span><span class="p">(</span><span class="n">catalog_dict</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">grouping_keys</span><span class="p">,</span> <span class="n">flats_keys</span><span class="p">,</span> <span class="n">flat_flag</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Group files by specified catalogue keys and append matching flats.</span>
+
+<span class="sd">    This function groups catalogue entries according to a set of header keys</span>
+<span class="sd">    (e.g., grism, filter, order). For each unique group, it collects the</span>
+<span class="sd">    corresponding file names and appends any flat frames that match based on</span>
+<span class="sd">    `flats_keys`. The result is a dictionary mapping group indices to arrays</span>
+<span class="sd">    of file names (science + flats).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    catalog_dict : dict</span>
+<span class="sd">        Dictionary containing the catalogue. Must include:</span>
+<span class="sd">        - ``&#39;FNAME&#39;`` : list or array of file names.</span>
+<span class="sd">        - Additional keys specified in `grouping_keys` and `flats_keys`.</span>
+
+<span class="sd">    config : dict</span>
+<span class="sd">        Configuration dictionary (currently unused in this function, but passed</span>
+<span class="sd">        for consistency with other pipeline functions).</span>
+
+<span class="sd">    grouping_keys : list of str</span>
+<span class="sd">        Catalogue dictionary keys used to define the main grouping of science</span>
+<span class="sd">        files (e.g., [&quot;OBJECT&quot;, &quot;FILTER&quot;, &quot;GRISM&quot;]).</span>
+
+<span class="sd">       flats_keys : list of str</span>
+<span class="sd">        Catalogue dictionary keys used to group flat frames.</span>
+
+<span class="sd">    flat_flag : list of str</span>
+<span class="sd">        List of flags identifying flat frames in the catalogue.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    grouped_files : dict</span>
+<span class="sd">        Dictionary where:</span>
+<span class="sd">        - keys are integer group indices (0, 1, 2, …),</span>
+<span class="sd">        - values are arrays of file names corresponding to that group,</span>
+<span class="sd">          including any matching flat frames.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - Groups are formed by unique combinations of values in `grouping_keys`.</span>
+<span class="sd">    - Flat frames are grouped separately using `select_flats` and then merged</span>
+<span class="sd">      into the corresponding science groups if their key values match.</span>
+<span class="sd">    - Duplicate groups are removed using `remove_repeated_values`.</span>
+<span class="sd">    - The function preserves the order of first occurrences.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; catalog_dict = {</span>
+<span class="sd">    ...     &quot;FNAME&quot;: [&quot;sci1.fits&quot;, &quot;sci2.fits&quot;, &quot;flat1.fits&quot;],</span>
+<span class="sd">    ...     &quot;FLAG&quot;:  [&quot;SCIENCE&quot;, &quot;SCIENCE&quot;, &quot;FLAT&quot;],</span>
+<span class="sd">    ...     &quot;OBJECT&quot;: [&quot;StarA&quot;, &quot;StarA&quot;, &quot;Lamp&quot;],</span>
+<span class="sd">    ...     &quot;FILTER&quot;: [&quot;R&quot;, &quot;R&quot;, &quot;R&quot;],</span>
+<span class="sd">    ...     &quot;GRISM&quot;:  [&quot;G1&quot;, &quot;G1&quot;, &quot;G1&quot;]</span>
+<span class="sd">    ... }</span>
+<span class="sd">    &gt;&gt;&gt; grouping_keys = [&quot;OBJECT&quot;, &quot;FILTER&quot;, &quot;GRISM&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; flats_keys = [&quot;FILTER&quot;, &quot;GRISM&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; flat_flag = [&quot;FLAT&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; grouped = ordered_keys(catalog_dict, {}, grouping_keys, flats_keys,</span>
+<span class="sd">        flat_flag)</span>
+<span class="sd">    &gt;&gt;&gt; list(grouped.keys())</span>
+<span class="sd">    [0]   # one science group</span>
+<span class="sd">    &gt;&gt;&gt; grouped[0]</span>
+<span class="sd">    array([&#39;sci1.fits&#39;, &#39;sci2.fits&#39;, &#39;flat1.fits&#39;], dtype=&#39;&lt;U10&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Recognizing the position of flats_keys in grouping_keys.</span>
+    <span class="c1"># This will filter out the entries for flat.</span>
+    <span class="c1"># If this is not there, repeated entries will be grouped.</span>
+    <span class="n">flat_key_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">True</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">flats_keys</span> <span class="k">else</span> <span class="kc">False</span>
+                             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">grouping_keys</span><span class="p">])</span>
+    <span class="n">fnames</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">catalog_dict</span><span class="p">[</span><span class="s1">&#39;FNAME&#39;</span><span class="p">])</span>
+
+    <span class="n">group_entries</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1">#  select_flats(catalog_dict, flats_keys, flat_flag)</span>
+    <span class="k">for</span> <span class="n">keys</span> <span class="ow">in</span> <span class="n">grouping_keys</span><span class="p">:</span>
+        <span class="n">group_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">catalog_dict</span><span class="p">[</span><span class="n">keys</span><span class="p">])</span>
+    <span class="n">group_entries</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">group_entries</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">reduced_groups</span> <span class="o">=</span> <span class="n">remove_repeated_values</span><span class="p">(</span><span class="n">group_entries</span><span class="p">)</span>
+    <span class="n">grouped_flats</span> <span class="o">=</span> <span class="n">select_flats</span><span class="p">(</span><span class="n">catalog_dict</span><span class="p">,</span> <span class="n">flats_keys</span><span class="p">,</span> <span class="n">flat_flag</span><span class="p">)</span>
+    <span class="n">grouped_files</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">reduced_groups</span><span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">group_entries</span> <span class="o">==</span> <span class="n">r</span>
+        <span class="n">matchings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">matched_fnames</span> <span class="o">=</span> <span class="n">fnames</span><span class="p">[</span><span class="n">matchings</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">flat_kw</span><span class="p">,</span> <span class="n">flat_fnames</span> <span class="ow">in</span> <span class="n">grouped_flats</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">flat_kwlist</span> <span class="o">=</span> <span class="n">flat_kw</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+            <span class="n">filtered_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">r</span><span class="p">)[</span><span class="n">flat_key_pos</span><span class="p">]</span>
+            <span class="n">entry_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                <span class="kc">True</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">flat_kwlist</span> <span class="k">else</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">filtered_r</span>
+            <span class="p">])</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">entry_mask</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">flat_kwlist</span><span class="p">):</span>
+                <span class="n">matched_fnames</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span>
+                    <span class="n">matched_fnames</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flat_fnames</span>
+                                             <span class="p">)))</span>
+        <span class="n">grouped_files</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">matched_fnames</span>
+    <span class="k">return</span> <span class="n">grouped_files</span></div>
+
+
+
+<div class="viewcode-block" id="grouping_items">
+<a class="viewcode-back" href="../../toirex.html#toirex.grouping_frames.grouping_items">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">grouping_items</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">catalogue_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">open_editor</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Group catalogue files by observing setup while excluding flat frames.</span>
+
+<span class="sd">    This function reads the catalogue for the specified directory, groups</span>
+<span class="sd">    frames according to the instrument-specific grouping keys, and associates</span>
+<span class="sd">    each frame with its classification flag. A human-readable summary of the</span>
+<span class="sd">    groups is written to ``Grouped_txtfile.txt``, and the grouped catalogue is</span>
+<span class="sd">    returned as a nested dictionary.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+<span class="sd">        Configuration dictionary.</span>
+
+<span class="sd">        The following keys are required:</span>
+
+<span class="sd">        - ``config[&#39;inits&#39;][&#39;DICTKW&#39;]``: Instrument identifier used to select</span>
+<span class="sd">          the appropriate grouping rules.</span>
+<span class="sd">        - ``config[&#39;outputs&#39;][&#39;OP_DIR&#39;]``: Output directory where the grouping</span>
+<span class="sd">          summary is written.</span>
+
+<span class="sd">    dirname : str or pathlib.Path</span>
+<span class="sd">        Subdirectory of the output directory corresponding to the dataset.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Nested dictionary containing the grouped catalogue.</span>
+
+<span class="sd">        The outer dictionary maps group numbers to dictionaries of frame types.</span>
+<span class="sd">        Each inner dictionary maps classification flags (e.g. ``OBJECT``,</span>
+<span class="sd">        ``ARGON``, ``FLAT``) to lists of filenames.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Flat frames are excluded using the instrument-specific ``flat_kw`` keyword.</span>
+
+<span class="sd">    Grouping relies on the following components:</span>
+
+<span class="sd">    - ``read_catalog()`` to load the catalogue.</span>
+<span class="sd">    - ``instruments[dictkw][&#39;grouping_keys&#39;]`` to define observing groups.</span>
+<span class="sd">    - ``instruments[dictkw][&#39;flat_grouping_keys&#39;]`` to associate flat frames.</span>
+<span class="sd">    - ``ordered_keys()`` to construct the grouped catalogue.</span>
+
+<span class="sd">    The function also writes ``Grouped_txtfile.txt`` to</span>
+<span class="sd">    ``&lt;config[&#39;outputs&#39;][&#39;OP_DIR&#39;]&gt;/&lt;dirname&gt;``.</span>
+
+<span class="sd">    A placeholder exists for automatically associating continuum flats in a</span>
+<span class="sd">    future version.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; config = {</span>
+<span class="sd">    ...     &quot;inits&quot;: {&quot;DICTKW&quot;: &quot;SpecTANSPEC&quot;},</span>
+<span class="sd">    ...     &quot;outputs&quot;: {&quot;OP_DIR&quot;: &quot;Reduced_data&quot;},</span>
+<span class="sd">    ... }</span>
+<span class="sd">    &gt;&gt;&gt; groups = grouping_items(config, &quot;20240908&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; sorted(groups.keys())</span>
+<span class="sd">    [0, 1, 2]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;grouping&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Automatic grouping of frames&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">catalogue_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">catalogue_dict</span> <span class="o">=</span> <span class="n">read_catalog</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="n">catalog_fnames</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">catalogue_dict</span><span class="p">[</span><span class="s1">&#39;FNAME&#39;</span><span class="p">])</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">catalogue_dict</span><span class="p">[</span><span class="s1">&#39;FLAG&#39;</span><span class="p">]</span>
+    <span class="n">dictkw</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;inits&#39;</span><span class="p">][</span><span class="s1">&#39;DICTKW&#39;</span><span class="p">]</span>
+
+    <span class="n">flat_flag</span> <span class="o">=</span> <span class="n">instruments</span><span class="p">[</span><span class="n">dictkw</span><span class="p">][</span><span class="s1">&#39;flat_kw&#39;</span><span class="p">]</span>
+
+    <span class="n">groups_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">opdir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="s1">&#39;OP_DIR&#39;</span><span class="p">])</span> <span class="o">/</span> \
+        <span class="n">dirname</span>
+    <span class="n">txt_fname</span> <span class="o">=</span> <span class="n">opdir</span> <span class="o">/</span> <span class="s2">&quot;Grouped_txtfile.txt&quot;</span>
+    <span class="n">grouped_txt_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">txt_fname</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">grouping_keys</span> <span class="o">=</span> <span class="n">instruments</span><span class="p">[</span><span class="n">dictkw</span><span class="p">][</span><span class="s1">&#39;grouping_keys&#39;</span><span class="p">]</span>
+    <span class="n">flat_keys</span> <span class="o">=</span> <span class="n">instruments</span><span class="p">[</span><span class="n">dictkw</span><span class="p">][</span><span class="s1">&#39;flat_grouping_keys&#39;</span><span class="p">]</span>
+    <span class="n">ordered_dict</span> <span class="o">=</span> <span class="n">ordered_keys</span><span class="p">(</span><span class="n">catalogue_dict</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span>
+                                <span class="n">grouping_keys</span><span class="p">,</span> <span class="n">flat_keys</span><span class="p">,</span> <span class="n">flat_flag</span><span class="p">)</span>
+    <span class="n">opfilename_prefix</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">opdir</span> <span class="o">/</span> <span class="s2">&quot;Filename_suggestions.txt&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">order</span><span class="p">,</span> <span class="n">fnames</span> <span class="ow">in</span> <span class="n">ordered_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">subgroups_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="n">group_header</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">+</span> <span class="s2">&quot;Group </span><span class="si">{}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">order</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;*&quot;</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">grouped_txt_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">group_header</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">crorder</span><span class="p">,</span> <span class="n">fname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">catalog_fnames</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">fnames</span><span class="p">:</span>
+                <span class="c1"># print(crorder, fname, &#39;in group&#39;, order)</span>
+                <span class="n">subgroups_dict</span><span class="p">[</span><span class="n">flags</span><span class="p">[</span><span class="n">crorder</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;OBJECT&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">subgroups_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">grouped_txt_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> No object in this group </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">opfilename_prefix</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">order</span><span class="p">,</span>
+                <span class="n">extract_fname_prefix</span><span class="p">(</span>
+                    <span class="n">subgroups_dict</span><span class="p">[</span><span class="s1">&#39;OBJECT&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">instruments</span><span class="p">[</span><span class="n">dictkw</span><span class="p">][</span><span class="s1">&#39;fname_regexp&#39;</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">keys</span><span class="p">,</span> <span class="n">fnames</span> <span class="ow">in</span> <span class="n">subgroups_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">grouped_txt_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: </span><span class="se">\n</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fnames</span><span class="p">))</span>
+            <span class="p">)</span>
+            <span class="n">grouped_txt_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">grouped_txt_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">groups_dict</span><span class="p">[</span><span class="n">order</span><span class="p">]</span> <span class="o">=</span> <span class="n">subgroups_dict</span>
+    <span class="c1"># A function to add continuum flats here.</span>
+    <span class="n">grouped_txt_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">opfilename_prefix</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">if</span> <span class="p">(</span>
+            <span class="n">config</span><span class="p">[</span><span class="s1">&#39;inits&#39;</span><span class="p">][</span><span class="s1">&#39;MODE&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;AUTO&quot;</span>
+            <span class="ow">and</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;inits&#39;</span><span class="p">][</span><span class="s1">&#39;TIMESERIES&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;N&#39;</span>
+    <span class="p">):</span>
+        <span class="n">open_editor</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">open_editor</span><span class="p">:</span>
+        <span class="n">open_in_editor</span><span class="p">(</span><span class="n">txt_fname</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">groups_dict</span></div>
+
+
+
+<div class="viewcode-block" id="grouping_with_re">
+<a class="viewcode-back" href="../../toirex.html#toirex.grouping_frames.grouping_with_re">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">grouping_with_re</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">dirname</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Group catalogue entries using user-specified regular expressions.</span>
+
+<span class="sd">    This function reads a catalogue of image frames from the given directory</span>
+<span class="sd">    and filters them based on user-defined regular expressions. Users are first</span>
+<span class="sd">    prompted to input regex patterns for science frames and flat frames, and</span>
+<span class="sd">    optionally for lamp frames (depending on the configuration). The matched</span>
+<span class="sd">    frames are collected into a reduced catalogue and then grouped by</span>
+<span class="sd">    instrument-specific keywords (e.g., SLIT, GRATING, FILTER) via</span>
+<span class="sd">    `grouping_items`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+<span class="sd">        Configuration dictionary with at least the following keys:</span>
+
+<span class="sd">        - ``config[&#39;inits&#39;][&#39;TODO&#39;]`` : str</span>
+<span class="sd">            Indicates the processing mode. If set to ``&#39;S&#39;``, the user will be</span>
+<span class="sd">            prompted to enter regex rules for lamp frames as well.</span>
+
+<span class="sd">        - ``config[&#39;inits&#39;][&#39;DICTKW&#39;]`` : str</span>
+<span class="sd">            Key used to identify the instrument class from `instrument_class`.</span>
+<span class="sd">            This is needed to obtain instrument-specific keywords (e.g.,</span>
+<span class="sd">            lamp keywords).</span>
+
+<span class="sd">    dirname : str</span>
+<span class="sd">        Path to the directory containing the catalogue and associated files.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    grouped_dict : dict</span>
+<span class="sd">        A dictionary of grouped catalogue entries, as produced by</span>
+<span class="sd">        `grouping_items`. The grouping is based on instrument-specific</span>
+<span class="sd">        parameters (SLIT, GRATING, FILTER, etc.) after filtering by the</span>
+<span class="sd">        user-provided regex rules.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - The function is interactive: it prompts the user to enter regular</span>
+<span class="sd">      expressions for selecting science, flat, and (if applicable) lamp frames.</span>
+<span class="sd">    - Frames that match at least one of the provided regex rules are collected.</span>
+<span class="sd">    - Grouping is performed by calling the external `grouping_items` function.</span>
+<span class="sd">    - Regex documentation reference:</span>
+<span class="sd">      http://docs.python.org/2/howto/regex.html#regex-howto</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; config = {</span>
+<span class="sd">    ...     &#39;inits&#39;: {</span>
+<span class="sd">    ...         &#39;TODO&#39;: &#39;S&#39;,</span>
+<span class="sd">    ...         &#39;DICTKW&#39;: &#39;TIRSPEC&#39;</span>
+<span class="sd">    ...     }</span>
+<span class="sd">    ... }</span>
+<span class="sd">    &gt;&gt;&gt; dirname = &quot;/path/to/data&quot;</span>
+<span class="sd">    &gt;&gt;&gt; grouped = grouping_with_re(config, dirname)</span>
+<span class="sd">    Enter the regular expression for SCIECNE frames: .*M31.*</span>
+<span class="sd">    Enter the regular expression for FLAT frames: .*continuum.*</span>
+<span class="sd">    Enter the regular expression for LAMP frames: .*argon.*</span>
+<span class="sd">    &gt;&gt;&gt; print(grouped.keys())</span>
+<span class="sd">    dict_keys([&#39;FNAME&#39;, &#39;SLIT&#39;, &#39;FILTER&#39;, &#39;GRATING&#39;, ...])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;grouping_re&quot;</span><span class="p">)</span>
+    <span class="n">catalogue_dict</span> <span class="o">=</span> <span class="n">read_catalog</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="n">fnames_full</span> <span class="o">=</span> <span class="n">catalogue_dict</span><span class="p">[</span><span class="s1">&#39;FNAME&#39;</span><span class="p">]</span>
+    <span class="n">fnums_full</span> <span class="o">=</span> <span class="n">catalogue_dict</span><span class="p">[</span><span class="s1">&#39;FNUM&#39;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;For Regular Expression rules See:&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;http://docs.python.org/2/howto/regex.html#regex-howto&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Some examples of typical input are shown below&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;.*M31.* is the regular expression to select&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;all the objects lines which has &quot;M31&quot; in it.&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;NB: Even you enter the regular expression, the objects&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;will be grouped based on SLIT, GRATING, FILTER etc&#39;</span><span class="p">)</span>
+    <span class="n">enter_object</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter the regular expression for SCIENCE frames:&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;User entered: </span><span class="si">{</span><span class="n">enter_object</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">object_re</span><span class="p">,</span> <span class="n">object_fnums</span> <span class="o">=</span> <span class="n">reading_re</span><span class="p">(</span><span class="n">enter_object</span><span class="p">)</span>
+    <span class="n">re_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">object_re</span><span class="p">:</span> <span class="n">object_fnums</span><span class="p">}</span>
+    <span class="n">enter_flats</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter the regular expression for FLAT frames:&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;User entered: </span><span class="si">{</span><span class="n">enter_flats</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">flats_re</span><span class="p">,</span> <span class="n">flat_fnums</span> <span class="o">=</span> <span class="n">reading_re</span><span class="p">(</span><span class="n">enter_flats</span><span class="p">)</span>
+
+    <span class="n">re_dict</span><span class="p">[</span><span class="n">flats_re</span><span class="p">]</span> <span class="o">=</span> <span class="n">flat_fnums</span>
+
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;inits&#39;</span><span class="p">][</span><span class="s1">&#39;TODO&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span>
+        <span class="n">dictkw</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;inits&#39;</span><span class="p">][</span><span class="s1">&#39;DICTKW&#39;</span><span class="p">]</span>
+        <span class="n">lamp_keys</span> <span class="o">=</span> <span class="n">instruments</span><span class="p">[</span><span class="n">dictkw</span><span class="p">][</span><span class="s1">&#39;lamp_kw&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">lamp</span> <span class="ow">in</span> <span class="n">lamp_keys</span><span class="p">:</span>
+            <span class="n">enter_lamp</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
+                <span class="s2">&quot;Enter the regular expression for </span><span class="si">{}</span><span class="s2"> frames:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lamp</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;User entered: </span><span class="si">{</span><span class="n">enter_lamp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">lamp_re</span><span class="p">,</span> <span class="n">lamp_fnums</span> <span class="o">=</span> <span class="n">reading_re</span><span class="p">(</span><span class="n">enter_lamp</span><span class="p">)</span>
+            <span class="n">re_dict</span><span class="p">[</span><span class="n">lamp_re</span><span class="p">]</span> <span class="o">=</span> <span class="n">lamp_fnums</span>
+    <span class="n">selected_objects_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">catalog_kws</span> <span class="o">=</span> <span class="n">catalogue_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">res_ent</span><span class="p">,</span> <span class="n">fnums</span> <span class="ow">in</span> <span class="n">re_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">fnum_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">fnums_full</span> <span class="o">&gt;=</span> <span class="n">fnums</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">fnums_full</span> <span class="o">&lt;=</span> <span class="n">fnums</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">fnames</span> <span class="o">=</span> <span class="n">fnames_full</span><span class="p">[</span><span class="n">fnum_mask</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">imgline</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fnames</span><span class="p">):</span>
+            <span class="c1"># Converting the entered re string to re object</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&#39;</span><span class="o">+</span><span class="n">res_ent</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">imgline</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">dictkws</span> <span class="ow">in</span> <span class="n">catalog_kws</span><span class="p">:</span>
+                    <span class="n">selected_objects_dict</span><span class="p">[</span><span class="n">dictkws</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">catalogue_dict</span><span class="p">[</span><span class="n">dictkws</span><span class="p">][</span><span class="n">fnum_mask</span><span class="p">][</span><span class="n">n</span><span class="p">])</span>
+    <span class="n">grouped_dict</span> <span class="o">=</span> <span class="n">grouping_items</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span>
+                                  <span class="n">catalogue_dict</span><span class="o">=</span><span class="n">selected_objects_dict</span><span class="p">,</span>
+                                  <span class="n">open_editor</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">grouped_dict</span></div>
+
+
+
+<div class="viewcode-block" id="reading_re">
+<a class="viewcode-back" href="../../toirex.html#toirex.grouping_frames.reading_re">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reading_re</span><span class="p">(</span><span class="n">entered_re</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to read the entered</span>
+<span class="sd">    regular expression and separate FNUM from the</span>
+<span class="sd">    entered item.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entered_re</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">))</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">re_list</span> <span class="o">=</span> <span class="n">entered_re</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="n">object_re</span> <span class="o">=</span> <span class="n">re_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">start_fnum</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">re_list</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">end_fnum</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">re_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">object_re</span> <span class="o">=</span> <span class="n">entered_re</span>
+        <span class="n">start_fnum</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">end_fnum</span> <span class="o">=</span> <span class="mi">10000000</span>
+    <span class="n">fnum_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">start_fnum</span><span class="p">,</span> <span class="n">end_fnum</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">object_re</span><span class="p">,</span> <span class="n">fnum_list</span></div>
+
+
+<span class="c1"># End</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/toirex_logo.png" alt="Logo of TOIREx"/>
+            </a></p>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">TOIREx  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">toirex.grouping_frames</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2025, Varghese Reji.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

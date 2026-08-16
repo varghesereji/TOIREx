@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Developer Guide &#8212; TOIREx  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="toirex package" href="toirex.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="toirex.html" title="toirex package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">TOIREx  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Developer Guide</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="developer-guide">
+<h1>Developer Guide<a class="headerlink" href="#developer-guide" title="Link to this heading">¶</a></h1>
+<p>This page provides information for developers who wish to contribute to
+TOIREx or understand its internal structure.</p>
+<section id="pipeline-architecture">
+<h2>Pipeline Architecture<a class="headerlink" href="#pipeline-architecture" title="Link to this heading">¶</a></h2>
+<p>The pipeline consists of several independent modules responsible for
+specific reduction tasks.</p>
+<ul class="simple">
+<li><p>Input and configuration handling</p></li>
+<li><p>Calibration</p></li>
+<li><p>Image processing</p></li>
+<li><p>Spectroscopic extraction</p></li>
+<li><p>Photometric extraction</p></li>
+<li><p>World Coordinate System calibration</p></li>
+<li><p>Output generation</p></li>
+</ul>
+<p>The modules communicate primarily through FITS files and the pipeline
+configuration, allowing individual reduction stages to be reused
+independently.</p>
+</section>
+<section id="repository-structure">
+<h2>Repository Structure<a class="headerlink" href="#repository-structure" title="Link to this heading">¶</a></h2>
+<p>The source code follows a standard Python package layout.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>TOIREx/
+├── docs/              # Documentation source
+├── src/
+│   └── toirex/        # TOIREx source code
+├── tests/             # Unit tests
+├── pyproject.toml     # Package metadata
+├── LICENSE
+└── README.md
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">toirex</span></code> package contains the complete implementation of the
+pipeline.</p>
+</section>
+<section id="development-installation">
+<h2>Development Installation<a class="headerlink" href="#development-installation" title="Link to this heading">¶</a></h2>
+<p>Clone the repository</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/varghesereji/TOIREx.git
+</pre></div>
+</div>
+<p>Enter the repository</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>TOIREx
+</pre></div>
+</div>
+<p>Create a virtual environment</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+</pre></div>
+</div>
+<p>Activate the environment</p>
+<p>Linux/macOS</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+</pre></div>
+</div>
+<p>Windows</p>
+<div class="highlight-bat notranslate"><div class="highlight"><pre><span></span>venv\Scripts\activate
+</pre></div>
+</div>
+<p>Install TOIREx in editable mode</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+<p>Editable installation allows modifications to the source code without
+reinstalling the package.</p>
+</section>
+<section id="coding-style">
+<h2>Coding Style<a class="headerlink" href="#coding-style" title="Link to this heading">¶</a></h2>
+<p>The TOIREx codebase follows the recommendations of <span class="target" id="index-0"></span><a class="pep reference external" href="https://peps.python.org/pep-0008/"><strong>PEP 8</strong></a>.</p>
+<p>When contributing new code,</p>
+<ul class="simple">
+<li><p>use descriptive variable and function names,</p></li>
+<li><p>keep functions focused on a single task,</p></li>
+<li><p>avoid duplicated code,</p></li>
+<li><p>include informative comments where necessary,</p></li>
+<li><p>write docstrings for all public modules, classes and functions.</p></li>
+</ul>
+<p>Docstrings should follow the NumPy documentation style.</p>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading">¶</a></h2>
+<p>Before submitting any changes, ensure that the existing test suite passes.</p>
+<p>Run all tests using</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest
+</pre></div>
+</div>
+<p>If only a specific test file needs to be executed,</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>tests/test_filename.py
+</pre></div>
+</div>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">¶</a></h2>
+<p>The documentation is generated using Sphinx.</p>
+<p>To build the documentation locally,</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docs
+make<span class="w"> </span>html
+</pre></div>
+</div>
+<p>The generated documentation will be available in</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>docs/build/html/
+</pre></div>
+</div>
+<p>Open <code class="docutils literal notranslate"><span class="pre">index.html</span></code> in a web browser to view the documentation.</p>
+</section>
+<section id="configuration-file">
+<h2>Configuration File<a class="headerlink" href="#configuration-file" title="Link to this heading">¶</a></h2>
+<p>Most pipeline behaviour is controlled through the configuration file.</p>
+<p>When introducing a new configuration parameter,</p>
+<ul class="simple">
+<li><p>provide a sensible default value,</p></li>
+<li><p>document the parameter in the User Guide,</p></li>
+<li><p>ensure backward compatibility whenever possible,</p></li>
+<li><p>validate user input before use.</p></li>
+</ul>
+</section>
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Link to this heading">¶</a></h2>
+<p>TOIREx uses the Python <code class="docutils literal notranslate"><span class="pre">logging</span></code> module for status messages.</p>
+<p>Developers should use</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>instead of using <code class="docutils literal notranslate"><span class="pre">print()</span></code> statements for diagnostic output.</p>
+</section>
+<section id="error-handling">
+<h2>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading">¶</a></h2>
+<p>Errors should provide informative messages to help users identify the
+problem quickly.</p>
+<p>Where appropriate,</p>
+<ul class="simple">
+<li><p>validate inputs before processing,</p></li>
+<li><p>raise meaningful exceptions,</p></li>
+<li><p>avoid using bare <code class="docutils literal notranslate"><span class="pre">except</span></code> statements.</p></li>
+</ul>
+</section>
+<section id="contributing">
+<h2>Contributing<a class="headerlink" href="#contributing" title="Link to this heading">¶</a></h2>
+<p>Contributions are welcome.</p>
+<p>The recommended workflow is</p>
+<ol class="arabic simple">
+<li><p>Fork the repository.</p></li>
+<li><p>Create a new feature branch.</p></li>
+<li><p>Implement the changes.</p></li>
+<li><p>Add or update tests where appropriate.</p></li>
+<li><p>Update the documentation.</p></li>
+<li><p>Submit a pull request.</p></li>
+</ol>
+<p>Please ensure that all tests pass before opening a pull request.</p>
+</section>
+<section id="api-documentation">
+<h2>API Documentation<a class="headerlink" href="#api-documentation" title="Link to this heading">¶</a></h2>
+<p>The API reference is generated automatically from the source code using
+Sphinx.</p>
+<p>When adding new public classes or functions,</p>
+<ul class="simple">
+<li><p>include complete docstrings,</p></li>
+<li><p>document parameters and return values,</p></li>
+<li><p>provide examples where appropriate.</p></li>
+</ul>
+<p>Maintaining high-quality documentation helps both users and developers
+understand and extend the TOIREx pipeline.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/toirex_logo.png" alt="Logo of TOIREx"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Developer Guide</a><ul>
+<li><a class="reference internal" href="#pipeline-architecture">Pipeline Architecture</a></li>
+<li><a class="reference internal" href="#repository-structure">Repository Structure</a></li>
+<li><a class="reference internal" href="#development-installation">Development Installation</a></li>
+<li><a class="reference internal" href="#coding-style">Coding Style</a></li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li><a class="reference internal" href="#configuration-file">Configuration File</a></li>
+<li><a class="reference internal" href="#logging">Logging</a></li>
+<li><a class="reference internal" href="#error-handling">Error Handling</a></li>
+<li><a class="reference internal" href="#contributing">Contributing</a></li>
+<li><a class="reference internal" href="#api-documentation">API Documentation</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="toirex.html"
+                          title="previous chapter">toirex package</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/developers.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="toirex.html" title="toirex package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">TOIREx  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Developer Guide</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2025, Varghese Reji.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>
