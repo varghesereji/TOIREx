@@ -1169,7 +1169,8 @@ def extract_photometry(
         config,
         frametoextract,
         centroids,
-        plot_dir
+        plot_dir,
+        output_filename=None
 ):
     """
     Extract and save photometry using the configured photometry method.
@@ -1201,6 +1202,11 @@ def extract_photometry(
         Directory in which diagnostic plots generated during PSF
         photometry are saved. This argument is ignored for aperture
         photometry.
+
+    output_fname : str or pathlib.Path, optional
+        Output filename for the photometry FITS file. If ``None``, the
+        output filename is generated from ``fname`` by replacing its
+        extension with ``".phot.fits"``.
 
     Returns
     -------
@@ -1250,6 +1256,7 @@ def extract_photometry(
     withphot = save_photometry(
         frametoextract,
         phot_table,
+        output_filename=output_filename,
         history=history,
         save_magnitude=save_magnitude,
         flext=flext
