@@ -886,32 +886,24 @@ def calculate_magnitude(phot_table):
 
     return phot_table
 
+
 # -----------------------------
-# Extraction
+# Source finding
 # -----------------------------
 
+def find_sources(
+        config,
+        frametoextract,
+        plot_dir
+):
 
-def phot_process(config, frametoextract,
-                 opdir=None):
     logger = get_logger("photometry")
+    opdir = Path(frametoextract).parent
 
     radius = float(config['photometry']['RADIUS'])
     bkgwindows = ast.literal_eval(
         config['photometry']['BKGWINDOWS']
     )
-
-    frametoextract = Path(frametoextract)
-    if opdir is None:
-        opdir = frametoextract.parent
-
-    else:
-        opdir = Path(opdir)
-
-    frametoextract = opdir / frametoextract
-
-    # Making directory to save plots
-    plot_dir = opdir / "Photometry_plots"
-    plot_dir.mkdir(exist_ok=True)
 
     sources_txtfname = opdir / config['photometry']['SOURCELIST']
     editsource = config['photometry']['EDITSOURCE'] == 'YES'
@@ -949,6 +941,48 @@ def phot_process(config, frametoextract,
 
     get_centroids(sources_txtfname, purpose='write',
                   new_centroids=centroids)
+
+    return centroids
+
+
+# -----------------------------
+# Extraction
+# -----------------------------
+
+
+# -----------------------------
+# Processes of photometry
+# -----------------------------
+
+
+def phot_process(config, frametoextract,
+                 opdir=None):
+    logger = get_logger("photometry")
+
+    # radius = float(config['photometry']['RADIUS'])
+    # bkgwindows = ast.literal_eval(
+    #     config['photometry']['BKGWINDOWS']
+    # )
+
+    frametoextract = Path(frametoextract)
+    if opdir is None:
+        opdir = frametoextract.parent
+
+    else:
+        opdir = Path(opdir)
+
+    frametoextract = opdir / frametoextract
+
+    # Making directory to save plots
+    plot_dir = opdir / "Photometry_plots"
+    plot_dir.mkdir(exist_ok=True)
+
+    centroids = find_sources(
+        config,
+        frametoextract,
+        plot_dir
+        )
+
     # Doing photometry
     if config['photometry']['METHOD'] == 'PSF':
         logger.info("Doing PSF Photometry")
