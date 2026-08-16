@@ -826,7 +826,7 @@ def save_photometry(fname,
     phot_table : astropy.table.Table
         Photometry table to be saved in the output FITS file.
 
-    output_fname : str or pathlib.Path, optional
+    output_filename : str or pathlib.Path, optional
         Output filename for the photometry FITS file. If ``None``, the
         output filename is generated from ``fname`` by replacing its
         extension with ``".phot.fits"``.
