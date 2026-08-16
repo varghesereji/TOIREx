@@ -193,6 +193,50 @@ def targetfind_manual(fname,
 
 
 def aperture_photometry_subrot(config, fname, positions):
+    """
+    Perform aperture photometry on the specified sources.
+
+    Aperture and background annulus geometries are selected from the
+    photometry configuration. The source flux, background level, and
+    associated variances are calculated for each source. The resulting
+    photometry table is saved to a FITS file.
+
+    If a variance extension is not available, the flux extension is used
+    as the variance array.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing the photometry and input
+        settings. The photometry configuration must specify the aperture
+        type, aperture radius, annulus type, background windows, and
+        whether magnitude should be saved. The input configuration must
+        specify the flux and variance FITS extensions.
+
+    fname : str or pathlib.Path
+        Path to the FITS file from which the photometry is extracted.
+
+    positions : astropy.table.Table
+        Table containing the source positions. The table must contain
+        ``x_0`` and ``y_0`` columns giving the source coordinates in
+        pixels.
+
+    Returns
+    -------
+    str or pathlib.Path
+        Path to the FITS file containing the saved aperture photometry
+        table.
+
+    Notes
+    -----
+    The net source flux is calculated by subtracting the estimated
+    background contribution from the aperture sum. The corresponding
+    variance is calculated from the aperture flux uncertainty and the
+    background variance.
+
+    The output photometry table contains the fitted source coordinates
+    as ``x_fit`` and ``y_fit``.
+    """
     logger = get_logger("photometry")
     positions = np.array([positions['x_0'],
                           positions['y_0']]).T
