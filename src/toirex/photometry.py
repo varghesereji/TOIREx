@@ -210,45 +210,70 @@ def aperture_photometry_subrot(config,
     Perform aperture photometry on the specified sources.
 
     Aperture and background annulus geometries are selected from the
-    photometry configuration. The source flux, background level, and
-    associated variances are calculated for each source. The resulting
-    photometry table is saved to a FITS file.
-
-    If a variance extension is not available, the flux extension is used
-    as the variance array.
+    photometry configuration. The aperture flux, background level, and
+    their associated variances are calculated for each source. The
+    resulting photometry table is returned.
 
     Parameters
     ----------
     config : dict
-        Configuration dictionary containing the photometry and input
-        settings. The photometry configuration must specify the aperture
-        type, aperture radius, annulus type, background windows, and
-        whether magnitude should be saved. The input configuration must
-        specify the flux and variance FITS extensions.
+        Configuration dictionary containing the ``photometry`` and
+        ``inputs`` sections. The ``photometry`` section must specify
+        the aperture type, aperture radius or dimensions, annulus type,
+        and background annulus dimensions. The ``inputs`` section must
+        specify the FITS extensions containing the flux and variance
+        arrays.
 
     fname : str or pathlib.Path
         Path to the FITS file from which the photometry is extracted.
 
     positions : astropy.table.Table
-        Table containing the source positions. The table must contain
-        ``x_0`` and ``y_0`` columns giving the source coordinates in
-        pixels.
+        Table containing the initial source positions. The table must
+        contain ``x_0`` and ``y_0`` columns giving the source coordinates
+        in pixel units.
 
     Returns
     -------
-    str or pathlib.Path
-        Path to the FITS file containing the saved aperture photometry
-        table.
+    astropy.table.QTable
+        Table containing the aperture photometry results. The output
+        table includes the following columns:
+
+        ``x_fit``, ``y_fit``
+            Source coordinates in pixel units.
+
+        ``aperture_sum``, ``aperture_sum_err``
+            Total flux within the source aperture and its uncertainty.
+
+        ``bkg``, ``bkg_var``
+            Estimated background level per pixel and its variance.
+
+        ``bkg_sum``, ``bkg_var_sum``
+            Estimated background contribution within the source aperture
+            and its variance.
+
+        ``flux_net``, ``var_net``
+            Background-subtracted source flux and its variance.
 
     Notes
     -----
-    The net source flux is calculated by subtracting the estimated
-    background contribution from the aperture sum. The corresponding
-    variance is calculated from the aperture flux uncertainty and the
-    background variance.
+    The source background is estimated as the median of the pixels
+    within the configured background annulus. The background variance
+    is estimated from the variance array associated with those pixels.
 
-    The output photometry table contains the fitted source coordinates
-    as ``x_fit`` and ``y_fit``.
+    The net source flux is calculated as::
+
+        flux_net = aperture_sum - bkg_sum
+
+    and its variance as::
+
+        var_net = aperture_sum_err**2 + bkg_var_sum
+
+    If no valid variance FITS extension is specified, the flux array is
+    used as the variance array.
+
+    For elliptical apertures and annuli, the configuration may include
+    a rotation angle. If no angle is provided for an elliptical aperture
+    or annulus, an angle of zero is used.
     """
     logger = get_logger("photometry")
     positions = np.array([positions['x_0'],
@@ -518,44 +543,78 @@ def psf_photometry_subrot(config,
     """
     Perform PSF photometry on sources in a FITS image.
 
-    This function performs point spread function (PSF) photometry using one of
-    the supported PSF models (circular Gaussian, elliptical Gaussian, or
-    effective PSF). A local background is estimated and subtracted for each
-    source before fitting. The resulting photometry table is saved to the
-    input FITS file.
+    The function performs point spread function (PSF) photometry using one
+    of the configured PSF models: circular Gaussian, elliptical Gaussian,
+    or effective PSF (ePSF). A local background is estimated for each
+    source using an annular region and ``MMMBackground``. The fitted source
+    parameters and fluxes are returned as an Astropy table.
 
     Parameters
     ----------
-    config : configparser.ConfigParser
-        Configuration object containing the photometry settings, input FITS
-        extensions, PSF model parameters, fitting parameters, and background
-        estimation options.
+    config : dict
+        Configuration dictionary containing the ``photometry`` and
+        ``inputs`` sections. The ``photometry`` section must specify the
+        PSF model, fitting shape, aperture radius, background annulus,
+        and model-specific parameters. The ``inputs`` section must specify
+        the FITS extensions containing the flux and variance arrays.
+
     fname : str or pathlib.Path
-        Path to the input FITS file.
+        Path to the input FITS file containing the image data.
+
     positions : astropy.table.Table
-        Table containing the initial source positions for PSF fitting. The
-        table must contain the columns required by
-        `photutils.psf.PSFPhotometry`.
-    plot_dirs : str or pathlib.Path
-        Path to save the plots. Default is ``.``.
+        Table containing the initial source positions used to initialize
+        the PSF fitting. The table must contain the columns required by
+        ``photutils.psf.PSFPhotometry`` for initial source parameters,
+        including the source coordinates.
+
+    plot_dirs : str or pathlib.Path, optional
+        Directory in which diagnostic plots are saved. For the ePSF model,
+        the generated ePSF diagnostic plot is saved here. A PSF residual
+        image is also saved after the photometry is performed.
+        Default is ``.``.
 
     Returns
     -------
-    str or pathlib.Path
-        Path to the output FITS file containing the PSF photometry results.
+    astropy.table.Table
+        Table containing the PSF photometry results returned by
+        ``photutils.psf.PSFPhotometry``. The table contains the fitted
+        source parameters, including the fitted source coordinates and
+        PSF fluxes and associated uncertainties.
 
     Raises
     ------
     ValueError
-        If the aperture radius is greater than or equal to the inner
-        background radius, or if the inner background radius is greater than
-        or equal to the outer background radius.
+        If the source aperture radius is greater than or equal to the inner
+        background radius, or if the inner background radius is greater
+        than or equal to the outer background radius.
 
     Notes
     -----
-    A local background is estimated using
-    `photutils.background.MMMBackground` within the annulus defined by
-    ``BKGWINDOWS``. The returned PSF fluxes are background-subtracted.
+    The variance array is read from the FITS extension specified by
+    ``VAREXT``. If a valid variance extension is not specified, the flux
+    array is used as the variance array.
+
+    The local background is estimated using
+    ``photutils.background.MMMBackground`` within the annulus specified
+    by ``BKGWINDOWS``. The estimated background is supplied to
+    ``PSFPhotometry`` during the fitting.
+
+    Supported PSF models are:
+
+    ``CircularGaussianPSF``
+        Circular Gaussian PSF with the configured FWHM.
+
+    ``GaussianPSF``
+        Elliptical Gaussian PSF with configurable x and y FWHM values
+        and rotation angle.
+
+    ``EPSF``
+        Effective PSF constructed from the image using ``make_epsf``.
+        The ePSF construction also produces a diagnostic plot.
+
+    A residual image showing the difference between the input image and
+    the fitted PSF model is saved to ``plot_dirs`` after the photometry
+    is completed.
     """
     logger = get_logger("photometry")
 
@@ -1103,44 +1162,61 @@ def extract_photometry(
         plot_dir
 ):
     """
-    Perform photometry extraction using the configured method.
+    Extract and save photometry using the configured photometry method.
 
     The photometry method is selected from the ``METHOD`` entry in the
-    photometry configuration. PSF photometry is performed using
+    ``photometry`` configuration. PSF photometry is performed using
     :func:`psf_photometry_subrot`, while aperture photometry is performed
-    using :func:`aperture_photometry_subrot`.
+    using :func:`aperture_photometry_subrot`. The resulting photometry
+    table is then saved using :func:`save_photometry`.
 
     Parameters
     ----------
     config : dict
-        Configuration dictionary containing the photometry settings,
-        including the photometry method.
+        Configuration dictionary containing the ``photometry`` and
+        ``inputs`` sections. The ``photometry`` section must specify
+        ``METHOD`` and ``SAVE_MAGNITUDE``. The ``inputs`` section must
+        specify the flux FITS extension through ``FLUXEXT``.
 
     frametoextract : str or pathlib.Path
-        Path to the frame from which photometry is to be extracted.
+        Path to the FITS frame from which photometry is to be extracted.
 
     centroids : astropy.table.Table or array-like
-        Coordinates of the sources for which photometry is to be
-        extracted.
+        Initial source positions to be used for photometry. For PSF
+        photometry, the positions are passed to
+        :func:`psf_photometry_subrot`. For aperture photometry, they are
+        passed to :func:`aperture_photometry_subrot`.
 
     plot_dir : str or pathlib.Path
-        Directory where plots generated during PSF photometry are saved.
+        Directory in which diagnostic plots generated during PSF
+        photometry are saved. This argument is ignored for aperture
+        photometry.
 
     Returns
     -------
     str or pathlib.Path
-        Path to the file containing the extracted photometry.
+        Path to the FITS file containing the saved photometry table.
 
     Raises
     ------
     KeyError
-        If the ``photometry`` section or ``METHOD`` entry is missing
-        from ``config``.
+        If required entries such as ``photometry``, ``METHOD``,
+        ``SAVE_MAGNITUDE``, ``inputs``, or ``FLUXEXT`` are missing from
+        ``config``.
 
     ValueError
-        If ``METHOD`` is neither ``'PSF'`` nor ``'Aperture'``.
-    """
+        If ``METHOD`` is not ``'PSF'`` or ``'Aperture'``.
 
+    Notes
+    -----
+    If ``SAVE_MAGNITUDE`` is set to ``'Y'``, magnitude and magnitude
+    uncertainty are calculated and included in the saved photometry
+    table by :func:`save_photometry`.
+
+    The photometry method-specific routine returns the photometry table,
+    which is then passed to :func:`save_photometry` along with the input
+    frame and flux extension information.
+    """
     logger = get_logger('photometry')
 
     # Doing photometry
@@ -1168,7 +1244,7 @@ def extract_photometry(
         save_magnitude=save_magnitude,
         flext=flext
         )
-    
+
     print("Photometry data saved to {}".format(withphot))
     logger.info(f"Output saved as {withphot}")
 
