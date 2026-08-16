@@ -1026,7 +1026,32 @@ def phot_process(config, frametoextract,
 
 
 def photometry_extraction(config, dirname):
-    # dictkw = config['inits']['DICTKW']
+    """
+    Perform photometry extraction for all frames in a directory.
+
+    Searches the specified output directory for group files matching
+    ``Readytoextract_group*.txt``. Each group file contains the names of
+    frames to be processed. The frames are read from the group files and
+    passed to :func:`phot_process` for source detection, photometry
+    extraction, and WCS correction.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing the output directory under
+        ``config['outputs']['OP_DIR']`` and the photometry settings.
+
+    dirname : str
+        Name of the directory within the configured output directory
+        containing the group files and frames to be processed.
+
+    Returns
+    -------
+    None
+        This function performs photometry extraction and does not return
+        a value.
+    """
+
     logger = get_logger("photometry")
     logger.info("Doing photometry")
     opdir = Path(config['outputs']['OP_DIR']) / dirname
