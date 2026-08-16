@@ -891,6 +891,74 @@ def calculate_magnitude(phot_table):
 # -----------------------------
 
 
+def phot_process(config, frametoextract):
+    logger = get_logger("photometry")
+
+    radius = float(config['photometry']['RADIUS'])
+    bkgwindows = ast.literal_eval(
+        config['photometry']['BKGWINDOWS']
+    )
+
+    frametoextract = Path(frametoextract)
+    opdir = frametoextract.parent
+
+    frametoextract = opdir / frametoextract
+
+    # Making directory to save plots
+    plot_dir = opdir / "Photometry_plots"
+    plot_dir.mkdir(exist_ok=True)
+
+    sources_txtfname = opdir / config['photometry']['SOURCELIST']
+    editsource = config['photometry']['EDITSOURCE'] == 'YES'
+    if config['photometry']['FINDSOURCE'] == 'AUTO':
+        logger.info("Finding source AUTO")
+        fwhm = float(config['photometry']['FWHM'])
+        threshold = float(config['photometry']['THRESHOLD'])
+        centroids = targetfind_auto(
+            frametoextract,
+            fwhm=fwhm,
+            threshold=threshold,
+            show_plot=not editsource,
+            plot_dirs=plot_dir,
+            aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
+        )
+
+        if editsource:
+            logger.info("Editing the sources found")
+            centroids = targetfind_manual(
+                frametoextract,
+                centroids_0=table_to_centroids(centroids),
+                aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
+                plot_dirs=plot_dir
+            )
+
+    elif config['photometry']['FINDSOURCE'] == 'MANUAL':
+        logger.info("Finding source MANUAL")
+        centroids_0 = get_centroids(sources_txtfname, purpose='read')
+        centroids = targetfind_manual(
+            frametoextract,
+            centroids_0=centroids_0,
+            aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
+            plot_dirs=plot_dir
+        )
+
+    get_centroids(sources_txtfname, purpose='write',
+                  new_centroids=centroids)
+    # Doing photometry
+    if config['photometry']['METHOD'] == 'PSF':
+        logger.info("Doing PSF Photometry")
+        withphot = psf_photometry_subrot(config, frametoextract,
+                                         positions=centroids,
+                                         plot_dirs=plot_dir)
+    elif config['photometry']['METHOD'] == 'Aperture':
+        withphot = aperture_photometry_subrot(config, frametoextract,
+                                              positions=centroids)
+    print("Photometry data saved to {}".format(withphot))
+    logger.info(f"Output saved as {withphot}")
+    save_to_wcs(withphot)
+    logger.info(f"WCS correction on {withphot}")
+
+
 def photometry_extraction(config, dirname):
     # dictkw = config['inits']['DICTKW']
     logger = get_logger("photometry")
@@ -899,67 +967,10 @@ def photometry_extraction(config, dirname):
     reduce_txtfname = "Readytoextract_group*.txt"
     txtfiles_groups = opdir.glob(reduce_txtfname)
 
-    radius = float(config['photometry']['RADIUS'])
-    bkgwindows = ast.literal_eval(
-        config['photometry']['BKGWINDOWS']
-    )
-
-    # Making directory to save plots
-    plot_dir = opdir / "Photometry_plots"
-    plot_dir.mkdir(exist_ok=True)
-
     for groupfile in txtfiles_groups:
         txtfile_full = read_txt_file(groupfile)
         logger.info(f"Running for files in {groupfile}")
         for txtline in txtfile_full:
             frametoextract = txtline[0]
-            frametoextract = opdir / frametoextract
-            sources_txtfname = opdir / config['photometry']['SOURCELIST']
-            editsource = config['photometry']['EDITSOURCE'] == 'YES'
-            if config['photometry']['FINDSOURCE'] == 'AUTO':
-                logger.info("Finding source AUTO")
-                fwhm = float(config['photometry']['FWHM'])
-                threshold = float(config['photometry']['THRESHOLD'])
-                centroids = targetfind_auto(
-                    frametoextract,
-                    fwhm=fwhm,
-                    threshold=threshold,
-                    show_plot=not editsource,
-                    plot_dirs=plot_dir,
-                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
-                )
 
-                if editsource:
-                    logger.info("Editing the sources found")
-                    centroids = targetfind_manual(
-                        frametoextract,
-                        centroids_0=table_to_centroids(centroids),
-                        aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
-                        plot_dirs=plot_dir
-                    )
-
-            elif config['photometry']['FINDSOURCE'] == 'MANUAL':
-                logger.info("Finding source MANUAL")
-                centroids_0 = get_centroids(sources_txtfname, purpose='read')
-                centroids = targetfind_manual(
-                    frametoextract,
-                    centroids_0=centroids_0,
-                    aperture_radii=(radius, bkgwindows[0], bkgwindows[1]),
-                    plot_dirs=plot_dir
-                )
-
-            get_centroids(sources_txtfname, purpose='write',
-                          new_centroids=centroids)
-            # Doing photometry
-            if config['photometry']['METHOD'] == 'PSF':
-                logger.info("Doing PSF Photometry")
-                withphot = psf_photometry_subrot(config, frametoextract,
-                                                 positions=centroids,
-                                                 plot_dirs=plot_dir)
-            elif config['photometry']['METHOD'] == 'Aperture':
-                withphot = aperture_photometry_subrot(config, frametoextract,
-                                                      positions=centroids)
-            print("Photometry data saved to {}".format(withphot))
-            logger.info(f"Output saved as {withphot}")
-            save_to_wcs(withphot)
-            logger.info(f"WCS correction on {withphot}")
+            phot_process(config, frametoextract)
