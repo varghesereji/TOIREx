@@ -720,7 +720,8 @@ def psf_photometry_subrot(config,
 # -----------------------------
 
 
-def save_to_wcs(final_fname):
+def save_to_wcs(final_fname,
+                output_filename=None):
     """
     Add WCS coordinates to the photometry table and save the result.
 
@@ -785,16 +786,17 @@ def save_to_wcs(final_fname):
         for name in colnames[1:]:
             reordered[name] = phot_table[name]
 
-        out_table_name = final_fname.stem + ".wcs.fits"
-        out_table_name = opdir / out_table_name
+        if output_filename is None:
+            output_filename = final_fname.stem + ".wcs.fits"
+            output_filename = opdir / output_filename
 
         hdu = fits.BinTableHDU(data=reordered, header=primary_header,
                                name='PHOTOMETRY')
         hdul_out = fits.HDUList([fits.PrimaryHDU(header=primary_header), hdu])
 
-        hdul_out.writeto(out_table_name, overwrite=True)
+        hdul_out.writeto(output_filename, overwrite=True)
 
-    print("{} saved with WCS coordinates".format(out_table_name))
+    print("{} saved with WCS coordinates".format(output_filename))
     logger.info("Photometry data saved with WCS coordinates")
 
 # -----------------------------
