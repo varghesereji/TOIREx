@@ -1054,13 +1054,17 @@ def photometry_extraction(config, dirname):
 
     logger = get_logger("photometry")
     logger.info("Doing photometry")
+
     opdir = Path(config['outputs']['OP_DIR']) / dirname
+
     reduce_txtfname = "Readytoextract_group*.txt"
     txtfiles_groups = opdir.glob(reduce_txtfname)
 
     for groupfile in txtfiles_groups:
         txtfile_full = read_txt_file(groupfile)
+
         logger.info(f"Running for files in {groupfile}")
+
         for txtline in txtfile_full:
             frametoextract = txtline[0]
 
