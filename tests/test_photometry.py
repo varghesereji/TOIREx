@@ -356,18 +356,18 @@ def test_targetfind_manual(mock_get_logger, mock_imageplot, tmp_path):
         )
 
 
-@patch("toirex.photometry.save_photometry")
 @patch("toirex.photometry.aperture_photometry")
 @patch("toirex.photometry.fits.getdata")
 @patch("toirex.photometry.CircularAnnulus")
 @patch("toirex.photometry.CircularAperture")
 @patch("toirex.photometry.get_logger")
-def test_aperture_photometry_subrot(mock_get_logger,
-                                    mock_circular_aperture,
-                                    mock_circular_annulus,
-                                    mock_getdata,
-                                    mock_aperture_photometry,
-                                    mock_save_photometry):
+def test_aperture_photometry_subrot(
+        mock_get_logger,
+        mock_circular_aperture,
+        mock_circular_annulus,
+        mock_getdata,
+        mock_aperture_photometry,
+):
     """Test aperture photometry."""
 
     config = {
@@ -443,13 +443,14 @@ def test_aperture_photometry_subrot(mock_get_logger,
 
     mock_aperture_photometry.return_value = phot
 
-    mock_save_photometry.return_value = Path("test.phot.fits")
-
     result = aperture_photometry_subrot(
         config,
         fname,
         positions,
     )
+
+    # Check logger
+    mock_get_logger.assert_called_once_with("photometry")
 
     # Check aperture positions and radius
     expected_positions = np.array([
@@ -464,12 +465,11 @@ def test_aperture_photometry_subrot(mock_get_logger,
     np.testing.assert_array_equal(
         aperture_args.args[0],
         expected_positions,
-        )
+    )
 
     assert aperture_args.kwargs["r"] == 10.0
 
     # Check annulus positions and radii
-
     assert mock_circular_annulus.call_count == 1
 
     annulus_args = mock_circular_annulus.call_args
@@ -477,7 +477,7 @@ def test_aperture_photometry_subrot(mock_get_logger,
     np.testing.assert_array_equal(
         annulus_args.args[0],
         expected_positions,
-        )
+    )
 
     assert annulus_args.kwargs["r_in"] == 15.0
     assert annulus_args.kwargs["r_out"] == 20.0
@@ -500,7 +500,7 @@ def test_aperture_photometry_subrot(mock_get_logger,
 
     call_args = mock_aperture_photometry.call_args
 
-    assert np.array_equal(
+    np.testing.assert_array_equal(
         call_args.args[0],
         data,
     )
@@ -512,78 +512,66 @@ def test_aperture_photometry_subrot(mock_get_logger,
         np.sqrt(var),
     )
 
-    # Check the photometry table before saving
-    saved_phot = mock_save_photometry.call_args.args[1]
+    # Check returned photometry table
+    assert isinstance(result, Table)
 
-    assert "bkg" in saved_phot.colnames
-    assert "bkg_var" in saved_phot.colnames
-    assert "bkg_sum" in saved_phot.colnames
-    assert "bkg_var_sum" in saved_phot.colnames
-    assert "flux_net" in saved_phot.colnames
-    assert "var_net" in saved_phot.colnames
-    assert "x_fit" in saved_phot.colnames
-    assert "y_fit" in saved_phot.colnames
+    assert "bkg" in result.colnames
+    assert "bkg_var" in result.colnames
+    assert "bkg_sum" in result.colnames
+    assert "bkg_var_sum" in result.colnames
+    assert "flux_net" in result.colnames
+    assert "var_net" in result.colnames
+    assert "x_fit" in result.colnames
+    assert "y_fit" in result.colnames
 
     # Check background calculation
     np.testing.assert_array_equal(
-        saved_phot["bkg"],
+        result["bkg"],
         [10.0, 20.0],
     )
 
     np.testing.assert_array_equal(
-        saved_phot["bkg_var"],
+        result["bkg_var"],
         [0.25, 0.25],
     )
 
     # bkg_sum = bkg * aperture area
     np.testing.assert_array_equal(
-        saved_phot["bkg_sum"],
+        result["bkg_sum"],
         [1000.0, 2000.0],
     )
 
     # bkg_var_sum = bkg_var * aperture area
     np.testing.assert_array_equal(
-        saved_phot["bkg_var_sum"],
+        result["bkg_var_sum"],
         [25.0, 25.0],
     )
 
     # flux_net = aperture_sum - bkg_sum
     np.testing.assert_array_equal(
-        saved_phot["flux_net"],
+        result["flux_net"],
         [0.0, 0.0],
     )
 
     # var_net = aperture_sum_err² + bkg_var_sum
     np.testing.assert_array_equal(
-        saved_phot["var_net"],
+        result["var_net"],
         [125.0, 425.0],
     )
 
     # Check column renaming
-    assert "xcenter" not in saved_phot.colnames
-    assert "ycenter" not in saved_phot.colnames
+    assert "xcenter" not in result.colnames
+    assert "ycenter" not in result.colnames
 
     np.testing.assert_array_equal(
-        saved_phot["x_fit"],
+        result["x_fit"],
         [10.0, 20.0],
     )
 
     np.testing.assert_array_equal(
-        saved_phot["y_fit"],
+        result["y_fit"],
         [15.0, 25.0],
     )
-
-    # Check save_magnitude and save_photometry arguments
-    mock_save_photometry.assert_called_once_with(
-        fname,
-        saved_phot,
-        history="Aperture photometry table added on file update.",
-        save_magnitude=True,
-        flext=0,
-    )
-
-    # Check return value
-    assert result == Path("test.phot.fits")
 
 
 @patch("toirex.photometry.plot_epsf")
@@ -731,7 +719,6 @@ def test_make_epsf(mock_get_logger,
     assert result is epsf
 
 
-@patch("toirex.photometry.save_photometry")
 @patch("toirex.photometry.save_residualimg")
 @patch("toirex.photometry.PSFPhotometry")
 @patch("toirex.photometry.LocalBackground")
@@ -739,14 +726,14 @@ def test_make_epsf(mock_get_logger,
 @patch("toirex.photometry.CircularGaussianPSF")
 @patch("toirex.photometry.fits.getdata")
 @patch("toirex.photometry.get_logger")
-def test_psf_photometry_subrot(mock_get_logger,
-                               mock_getdata,
-                               mock_circular_gaussian_psf,
-                               mock_mmm_background,
-                               mock_local_background,
-                               mock_psf_photometry,
-                               mock_save_residualimg,
-                               mock_save_photometry):
+def test_psf_photometry_subrot(
+        mock_get_logger,
+        mock_getdata,
+        mock_circular_gaussian_psf,
+        mock_mmm_background,
+        mock_local_background,
+        mock_psf_photometry,
+        mock_save_residualimg):
     """Test PSF photometry using a circular Gaussian PSF."""
 
     config = {
@@ -803,14 +790,17 @@ def test_psf_photometry_subrot(mock_get_logger,
 
     mock_psf_photometry.return_value = psfphot
 
-    # Mock saving functions
-    mock_save_photometry.return_value = Path("test.phot.fits")
-
     result = psf_photometry_subrot(
         config,
         fname,
         positions,
     )
+
+    # ---------------------------------------------------------
+    # Check logger
+    # ---------------------------------------------------------
+
+    mock_get_logger.assert_called_once_with("photometry")
 
     # ---------------------------------------------------------
     # Check FITS data was read correctly
@@ -880,6 +870,7 @@ def test_psf_photometry_subrot(mock_get_logger,
     )
 
     assert psfphot_args.kwargs["init_params"] is positions
+
     # ---------------------------------------------------------
     # Check residual image
     # ---------------------------------------------------------
@@ -894,25 +885,33 @@ def test_psf_photometry_subrot(mock_get_logger,
     )
 
     # ---------------------------------------------------------
-    # Check save_photometry
+    # Check returned photometry table
     # ---------------------------------------------------------
 
-    mock_save_photometry.assert_called_once_with(
-        fname,
-        phot,
-        history="PSF photometry table added on file update.",
-        save_magnitude=True,
-        flext=0,
+    assert isinstance(result, Table)
+
+    assert result is phot
+
+    assert "x_fit" in result.colnames
+    assert "y_fit" in result.colnames
+    assert "flux_fit" in result.colnames
+
+    np.testing.assert_array_equal(
+        result["x_fit"],
+        [10.0, 20.0],
     )
 
-    # ---------------------------------------------------------
-    # Check return value
-    # ---------------------------------------------------------
+    np.testing.assert_array_equal(
+        result["y_fit"],
+        [15.0, 25.0],
+    )
 
-    assert result == Path("test.phot.fits")
+    np.testing.assert_array_equal(
+        result["flux_fit"],
+        [1000.0, 2000.0],
+    )
 
 
-@patch("toirex.photometry.save_photometry")
 @patch("toirex.photometry.save_residualimg")
 @patch("toirex.photometry.PSFPhotometry")
 @patch("toirex.photometry.LocalBackground")
@@ -927,8 +926,7 @@ def test_psf_photometry_subrot_gaussian(
         mock_mmm_background,
         mock_local_background,
         mock_psf_photometry,
-        mock_save_residualimg,
-        mock_save_photometry):
+        mock_save_residualimg):
     """Test PSF photometry using a Gaussian PSF."""
 
     config = {
@@ -959,15 +957,18 @@ def test_psf_photometry_subrot_gaussian(
 
     mock_getdata.side_effect = [data, var]
 
+    # Mock Gaussian PSF
     psf_model = Mock()
     mock_gaussian_psf.return_value = psf_model
 
+    # Mock background
     bkgstat = Mock()
     mock_mmm_background.return_value = bkgstat
 
     local_bkg = Mock()
     mock_local_background.return_value = local_bkg
 
+    # Mock PSF photometry
     psfphot = Mock()
 
     phot = Table({
@@ -977,10 +978,11 @@ def test_psf_photometry_subrot_gaussian(
     })
 
     psfphot.return_value = phot
-    psfphot.make_residual_image.return_value = np.zeros((100, 100))
+
+    residual = np.zeros((100, 100))
+    psfphot.make_residual_image.return_value = residual
 
     mock_psf_photometry.return_value = psfphot
-    mock_save_photometry.return_value = Path("test.phot.fits")
 
     result = psf_photometry_subrot(
         config,
@@ -988,7 +990,16 @@ def test_psf_photometry_subrot_gaussian(
         positions,
     )
 
+    # ---------------------------------------------------------
+    # Check logger
+    # ---------------------------------------------------------
+
+    mock_get_logger.assert_called_once_with("photometry")
+
+    # ---------------------------------------------------------
     # Check Gaussian PSF construction
+    # ---------------------------------------------------------
+
     mock_gaussian_psf.assert_called_once_with(
         flux=1,
         x_fwhm=7.0,
@@ -996,7 +1007,22 @@ def test_psf_photometry_subrot_gaussian(
         theta=0.5,
     )
 
-    # Check the rest of the PSF photometry setup
+    # ---------------------------------------------------------
+    # Check background
+    # ---------------------------------------------------------
+
+    mock_mmm_background.assert_called_once_with()
+
+    mock_local_background.assert_called_once_with(
+        10.0,
+        20.0,
+        bkg_estimator=bkgstat,
+    )
+
+    # ---------------------------------------------------------
+    # Check PSF photometry setup
+    # ---------------------------------------------------------
+
     mock_psf_photometry.assert_called_once_with(
         psf_model,
         (15, 15),
@@ -1005,10 +1031,62 @@ def test_psf_photometry_subrot_gaussian(
         progress_bar=True,
     )
 
-    assert result == Path("test.phot.fits")
+    # ---------------------------------------------------------
+    # Check PSF photometry call
+    # ---------------------------------------------------------
+
+    psfphot.assert_called_once()
+
+    psfphot_args = psfphot.call_args
+
+    np.testing.assert_array_equal(
+        psfphot_args.args[0],
+        data,
+    )
+
+    np.testing.assert_array_equal(
+        psfphot_args.kwargs["error"],
+        np.sqrt(var),
+    )
+
+    assert psfphot_args.kwargs["init_params"] is positions
+
+    # ---------------------------------------------------------
+    # Check residual image
+    # ---------------------------------------------------------
+
+    psfphot.make_residual_image.assert_called_once_with(data)
+
+    mock_save_residualimg.assert_called_once_with(
+        data,
+        residual,
+        fname=Path("test_psfresidue.pdf"),
+        show_plot=True,
+    )
+
+    # ---------------------------------------------------------
+    # Check returned photometry table
+    # ---------------------------------------------------------
+
+    assert isinstance(result, Table)
+    assert result is phot
+
+    np.testing.assert_array_equal(
+        result["x_fit"],
+        [10.0, 20.0],
+    )
+
+    np.testing.assert_array_equal(
+        result["y_fit"],
+        [15.0, 25.0],
+    )
+
+    np.testing.assert_array_equal(
+        result["flux_fit"],
+        [1000.0, 2000.0],
+    )
 
 
-@patch("toirex.photometry.save_photometry")
 @patch("toirex.photometry.save_residualimg")
 @patch("toirex.photometry.PSFPhotometry")
 @patch("toirex.photometry.LocalBackground")
@@ -1023,8 +1101,7 @@ def test_psf_photometry_subrot_epsf(
         mock_mmm_background,
         mock_local_background,
         mock_psf_photometry,
-        mock_save_residualimg,
-        mock_save_photometry):
+        mock_save_residualimg):
     """Test PSF photometry using an effective PSF."""
 
     config = {
@@ -1076,10 +1153,11 @@ def test_psf_photometry_subrot_epsf(
     })
 
     psfphot.return_value = phot
-    psfphot.make_residual_image.return_value = np.zeros((100, 100))
+
+    residual = np.zeros((100, 100))
+    psfphot.make_residual_image.return_value = residual
 
     mock_psf_photometry.return_value = psfphot
-    mock_save_photometry.return_value = Path("test.phot.fits")
 
     result = psf_photometry_subrot(
         config,
@@ -1087,9 +1165,17 @@ def test_psf_photometry_subrot_epsf(
         positions,
     )
 
-    # Check make_epsf call
+    # ---------------------------------------------------------
+    # Check logger
+    # ---------------------------------------------------------
 
-    assert mock_make_epsf.call_count == 1
+    mock_get_logger.assert_called_once_with("photometry")
+
+    # ---------------------------------------------------------
+    # Check make_epsf call
+    # ---------------------------------------------------------
+
+    mock_make_epsf.assert_called_once()
 
     epsf_args = mock_make_epsf.call_args
 
@@ -1110,7 +1196,10 @@ def test_psf_photometry_subrot_epsf(
     assert epsf_args.kwargs["aperture_radius"] == 4.0
     assert epsf_args.kwargs["plot_fname"] == Path("test_epsf.pdf")
 
-    # The returned ePSF should be passed to PSFPhotometry
+    # ---------------------------------------------------------
+    # Check PSFPhotometry construction
+    # ---------------------------------------------------------
+
     mock_psf_photometry.assert_called_once_with(
         epsf,
         (15, 15),
@@ -1119,7 +1208,61 @@ def test_psf_photometry_subrot_epsf(
         progress_bar=True,
     )
 
-    assert result == Path("test.phot.fits")
+    # ---------------------------------------------------------
+    # Check PSF photometry call
+    # ---------------------------------------------------------
+
+    psfphot.assert_called_once()
+
+    psfphot_args = psfphot.call_args
+
+    np.testing.assert_array_equal(
+        psfphot_args.args[0],
+        data,
+    )
+
+    np.testing.assert_array_equal(
+        psfphot_args.kwargs["error"],
+        np.sqrt(var),
+    )
+
+    assert psfphot_args.kwargs["init_params"] is positions
+
+    # ---------------------------------------------------------
+    # Check residual image
+    # ---------------------------------------------------------
+
+    psfphot.make_residual_image.assert_called_once_with(data)
+
+    mock_save_residualimg.assert_called_once_with(
+        data,
+        residual,
+        fname=Path("test_psfresidue.pdf"),
+        show_plot=True,
+    )
+
+    # ---------------------------------------------------------
+    # Check returned photometry table
+    # ---------------------------------------------------------
+
+    assert isinstance(result, Table)
+
+    assert result is phot
+
+    np.testing.assert_array_equal(
+        result["x_fit"],
+        [10.0, 20.0],
+    )
+
+    np.testing.assert_array_equal(
+        result["y_fit"],
+        [15.0, 25.0],
+    )
+
+    np.testing.assert_array_equal(
+        result["flux_fit"],
+        [1000.0, 2000.0],
+    )
 
 
 @patch("toirex.photometry.get_logger")
@@ -1547,55 +1690,81 @@ def test_get_centroids_read(mock_read_txt_file, tmp_path):
 # Tests for extraction
 # -------------------------------------------------
 
-
-@patch("toirex.photometry.psf_photometry_subrot")
 @patch("toirex.photometry.get_logger")
-def test_extract_photometry_psf(
-        mock_get_logger,
-        mock_psf_photometry,
-        tmp_path
-):
-    """Test PSF photometry extraction."""
+def test_extract_photometry_psf(mock_get_logger, tmp_path):
+
+    frametoextract = tmp_path / "test.fits"
+    plot_dir = tmp_path / "Photometry_plots"
+    plot_dir.mkdir()
 
     config = {
         "photometry": {
             "METHOD": "PSF",
-        }
+            "SAVE_MAGNITUDE": "Y",
+        },
+        "inputs": {
+            "FLUXEXT": "1",
+        },
     }
 
-    frametoextract = tmp_path / "frame1.fits"
-    plot_dir = tmp_path / "Photometry_plots"
-
     centroids = Table({
-        "x": [10.0, 20.0],
-        "y": [15.0, 25.0],
+        "x_0": [10.0],
+        "y_0": [20.0],
     })
 
-    expected_output = tmp_path / "photometry.fits"
-    mock_psf_photometry.return_value = expected_output
+    phot_table = Table({
+        "flux_fit": [100.0],
+    })
 
-    result = extract_photometry(
-        config,
-        frametoextract,
-        centroids,
-        plot_dir
-    )
+    withphot = tmp_path / "test.phot.fits"
 
-    mock_psf_photometry.assert_called_once_with(
+    with patch(
+        "toirex.photometry.psf_photometry_subrot",
+        return_value=phot_table,
+    ) as mock_psf, patch(
+        "toirex.photometry.save_photometry",
+        return_value=withphot,
+    ) as mock_save:
+
+        result = extract_photometry(
+            config,
+            frametoextract,
+            centroids,
+            plot_dir,
+        )
+
+    # Check logger
+    mock_get_logger.assert_called_once_with("photometry")
+
+    # Check PSF photometry call
+    mock_psf.assert_called_once_with(
         config,
         frametoextract,
         positions=centroids,
         plot_dirs=plot_dir,
     )
 
-    assert result == expected_output
+    # Check saving
+    mock_save.assert_called_once_with(
+        frametoextract,
+        phot_table,
+        output_filename=None,
+        history="PSF photometry table added on file update.",
+        save_magnitude=True,
+        flext=1,
+    )
+
+    # Check return value
+    assert result == withphot
 
 
+@patch("toirex.photometry.save_photometry")
 @patch("toirex.photometry.aperture_photometry_subrot")
 @patch("toirex.photometry.get_logger")
 def test_extract_photometry_aperture(
         mock_get_logger,
         mock_aperture_photometry,
+        mock_save_photometry,
         tmp_path
 ):
     """Test aperture photometry extraction."""
@@ -1603,33 +1772,58 @@ def test_extract_photometry_aperture(
     config = {
         "photometry": {
             "METHOD": "Aperture",
-        }
+            "SAVE_MAGNITUDE": "Y",
+        },
+        "inputs": {
+            "FLUXEXT": "0",
+        },
     }
 
     frametoextract = tmp_path / "frame1.fits"
     plot_dir = tmp_path / "Photometry_plots"
 
     centroids = Table({
-        "x": [10.0, 20.0],
-        "y": [15.0, 25.0],
+        "x_0": [10.0, 20.0],
+        "y_0": [15.0, 25.0],
+    })
+
+    phot_table = Table({
+        "flux_net": [100.0, 200.0],
     })
 
     expected_output = tmp_path / "photometry.fits"
-    mock_aperture_photometry.return_value = expected_output
+
+    mock_aperture_photometry.return_value = phot_table
+    mock_save_photometry.return_value = expected_output
 
     result = extract_photometry(
         config,
         frametoextract,
         centroids,
-        plot_dir
+        plot_dir,
     )
 
+    # Check logger
+    mock_get_logger.assert_called_once_with("photometry")
+
+    # Check aperture photometry
     mock_aperture_photometry.assert_called_once_with(
         config,
         frametoextract,
         positions=centroids,
     )
 
+    # Check saving
+    mock_save_photometry.assert_called_once_with(
+        frametoextract,
+        phot_table,
+        output_filename=None,
+        history="Aperture photometry table added on file update.",
+        save_magnitude=True,
+        flext=0,
+    )
+
+    # Check return value
     assert result == expected_output
 
 # -------------------------------------------------
@@ -1659,8 +1853,8 @@ def test_phot_process(
     frametoextract = "frame1.fits"
 
     expected_centroids = Table({
-        "x": [10.0, 20.0],
-        "y": [15.0, 25.0],
+        "x_0": [10.0, 20.0],
+        "y_0": [15.0, 25.0],
     })
 
     expected_output = tmp_path / "photometry.fits"
@@ -1676,19 +1870,23 @@ def test_phot_process(
 
     plot_dir = tmp_path / "Photometry_plots"
 
+    # Check source detection
     mock_find_sources.assert_called_once_with(
         config,
         tmp_path / frametoextract,
         plot_dir
     )
 
+    # Check photometry extraction
     mock_extract_photometry.assert_called_once_with(
         config,
         tmp_path / frametoextract,
         expected_centroids,
-        plot_dir
+        plot_dir,
+        output_filename=None,
     )
 
+    # Check WCS correction
     mock_save_to_wcs.assert_called_once_with(
         expected_output
     )
