@@ -1464,7 +1464,8 @@ def test_photometry_extraction_auto_psf(
     # check that phot_process wsa called for the frame
     mock_phot_process.assert_called_once_with(
         config,
-        "frame1.fits"
+        "frame1.fits",
+        opdir
         )
 
 
