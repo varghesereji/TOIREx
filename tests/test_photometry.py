@@ -20,6 +20,7 @@ from toirex.photometry import save_to_wcs
 from toirex.photometry import get_centroids
 from toirex.photometry import photometry_extraction
 
+
 @patch("toirex.photometry.get_logger")
 def test_calculate_snr_aperture(mock_get_logger):
     """Test SNR calculation for aperture photometry"""
@@ -1299,6 +1300,7 @@ def test_save_to_wcs(mock_fits_open,
         overwrite=True,
     )
 
+
 @patch("toirex.photometry.calculate_magnitude")
 @patch("toirex.photometry.calculate_snr")
 @patch("toirex.photometry.get_logger")
@@ -1385,6 +1387,7 @@ def test_save_photometry(mock_getheader,
     # Check returned filename
     assert result == expected_output
 
+
 @patch("toirex.photometry.read_txt_file")
 def test_get_centroids_read(mock_read_txt_file, tmp_path):
     """Test reading centroids from a text file."""
@@ -1464,5 +1467,5 @@ def test_photometry_extraction_auto_psf(
         "frame1.fits"
         )
 
-    
+
 # End
