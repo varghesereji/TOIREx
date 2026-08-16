@@ -1424,6 +1424,10 @@ def test_find_sources_manual(
     assert result == final_centroids
 
 
+# -------------------------------------------------
+# Tests for saving output
+# -------------------------------------------------
+
 @patch("toirex.photometry.calculate_magnitude")
 @patch("toirex.photometry.calculate_snr")
 @patch("toirex.photometry.get_logger")
@@ -1536,6 +1540,10 @@ def test_get_centroids_read(mock_read_txt_file, tmp_path):
 
     assert result == expected
 
+
+# -------------------------------------------------
+# Tests for extraction
+# -------------------------------------------------
 
 @patch("toirex.photometry.read_txt_file")
 @patch("toirex.photometry.get_logger")
