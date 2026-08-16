@@ -1275,7 +1275,8 @@ def extract_photometry(
 
 def phot_process(config,
                  frametoextract,
-                 opdir=None):
+                 opdir=None,
+                 output_filename=None):
     """
     Perform the complete photometry processing for a single frame.
 
@@ -1298,6 +1299,11 @@ def phot_process(config,
         Output directory containing the frame and where photometry
         products and plots will be saved. If ``None``, the parent
         directory of ``frametoextract`` is used.
+
+    output_fname : str or pathlib.Path, optional
+        Output filename for the photometry FITS file. If ``None``, the
+        output filename is generated from ``fname`` by replacing its
+        extension with ``".phot.fits"``.
 
     Returns
     -------
@@ -1331,7 +1337,8 @@ def phot_process(config,
         config,
         frametoextract,
         centroids,
-        plot_dir
+        plot_dir,
+        output_filename=output_filename
         )
 
     logger.info(f"WCS correction on {withphot}")
