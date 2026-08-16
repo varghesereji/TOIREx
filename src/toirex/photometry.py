@@ -364,6 +364,8 @@ def aperture_photometry_subrot(config,
     phot.rename_column('xcenter', 'x_fit')
     phot.rename_column('ycenter', 'y_fit')
 
+    return phot
+
     save_magnitude = config['photometry']['SAVE_MAGNITUDE'] == 'Y'
 
     opfname = save_photometry(
@@ -663,6 +665,8 @@ def psf_photometry_subrot(config,
                      psfphot.make_residual_image(data),
                      fname=resplot_fname,
                      show_plot=True)
+
+    return phot
 
     save_magnitude = config['photometry']['SAVE_MAGNITUDE'] == 'Y'
 
@@ -1166,16 +1170,16 @@ def extract_photometry(
     # Doing photometry
     if config['photometry']['METHOD'] == 'PSF':
         logger.info("Doing PSF Photometry")
-        withphot = psf_photometry_subrot(config, frametoextract,
-                                         positions=centroids,
-                                         plot_dirs=plot_dir)
+        phot_table = psf_photometry_subrot(config, frametoextract,
+                                           positions=centroids,
+                                           plot_dirs=plot_dir)
         logger.info("PSF Photometry DONE")
 
     elif config['photometry']['METHOD'] == 'Aperture':
-        withphot = aperture_photometry_subrot(config, frametoextract,
-                                              positions=centroids)
+        phot_table = aperture_photometry_subrot(config, frametoextract,
+                                                positions=centroids)
         logger.info("Aperture Photometry DONE")
-
+    
     print("Photometry data saved to {}".format(withphot))
     logger.info(f"Output saved as {withphot}")
 
