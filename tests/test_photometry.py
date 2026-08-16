@@ -20,6 +20,7 @@ from toirex.photometry import save_to_wcs
 from toirex.photometry import get_centroids
 from toirex.photometry import find_sources
 from toirex.photometry import photometry_extraction
+from toirex.photometry import extract_photometry
 
 
 @patch("toirex.photometry.get_logger")
@@ -1544,6 +1545,96 @@ def test_get_centroids_read(mock_read_txt_file, tmp_path):
 # -------------------------------------------------
 # Tests for extraction
 # -------------------------------------------------
+
+
+@patch("toirex.photometry.psf_photometry_subrot")
+@patch("toirex.photometry.get_logger")
+def test_extract_photometry_psf(
+        mock_get_logger,
+        mock_psf_photometry,
+        tmp_path
+):
+    """Test PSF photometry extraction."""
+
+    config = {
+        "photometry": {
+            "METHOD": "PSF",
+        }
+    }
+
+    frametoextract = tmp_path / "frame1.fits"
+    plot_dir = tmp_path / "Photometry_plots"
+
+    centroids = Table({
+        "x": [10.0, 20.0],
+        "y": [15.0, 25.0],
+    })
+
+    expected_output = tmp_path / "photometry.fits"
+    mock_psf_photometry.return_value = expected_output
+
+    result = extract_photometry(
+        config,
+        frametoextract,
+        centroids,
+        plot_dir
+    )
+
+    mock_psf_photometry.assert_called_once_with(
+        config,
+        frametoextract,
+        positions=centroids,
+        plot_dirs=plot_dir,
+    )
+
+    assert result == expected_output
+
+
+@patch("toirex.photometry.aperture_photometry_subrot")
+@patch("toirex.photometry.get_logger")
+def test_extract_photometry_aperture(
+        mock_get_logger,
+        mock_aperture_photometry,
+        tmp_path
+):
+    """Test aperture photometry extraction."""
+
+    config = {
+        "photometry": {
+            "METHOD": "Aperture",
+        }
+    }
+
+    frametoextract = tmp_path / "frame1.fits"
+    plot_dir = tmp_path / "Photometry_plots"
+
+    centroids = Table({
+        "x": [10.0, 20.0],
+        "y": [15.0, 25.0],
+    })
+
+    expected_output = tmp_path / "photometry.fits"
+    mock_aperture_photometry.return_value = expected_output
+
+    result = extract_photometry(
+        config,
+        frametoextract,
+        centroids,
+        plot_dir
+    )
+
+    mock_aperture_photometry.assert_called_once_with(
+        config,
+        frametoextract,
+        positions=centroids,
+    )
+
+    assert result == expected_output
+
+# -------------------------------------------------
+# Tests for extraction
+# -------------------------------------------------
+
 
 @patch("toirex.photometry.read_txt_file")
 @patch("toirex.photometry.get_logger")
