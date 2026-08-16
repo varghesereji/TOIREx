@@ -1182,6 +1182,13 @@ def extract_photometry(
         logger.info("Aperture Photometry DONE")
         history = "Aperture photometry table added on file update."
 
+    withphot = save_photometry(
+        frametoextract,
+        phot_table,
+        history=history,
+        save_magnitude=save_magnitude,
+        flext=flext
+        )
     
     print("Photometry data saved to {}".format(withphot))
     logger.info(f"Output saved as {withphot}")
