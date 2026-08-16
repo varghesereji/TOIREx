@@ -905,6 +905,48 @@ def find_sources(
         frametoextract,
         plot_dir
 ):
+    """
+    Find source positions in an astronomical image.
+
+    Sources can be identified automatically or manually according to the
+    ``FINDSOURCE`` configuration option. In automatic mode, sources are
+    detected using :func:`targetfind_auto`. If source editing is enabled,
+    the automatically detected sources are subsequently passed to
+    :func:`targetfind_manual` for interactive adjustment.
+
+    In manual mode, initial source positions are read from the configured
+    source list and passed to :func:`targetfind_manual`.
+
+    The final source positions are written to the configured source list
+    and returned.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing the photometry settings,
+        including source-finding method, aperture radius, background
+        windows, source list, FWHM, and detection threshold.
+
+    frametoextract : str or pathlib.Path
+        Path to the frame in which sources are to be identified.
+
+    plot_dir : str or pathlib.Path
+        Directory where source-finding plots are saved.
+
+    Returns
+    -------
+    astropy.table.Table
+        Table containing the final source positions.
+
+    Raises
+    ------
+    KeyError
+        If required photometry configuration parameters are missing.
+
+    ValueError
+        If a numerical configuration parameter cannot be converted to
+        the required type.
+    """
 
     logger = get_logger("photometry")
     opdir = Path(frametoextract).parent
