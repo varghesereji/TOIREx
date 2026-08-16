@@ -988,6 +988,36 @@ def extract_photometry(
 
 def phot_process(config, frametoextract,
                  opdir=None):
+    """
+    Perform the complete photometry processing for a single frame.
+
+    The frame path is resolved relative to ``opdir`` when provided.
+    A directory for photometry plots is created within ``opdir``.
+    Sources are then identified, photometry is extracted for the
+    detected sources, and WCS coordinates are added to the resulting
+    photometry table.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing the photometry settings.
+
+    frametoextract : str or pathlib.Path
+        Name or path of the frame to be processed. If ``opdir`` is
+        provided, the frame is interpreted relative to that directory.
+
+    opdir : str or pathlib.Path, optional
+        Output directory containing the frame and where photometry
+        products and plots will be saved. If ``None``, the parent
+        directory of ``frametoextract`` is used.
+
+    Returns
+    -------
+    None
+        The processed photometry is saved to disk, and no value is
+        returned.
+    """
+
     logger = get_logger("photometry")
 
     frametoextract = Path(frametoextract)
