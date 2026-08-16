@@ -1021,8 +1021,8 @@ def phot_process(config, frametoextract,
         plot_dir
         )
 
-    save_to_wcs(withphot)
     logger.info(f"WCS correction on {withphot}")
+    save_to_wcs(withphot)
 
 
 def photometry_extraction(config, dirname):
