@@ -804,6 +804,7 @@ def save_to_wcs(final_fname):
 
 def save_photometry(fname,
                     phot_table,
+                    output_filename=None,
                     history="Photometry table added",
                     save_magnitude=True,
                     flext=0):
@@ -855,15 +856,16 @@ def save_photometry(fname,
 
     hdul = fits.HDUList([primary_hdu, table_hdu])
 
-    opdir = Path(fname.parent)
-    opfname = fname.stem + ".phot.fits"
-    opfname = opdir / opfname
+    if output_filename is None:
+        opdir = Path(fname.parent)
+        output_filename = fname.stem + ".phot.fits"
+        output_filename = opdir / output_filename
 
-    hdul.writeto(opfname, overwrite=True)
+    hdul.writeto(output_filename, overwrite=True)
 
-    logger.info(f"Photometry file saved as {opfname}")
+    logger.info(f"Photometry file saved as {output_filename}")
 
-    return opfname
+    return output_filename
 
 
 # -----------------------------
