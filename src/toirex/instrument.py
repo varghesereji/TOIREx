@@ -174,6 +174,9 @@ def select_trace_spectanspec(
     elif header["GRATING"] == 'grating2':
         # grating_items = instrument_configs['TANSPEC_LR']
         mode = "LR"
+    else:
+        print("\033[31mCannot choose mode automatically.\033[0m")
+        mode = input("Enter the mode (XD/LR):")
     grating_items = instrument_configs['TANSPEC_' + mode]
     star_trace = grating_items['ContinuumFile']
     aperture_label = grating_items['ApertureLabel']
